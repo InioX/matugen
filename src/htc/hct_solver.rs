@@ -1,8 +1,8 @@
+use crate::htc::cam16::Cam16;
 use crate::htc::viewing_conditions::ViewingConditions;
 use crate::util::color::{argb_from_linrgb, argb_from_lstar, y_from_lstar};
 use crate::util::math::{matrix_multiply, sanitize_degrees_double};
 use std::f64::consts::PI;
-use crate::htc::cam16::Cam16;
 
 const SCALED_DISCOUNT_FROM_LINRGB: [[f64; 3]; 3] = [
     [
@@ -626,13 +626,13 @@ fn find_result_by_j(hue_radians: f64, chroma: f64, y: f64) -> [u8; 4] {
 }
 
 /// Finds an sRGB color with the given hue, chroma, and L*, if possible.
-/// 
-/// # Arguments 
-/// 
+///
+/// # Arguments
+///
 /// * `hue_degrees`: The desired hue, in degrees.
 /// * `chroma`: The desired chroma.
 /// * `lstar`: The desired L*.
-/// 
+///
 /// returns: A hexadecimal representing the sRGB color. The color has sufficiently close hue,
 /// chroma, and L* to the desired values, if possible; otherwise, the hue and L* will be,
 /// sufficiently close, and chroma will be maximized.

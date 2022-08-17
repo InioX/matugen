@@ -1,14 +1,7 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub mod blend;
+pub mod htc;
+pub mod palettes;
+// TODO pub mod quantize;
+pub mod scheme;
+pub mod score;
+pub mod util;
