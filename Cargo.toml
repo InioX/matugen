@@ -1,6 +1,6 @@
 [package]
 name = "material-color-utilities-rs"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license-file = "./LICENSE"
 description = "A rust port of Material Design color utilities"
@@ -10,6 +10,7 @@ repository = "https://github.com/alphaqu/material-color-utilities-rs"
 [dependencies]
 ahash = "0.8.0"
 lazy_static = "1.4.0"
+serde = { version = "1.0", optional = true, features = ["derive"] }
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
