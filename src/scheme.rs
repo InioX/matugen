@@ -38,7 +38,7 @@ pub struct Scheme {
     pub inverse_primary: [u8; 4],
 }
 
-#[cfg(feature="serde")]
+#[cfg(feature = "serde")]
 impl Serialize for Scheme {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -50,7 +50,7 @@ impl Serialize for Scheme {
         // the risk of a typo between a field name and it's name in the output.
         macro_rules! ser {
             ($key:ident) => {
-                state.serialize_field("$key", &format_argb_as_rgb(self.$key))?;
+                state.serialize_field(stringify!($key), &format_argb_as_rgb(self.$key))?;
             };
         }
 
