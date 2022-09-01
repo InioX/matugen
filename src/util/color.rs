@@ -27,6 +27,11 @@ pub fn argb_from_rgb(rgb: [u8; 3]) -> [u8; 4] {
     [255, rgb[0], rgb[1], rgb[2]]
 }
 
+/// Formats a color as ARGB to #RRGGBB format
+pub fn format_argb_as_rgb(argb: [u8; 4]) -> String {
+    format!("#{:02x}{:02x}{:02x}", argb[1], argb[2], argb[3])
+}
+
 /** Converts a color from linear RGB components to ARGB format. */
 pub fn argb_from_linrgb(linrgb: [f64; 3]) -> [u8; 4] {
     let r = delinearized(linrgb[0]);
