@@ -1,6 +1,11 @@
 use crate::palettes::core::CorePalette;
+#[cfg(feature = "serde")]
+use crate::util::color::format_argb_as_rgb;
+#[cfg(feature = "serde")]
+use serde::{ser::SerializeStruct, Serialize};
 
 /// Represents a Material color scheme, a mapping of color roles to colors.
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 pub struct Scheme {
     pub primary: [u8; 4],
     pub on_primary: [u8; 4],
@@ -31,6 +36,56 @@ pub struct Scheme {
     pub inverse_surface: [u8; 4],
     pub inverse_on_surface: [u8; 4],
     pub inverse_primary: [u8; 4],
+}
+
+#[cfg(feature = "serde")]
+impl Serialize for Scheme {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("Scheme", 29)?;
+
+        // Macro to serialize an ARGB field to its RGB representation, and reduce
+        // the risk of a typo between a field name and it's name in the output.
+        macro_rules! ser {
+            ($key:ident) => {
+                state.serialize_field(stringify!($key), &format_argb_as_rgb(self.$key))?;
+            };
+        }
+
+        ser!(primary);
+        ser!(on_primary);
+        ser!(primary_container);
+        ser!(on_primary_container);
+        ser!(secondary);
+        ser!(on_secondary);
+        ser!(secondary_container);
+        ser!(on_secondary_container);
+        ser!(tertiary);
+        ser!(on_tertiary);
+        ser!(tertiary_container);
+        ser!(on_tertiary_container);
+        ser!(error);
+        ser!(on_error);
+        ser!(error_container);
+        ser!(on_error_container);
+        ser!(background);
+        ser!(on_background);
+        ser!(surface);
+        ser!(on_surface);
+        ser!(surface_variant);
+        ser!(on_surface_variant);
+        ser!(outline);
+        ser!(outline_variant);
+        ser!(shadow);
+        ser!(scrim);
+        ser!(inverse_surface);
+        ser!(inverse_on_surface);
+        ser!(inverse_primary);
+
+        state.end()
+    }
 }
 
 impl Scheme {
