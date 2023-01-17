@@ -1,4 +1,4 @@
-use crate::util::math::matrix_multiply;
+use crate::util::math;
 
 pub const SRGB_TO_XYZ: [[f64; 3]; 3] = [
     [0.41233895, 0.35762064, 0.18051042],
@@ -22,9 +22,15 @@ pub const XYZ_TO_SRGB: [[f64; 3]; 3] = [
 
 pub const WHITE_POINT_D65: [f64; 3] = [95.047, 100.0, 108.883];
 
-/** Converts a color from RGB components to ARGB format. */
-pub fn argb_from_rgb(rgb: [u8; 3]) -> [u8; 4] {
-    [255, rgb[0], rgb[1], rgb[2]]
+pub type RGB = [u8; 3];
+pub type ARGB = [u8; 4];
+pub type LinearRGB = [f64; 3];
+pub type XYZ = [f64; 3];
+pub type LAB = [f64; 3];
+
+/// Converts a color from RGB components to ARGB format.
+pub fn argb_from_rgb([r, g, b]: RGB) -> ARGB {
+    [255, r, g, b]
 }
 
 /// Formats a color as ARGB to #RRGGBB format
@@ -32,39 +38,43 @@ pub fn format_argb_as_rgb(argb: [u8; 4]) -> String {
     format!("#{:02x}{:02x}{:02x}", argb[1], argb[2], argb[3])
 }
 
-/** Converts a color from linear RGB components to ARGB format. */
-pub fn argb_from_linrgb(linrgb: [f64; 3]) -> [u8; 4] {
-    let r = delinearized(linrgb[0]);
-    let g = delinearized(linrgb[1]);
-    let b = delinearized(linrgb[2]);
+/// Converts a color from linear RGB components to ARGB format.
+pub fn argb_from_linrgb([r, g, b]: LinearRGB) -> ARGB {
+    let r = delinearized(r);
+    let g = delinearized(g);
+    let b = delinearized(b);
+
     argb_from_rgb([r, g, b])
 }
 
-/** Converts a color from ARGB to XYZ. */
-pub fn argb_from_xyz(xyz: [f64; 3]) -> [u8; 4] {
-    let rgb = matrix_multiply(xyz, XYZ_TO_SRGB);
-    let r = delinearized(rgb[0]);
-    let g = delinearized(rgb[1]);
-    let b = delinearized(rgb[2]);
-    return argb_from_rgb([r, g, b]);
+/// Converts a color from ARGB to XYZ.
+pub fn argb_from_xyz(xyz: XYZ) -> ARGB {
+    let [r, g, b] = math::matrix_multiply(xyz, XYZ_TO_SRGB);
+    let r = delinearized(r);
+    let g = delinearized(g);
+    let b = delinearized(b);
+
+    argb_from_rgb([r, g, b])
 }
 
-/** Converts a color from XYZ to ARGB. */
-pub fn xyz_from_argb(argb: [u8; 4]) -> [f64; 3] {
-    let r = linearized(argb[1]);
-    let g = linearized(argb[2]);
-    let b = linearized(argb[3]);
-    matrix_multiply([r, g, b], SRGB_TO_XYZ)
+/// Converts a color from XYZ to ARGB.
+pub fn xyz_from_argb([_, r, g, b]: ARGB) -> XYZ {
+    let r = linearized(r);
+    let g = linearized(g);
+    let b = linearized(b);
+
+    math::matrix_multiply([r, g, b], SRGB_TO_XYZ)
 }
 
-/** Converts a color represented in Lab color space into an ARGB integer. */
-pub fn argb_from_lab(l: f64, a: f64, b: f64) -> [u8; 4] {
+/// Converts a color represented in Lab color space into an ARGB integer.
+pub fn argb_from_lab(l: f64, a: f64, b: f64) -> ARGB {
     let fy = (l + 16.0) / 116.0;
     let fx = a / 500.0 + fy;
     let fz = fy - b / 200.0;
     let x = lab_invf(fx) * WHITE_POINT_D65[0];
     let y = lab_invf(fy) * WHITE_POINT_D65[1];
     let z = lab_invf(fz) * WHITE_POINT_D65[2];
+
     argb_from_xyz([x, y, z])
 }
 
@@ -75,7 +85,7 @@ pub fn argb_from_lab(l: f64, a: f64, b: f64) -> [u8; 4] {
 /// * `argb`: the ARGB representation of a color
 ///
 /// returns: a Lab object representing the color
-pub fn lab_from_argb(argb: [u8; 4]) -> [f64; 3] {
+pub fn lab_from_argb(argb: ARGB) -> LAB {
     let [x, y, z] = xyz_from_argb(argb);
     let fx = lab_f(x / WHITE_POINT_D65[0]);
     let fy = lab_f(y / WHITE_POINT_D65[1]);
@@ -83,6 +93,7 @@ pub fn lab_from_argb(argb: [u8; 4]) -> [f64; 3] {
     let l = 116.0 * fy - 16.0;
     let a = 500.0 * (fx - fy);
     let b = 200.0 * (fy - fz);
+
     [l, a, b]
 }
 
@@ -93,9 +104,10 @@ pub fn lab_from_argb(argb: [u8; 4]) -> [f64; 3] {
 /// * `lstar`: L* in L*a*b*
 ///
 /// returns: ARGB representation of grayscale color with lightness matching L*
-pub fn argb_from_lstar(lstar: f64) -> [u8; 4] {
+pub fn argb_from_lstar(lstar: f64) -> ARGB {
     let y = y_from_lstar(lstar);
     let w = delinearized(y);
+
     argb_from_rgb([w, w, w])
 }
 
@@ -106,8 +118,9 @@ pub fn argb_from_lstar(lstar: f64) -> [u8; 4] {
 /// * `argb`: ARGB representation of a color
 ///
 /// returns: L*, from L*a*b*, coordinate of the color
-pub fn lstar_from_argb(argb: [u8; 4]) -> f64 {
+pub fn lstar_from_argb(argb: ARGB) -> f64 {
     let y = xyz_from_argb(argb)[1];
+
     116.0 * lab_f(y / 100.0) - 16.0
 }
 
