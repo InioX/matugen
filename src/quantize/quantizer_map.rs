@@ -6,13 +6,13 @@ use ahash::AHashMap;
 pub struct QuantizerMap;
 
 impl QuantizerMap {
-    pub fn quantize(pixels: &[ARGB]) -> AHashMap<ARGB, u8> {
+    pub fn quantize(pixels: &[ARGB]) -> AHashMap<ARGB, u32> {
         let mut pixel_by_count = AHashMap::new();
 
         for pixel in pixels {
             pixel_by_count
                 .entry(*pixel)
-                .and_modify(|count| *count += 1u8)
+                .and_modify(|count| *count += 1)
                 .or_insert(1);
         }
 
