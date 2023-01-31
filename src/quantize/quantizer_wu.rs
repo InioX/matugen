@@ -129,7 +129,7 @@ impl QuantizerWu {
             self.moments_g[index] += count * green;
             self.moments_b[index] += count * blue;
 
-            let amount: f64 = (count * (red * red + green * green + blue * blue)).into();
+            let amount: f64 = (count as f64) * ((red * red + green * green + blue * blue) as f64);
             self.moments[index] += amount;
         }
     }
