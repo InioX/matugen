@@ -40,8 +40,8 @@ impl QuantizerWsmeans {
         input_pixels: &[ARGB],
         starting_clusters: &[ARGB],
         max_colors: usize,
-    ) -> AHashMap<ARGB, u8> {
-        let mut pixel_to_count: AHashMap<ARGB, u8> = AHashMap::new();
+    ) -> AHashMap<ARGB, u32> {
+        let mut pixel_to_count: AHashMap<ARGB, u32> = AHashMap::new();
         let mut points: Vec<Point> = Vec::with_capacity(input_pixels.len());
         let mut pixels: Vec<ARGB> = Vec::with_capacity(input_pixels.len());
         let point_provider = LabPointProvider::new();
@@ -57,7 +57,7 @@ impl QuantizerWsmeans {
             }
         }
 
-        let mut counts = vec![0u8; point_count];
+        let mut counts = vec![0u32; point_count];
         for i in 0..point_count {
             let pixel = pixels[i];
             if let Some(count) = pixel_to_count.get(&pixel) {
