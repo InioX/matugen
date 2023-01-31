@@ -250,7 +250,8 @@ impl QuantizerWu {
         let db = self.volume(cube, &self.moments_b);
         let xx = self.volume(cube, &self.moments);
 
-        let hypotenuse: f64 = (dr * dr + dg * dg + db * db).into();
+        let (dr, dg, db) = (dr as f64, dg as f64, db as f64);
+        let hypotenuse = dr * dr + dg * dg + db * db;
         let volume: f64 = self.volume(cube, &self.weights).into();
 
         xx - (hypotenuse / volume)
@@ -380,7 +381,9 @@ impl QuantizerWu {
                 continue;
             }
 
-            let temp_numerator: f64 = (half_r * half_r + half_g * half_g + half_b * half_b).into();
+            let temp_numerator: f64 = (half_r as f64) * (half_r as f64)
+                + (half_g as f64) * (half_g as f64)
+                + (half_b as f64) * (half_b as f64);
             let temp_denominator: f64 = half_w.into();
             let temp = temp_numerator / temp_denominator;
 
@@ -392,7 +395,9 @@ impl QuantizerWu {
                 continue;
             }
 
-            let temp_numerator: f64 = (half_r * half_r + half_g * half_g + half_b * half_b).into();
+            let temp_numerator: f64 = (half_r as f64) * (half_r as f64)
+                + (half_g as f64) * (half_g as f64)
+                + (half_b as f64) * (half_b as f64);
             let temp_denominator: f64 = half_w.into();
             let temp = temp + (temp_numerator / temp_denominator);
 
