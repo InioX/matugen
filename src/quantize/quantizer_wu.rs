@@ -252,9 +252,9 @@ impl QuantizerWu {
 
         let (dr, dg, db) = (dr as f64, dg as f64, db as f64);
         let hypotenuse = dr * dr + dg * dg + db * db;
-        let volume: f64 = self.volume(cube, &self.weights).into();
+        let volume: f64 = self.volume(cube, &self.weights) as f64;
 
-        xx - (hypotenuse / volume)
+        (xx as f64) - (hypotenuse / volume)
     }
 
     fn cut(&mut self, next_index: usize, current_index: usize) -> bool {
@@ -354,10 +354,10 @@ impl QuantizerWu {
         direction: Direction,
         first: u8,
         last: u8,
-        whole_r: u32,
-        whole_g: u32,
-        whole_b: u32,
-        whole_w: u32,
+        whole_r: i64,
+        whole_g: i64,
+        whole_b: i64,
+        whole_w: i64,
     ) -> Maximized {
         let bottom_r = self.bottom(cube, &direction, &self.moments_r);
         let bottom_g = self.bottom(cube, &direction, &self.moments_g);
@@ -387,10 +387,10 @@ impl QuantizerWu {
             let temp_denominator: f64 = half_w as f64;
             let temp = temp_numerator / temp_denominator;
 
-            half_r = (whole_r as i64) - half_r;
-            half_g = (whole_g as i64) - half_g;
-            half_b = (whole_b as i64) - half_b;
-            half_w = (whole_w as i64) - half_w;
+            half_r = whole_r - half_r;
+            half_g = whole_g - half_g;
+            half_b = whole_b - half_b;
+            half_w = whole_w - half_w;
             if half_w == 0 {
                 continue;
             }
@@ -410,63 +410,69 @@ impl QuantizerWu {
         Maximized::new(cut, max)
     }
 
-    fn volume<T>(&self, cube: &Box, moment: &Vec<T>) -> T
+    fn volume<T>(&self, cube: &Box, moment: &Vec<T>) -> i64
     where
-        T: Copy + Num,
+        T: Copy + Num + AsPrimitive<i64>,
     {
         let (pixel0, pixel1) = &cube.pixels;
-        moment[get_index(pixel1.r, pixel1.g, pixel1.b)]
-            - moment[get_index(pixel1.r, pixel1.g, pixel0.b)]
-            - moment[get_index(pixel1.r, pixel0.g, pixel1.b)]
-            + moment[get_index(pixel1.r, pixel0.g, pixel0.b)]
-            - moment[get_index(pixel0.r, pixel1.g, pixel1.b)]
-            + moment[get_index(pixel0.r, pixel1.g, pixel0.b)]
-            + moment[get_index(pixel0.r, pixel0.g, pixel1.b)]
-            - moment[get_index(pixel0.r, pixel0.g, pixel0.b)]
+        moment[get_index(pixel1.r, pixel1.g, pixel1.b)].as_()
+            - moment[get_index(pixel1.r, pixel1.g, pixel0.b)].as_()
+            - moment[get_index(pixel1.r, pixel0.g, pixel1.b)].as_()
+            + moment[get_index(pixel1.r, pixel0.g, pixel0.b)].as_()
+            - moment[get_index(pixel0.r, pixel1.g, pixel1.b)].as_()
+            + moment[get_index(pixel0.r, pixel1.g, pixel0.b)].as_()
+            + moment[get_index(pixel0.r, pixel0.g, pixel1.b)].as_()
+            - moment[get_index(pixel0.r, pixel0.g, pixel0.b)].as_()
     }
 
-    fn bottom(&self, cube: &Box, direction: &Direction, moment: &Vec<u32>) -> i64 {
+    fn bottom<T>(&self, cube: &Box, direction: &Direction, moment: &Vec<T>) -> i64
+    where
+        T: Copy + Add<Output = T> + Sub<Output = T> + AsPrimitive<i64>,
+    {
         match direction {
             Direction::Red => {
-                moment[get_index(cube.pixels.0.r, cube.pixels.1.g, cube.pixels.0.b)] as i64
-                    + moment[get_index(cube.pixels.0.r, cube.pixels.0.g, cube.pixels.1.b)] as i64
-                    - moment[get_index(cube.pixels.0.r, cube.pixels.0.g, cube.pixels.0.b)] as i64
-                    - moment[get_index(cube.pixels.0.r, cube.pixels.1.g, cube.pixels.1.b)] as i64
+                moment[get_index(cube.pixels.0.r, cube.pixels.1.g, cube.pixels.0.b)].as_()
+                    + moment[get_index(cube.pixels.0.r, cube.pixels.0.g, cube.pixels.1.b)].as_()
+                    - moment[get_index(cube.pixels.0.r, cube.pixels.0.g, cube.pixels.0.b)].as_()
+                    - moment[get_index(cube.pixels.0.r, cube.pixels.1.g, cube.pixels.1.b)].as_()
             }
             Direction::Green => {
-                moment[get_index(cube.pixels.1.r, cube.pixels.0.g, cube.pixels.0.b)] as i64
-                    + moment[get_index(cube.pixels.0.r, cube.pixels.0.g, cube.pixels.1.b)] as i64
-                    - moment[get_index(cube.pixels.0.r, cube.pixels.0.g, cube.pixels.0.b)] as i64
-                    - moment[get_index(cube.pixels.1.r, cube.pixels.0.g, cube.pixels.1.b)] as i64
+                moment[get_index(cube.pixels.1.r, cube.pixels.0.g, cube.pixels.0.b)].as_()
+                    + moment[get_index(cube.pixels.0.r, cube.pixels.0.g, cube.pixels.1.b)].as_()
+                    - moment[get_index(cube.pixels.0.r, cube.pixels.0.g, cube.pixels.0.b)].as_()
+                    - moment[get_index(cube.pixels.1.r, cube.pixels.0.g, cube.pixels.1.b)].as_()
             }
             Direction::Blue => {
-                moment[get_index(cube.pixels.1.r, cube.pixels.0.g, cube.pixels.0.b)] as i64
-                    + moment[get_index(cube.pixels.0.r, cube.pixels.1.g, cube.pixels.0.b)] as i64
-                    - moment[get_index(cube.pixels.0.r, cube.pixels.0.g, cube.pixels.0.b)] as i64
-                    - moment[get_index(cube.pixels.1.r, cube.pixels.1.g, cube.pixels.0.b)] as i64
+                moment[get_index(cube.pixels.1.r, cube.pixels.0.g, cube.pixels.0.b)].as_()
+                    + moment[get_index(cube.pixels.0.r, cube.pixels.1.g, cube.pixels.0.b)].as_()
+                    - moment[get_index(cube.pixels.0.r, cube.pixels.0.g, cube.pixels.0.b)].as_()
+                    - moment[get_index(cube.pixels.1.r, cube.pixels.1.g, cube.pixels.0.b)].as_()
             }
         }
     }
 
-    fn top(&self, cube: &Box, direction: &Direction, position: u8, moment: &Vec<u32>) -> i64 {
+    fn top<T>(&self, cube: &Box, direction: &Direction, position: u8, moment: &Vec<T>) -> i64
+    where
+        T: Copy + Add<Output = T> + Sub<Output = T> + AsPrimitive<i64>,
+    {
         match direction {
             Direction::Red => {
-                moment[get_index(position, cube.pixels.1.g, cube.pixels.1.b)] as i64
-                    - moment[get_index(position, cube.pixels.1.g, cube.pixels.0.b)] as i64
-                    - moment[get_index(position, cube.pixels.0.g, cube.pixels.1.b)] as i64
-                    + moment[get_index(position, cube.pixels.0.g, cube.pixels.0.b)] as i64
+                moment[get_index(position, cube.pixels.1.g, cube.pixels.1.b)].as_()
+                    - moment[get_index(position, cube.pixels.1.g, cube.pixels.0.b)].as_()
+                    - moment[get_index(position, cube.pixels.0.g, cube.pixels.1.b)].as_()
+                    + moment[get_index(position, cube.pixels.0.g, cube.pixels.0.b)].as_()
             }
             Direction::Green => {
-                moment[get_index(cube.pixels.1.r, position, cube.pixels.1.b)] as i64
-                    - moment[get_index(cube.pixels.1.r, position, cube.pixels.0.b)] as i64
-                    - moment[get_index(cube.pixels.0.r, position, cube.pixels.1.b)] as i64
-                    + moment[get_index(cube.pixels.0.r, position, cube.pixels.0.b)] as i64
+                moment[get_index(cube.pixels.1.r, position, cube.pixels.1.b)].as_()
+                    - moment[get_index(cube.pixels.1.r, position, cube.pixels.0.b)].as_()
+                    - moment[get_index(cube.pixels.0.r, position, cube.pixels.1.b)].as_()
+                    + moment[get_index(cube.pixels.0.r, position, cube.pixels.0.b)].as_()
             }
             Direction::Blue => {
-                moment[get_index(cube.pixels.1.r, cube.pixels.1.g, position)] as i64
-                    - moment[get_index(cube.pixels.1.r, cube.pixels.0.g, position)] as i64
-                    - moment[get_index(cube.pixels.0.r, cube.pixels.1.g, position)] as i64
-                    + moment[get_index(cube.pixels.0.r, cube.pixels.0.g, position)] as i64
+                moment[get_index(cube.pixels.1.r, cube.pixels.1.g, position)].as_()
+                    - moment[get_index(cube.pixels.1.r, cube.pixels.0.g, position)].as_()
+                    - moment[get_index(cube.pixels.0.r, cube.pixels.1.g, position)].as_()
+                    + moment[get_index(cube.pixels.0.r, cube.pixels.0.g, position)].as_()
             }
         }
     }
