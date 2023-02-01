@@ -175,8 +175,8 @@ impl QuantizerWu {
     }
 
     fn create_boxes(&mut self, max_colors: usize) -> QuantizerWuCounter {
-        self.cubes = vec![Box::default(); max_colors as usize];
-        let mut volume_variance = vec![0.0; max_colors as usize];
+        self.cubes = vec![Box::default(); max_colors];
+        let mut volume_variance = vec![0.0; max_colors];
 
         let len: u8 = SIDE_LENGTH.try_into().unwrap();
         let max_index = len - 1;
@@ -188,7 +188,7 @@ impl QuantizerWu {
         let mut generated_color_count = max_colors;
         let mut next_index = 0usize;
         let mut index = 1usize;
-        while index < max_colors as usize {
+        while index < max_colors {
             if self.cut(next_index, index) {
                 let next_cube = &self.cubes[next_index];
                 volume_variance[next_index] = if next_cube.vol > 1 {
