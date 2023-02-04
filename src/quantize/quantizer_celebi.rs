@@ -29,7 +29,7 @@ impl QuantizerCelebi {
     ///
     /// Map with keys of colors in ARGB format, and values of number of pixels in the original
     /// image that correspond to the color in the quantized image.
-    pub fn quantize(&mut self, pixels: &[ARGB], max_colors: usize) -> AHashMap<ARGB, u8> {
+    pub fn quantize(&mut self, pixels: &[ARGB], max_colors: usize) -> AHashMap<ARGB, u32> {
         let mut quantizer_wu = QuantizerWu::new();
         let colors = quantizer_wu.quantize(pixels, max_colors);
 
