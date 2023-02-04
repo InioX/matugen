@@ -2,7 +2,6 @@ use crate::htc::cam16::Cam16;
 use crate::util::color::lstar_from_argb;
 use crate::util::math::{difference_degrees, sanitize_degrees_int};
 use ahash::AHashMap;
-use std::collections::HashMap;
 
 const CUTOFF_CHROMA: f64 = 15.0;
 const CUTOFF_EXCITED_PROPORTION: f64 = 0.01;
@@ -12,7 +11,7 @@ const WEIGHT_PROPORTION: f64 = 0.7;
 const WEIGHT_CHROMA_ABOVE: f64 = 0.3;
 const WEIGHT_CHROMA_BELOW: f64 = 0.1;
 
-pub fn score(colors_to_population: &HashMap<[u8; 4], u32>) -> Vec<[u8; 4]> {
+pub fn score(colors_to_population: &AHashMap<[u8; 4], u32>) -> Vec<[u8; 4]> {
     // Determine the total count of all colors.
     let mut population_sum = 0.0;
     for population in colors_to_population.values() {
@@ -136,15 +135,11 @@ mod tests {
 
     #[test]
     fn priority_test() {
-        let ranked = score(
-            &HashMap::from(
-                [
-                    ([0xff, 0xff, 0x00, 0x00], 1),
-                    ([0xff, 0x00, 0xff, 0x00], 1),
-                    ([0xff, 0x00, 0x00, 0xff], 1)
-                ]
-            )
-        );
+        let ranked = score(&AHashMap::from([
+            ([0xff, 0xff, 0x00, 0x00], 1),
+            ([0xff, 0x00, 0xff, 0x00], 1),
+            ([0xff, 0x00, 0x00, 0xff], 1),
+        ]));
 
         assert_eq!(ranked[0], [0xff, 0xff, 0x00, 0x00]);
         assert_eq!(ranked[1], [0xff, 0x00, 0xff, 0x00]);
