@@ -25,9 +25,12 @@ Example:
 ```
 
 ### Creating templates
-The basic syntax for color is `${color}`.
+The basic syntax for using colors is `${color}`.
 
-Here is a list of all the colors you can use:
+<details>
+  <summary>Here is a list of all the colors you can use:</summary>
+  <p>
+    
 - primary
 - onPrimary
 - primaryContainer
@@ -55,6 +58,9 @@ Here is a list of all the colors you can use:
 - inverseSurface
 - inverseOnSurface
 - inversePrimary
+    
+  </p>
+</details>
 
 Example:
 ```css
