@@ -2,10 +2,10 @@
 A material you color generation tool for linux
 
 ## Contents
-- [Installation](installation)
-- [Usage](usage)
-- [Configuration](configuration)
-  - [Templates](templates)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+  - [Templates](#templates)
 
 ## Installation
 TODO
