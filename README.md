@@ -23,7 +23,7 @@ poetry install
 ```
 
 ## Usage
-Assuming you are in the root of this project
+Assuming you are in the root of this project:
 ```shell
 # Dark theme
 poetry run python matugen/main.py /path/to/wallpaper/
@@ -34,3 +34,8 @@ Example:
 ```shell
 poetry run python matugen/main.py ~/wall/snow.png -l
 ```
+
+## Showcase
+Showcase with Hyprland, Waybar, kitty, and fish shell:
+
+[![](https://markdown-videos.deta.dev/youtube/rMxoORO41rs)](https://youtu.be/rMxoORO41rs)
