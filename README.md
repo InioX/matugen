@@ -1,12 +1,20 @@
-# Matugen
-A material you color generation tool for linux
+<h1 align="center">
+    <div align="center">
+      Matugen
+    </div>
+</h1>
 
-## Contents
-- [Installation](#installation)
-- [Usage](#usage)
-  - [Creating templates](#creating-templates)
-- [Configuration](#configuration)
-  - [Using Templates](#using-templates)
+<div align="center">
+  A material you color generation tool for linux
+</div>
+
+<div align="center">
+    <a href="#installation">Installation</a>
+    ·
+    <a href="#usage">Usage</a>
+    ·
+    <a href="https://github.com/InioX/matugen/wiki">Wiki</a>
+</div>
 
 ## Installation
 TODO
