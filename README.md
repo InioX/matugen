@@ -1,9 +1,8 @@
-<h1 align="center">
-    <div align="center">
-      Matugen
-    </div>
-</h1>
-
+<div align="center">
+     <img src="https://user-images.githubusercontent.com/81521595/226138807-db504bdf-4eb5-4fe9-9ee5-a1a1395d70dc.png" width=140>
+      <h1>Matugen</h1>
+ </div>
+    
 <div align="center">
   A material you color generation tool for linux
 </div>
@@ -17,19 +16,23 @@
 </div>
 
 ## Installation
-TODO
+Assuming you already have [Poetry](https://python-poetry.org/) installed:
+```shell
+git clone https://github.com/InioX/matugen && cd matugen
+poetry install
+```
 
 ## Usage
 Assuming you are in the root of this project
 ```shell
 # Dark theme
-~/.local/share/pypoetry/venv/bin/poetry run python3 matugen/main.py /path/to/wallpaper/
+poetry run python matugen/main.py /path/to/wallpaper/
 # Light theme
-~/.local/share/pypoetry/venv/bin/poetry run python3 matugen/main.py /path/to/wallpaper/ -l
+poetry run python matugen/main.py /path/to/wallpaper/ -l
 ```
 Example:
 ```shell
-~/.local/share/pypoetry/venv/bin/poetry run python3 matugen/main.py ~/wall/snow.png -l
+poetry run python matugen/main.py ~/wall/snow.png -l
 ```
 
 ### Creating templates
