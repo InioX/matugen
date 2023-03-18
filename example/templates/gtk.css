@@ -1,0 +1,24 @@
+
+    @define-color accent_color @{primary.hex};
+
+    @define-color accent_bg_color @{primary.hex};
+
+    @define-color window_bg_color @{surface.hex};
+
+    @define-color window_fg_color white;
+
+    @define-color headerbar_bg_color @{surface.hex};
+
+    @define-color headerbar_fg_color white;
+
+    @define-color popover_bg_color @{surface.hex};
+
+    @define-color popover_fg_color white;
+
+    @define-color view_bg_color @{surfaceVariant.hex};
+
+    @define-color view_fg_color white;
+
+    @define-color card_bg_color rgba(255, 255, 255, 0.08);
+
+    @define-color card_fg_color white;

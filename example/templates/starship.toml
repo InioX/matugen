@@ -1,0 +1,15 @@
+format="$directory$git_branch$character"
+
+# Prompt symbols 
+[character]
+success_symbol = "[🞈](@{tertiary.hex} bold)"
+error_symbol = "[🞈](@{error.hex})"
+vicmd_symbol = "[🞈](#f9e2af)"
+
+[directory]
+format = "[]($style)[(bg:@{primary.hex} fg:@{surfaceVariant.hex})$path](bg:@{surfaceVariant.hex} fg:@{primary.hex})[ ]($style)"
+style = "bg:@{surface.hex} fg:@{surfaceVariant.hex}"
+
+# [git_b# ranch]
+# format = "[]($style)[[ ](bg:#89b4fa fg:#49628a bold)$branch](bg:#89b4fa fg:#362f2b)[ ]($style)"
+# style = "bg:#1a1b26 fg:#89b4fa"
