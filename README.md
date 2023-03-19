@@ -4,7 +4,7 @@
  </div>
     
 <div align="center">
-  A material you color generation tool for linux
+  <b>A material you color generation tool for linux</b>
 </div>
 
 <div align="center">
@@ -14,6 +14,9 @@
     ·
     <a href="https://github.com/InioX/matugen/wiki">Wiki</a>
 </div>
+
+## Description
+[Material Design 3](https://m3.material.io/) offers a new color system that allows for more flexible and dynamic use of color. The new system includes a wider range of colors, as well as a range of tints and shades that can be used to create subtle variations in color.
 
 ## Installation
 Assuming you already have [Poetry](https://python-poetry.org/) installed:
@@ -37,5 +40,8 @@ poetry run python matugen/main.py ~/wall/snow.png -l
 
 ## Showcase
 Showcase with Hyprland, Waybar, kitty, and fish shell:
+
+>**Warning**
+>The preview and usage may be outdated.
 
 [![](https://markdown-videos.deta.dev/youtube/rMxoORO41rs)](https://youtu.be/rMxoORO41rs)
