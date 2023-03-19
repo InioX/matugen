@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "test"
+name = "matugen"
 version = "0.1.0"
 description = ""
 authors = ["InioX <justimnix@gmail.com>"]
