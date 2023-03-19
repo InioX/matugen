@@ -53,7 +53,7 @@ def reload_apps():
 
 def set_wallpaper(path: str):
     log.info("Setting wallpaper with swaybg")
-    os.system("killall swaybg")
+    os.system("killall swaybg > /dev/null 2>&1")
     os.system(f"swaybg -i {path}&")
 
 class Color:
