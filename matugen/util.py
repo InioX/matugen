@@ -112,16 +112,12 @@ class Config:
 
                 hex_stripped = value[1:]
                 rgb_value = f"rgb{Color.hex_to_rgb(hex_stripped)}"
-
-                print(f"Stripped: {hex_stripped}")
-                print(f"Hex: {value}")
-                print(f"Rgb: {rgb_value}")
-                print(f"Wallpaper: {wallpaper}")
+                wallpaper_value = os.path.abspath(wallpaper)
 
                 output_data = re.sub(pattern, hex_stripped, output_data)
                 output_data = re.sub(pattern_hex, value, output_data)
                 output_data = re.sub(pattern_rgb, rgb_value, output_data)
-                output_data = re.sub(pattern_wallpaper, wallpaper, output_data)
+                output_data = re.sub(pattern_wallpaper, wallpaper_value, output_data)
                 num += 1
 
             try:
