@@ -46,7 +46,7 @@ def reload_apps():
 
     log.info("Restarting GTK")
     os.system("gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark")
-    
+
     log.info("Restarting kitty")
     os.system("killall -SIGUSR1 kitty")
 
@@ -56,13 +56,14 @@ def set_wallpaper(path: str):
     os.system("killall swaybg > /dev/null 2>&1")
     os.system(f"swaybg -i {path}&")
 
+
 class Color:
     @staticmethod
     def rgb_to_hex(rgb: int) -> str:
         return '%02x%02x%02x' % rgb
 
     def hex_to_rgb(hexa: str):
-        return tuple(int(hexa[i:i+2], 16)  for i in (0, 2, 4))
+        return tuple(int(hexa[i:i+2], 16) for i in (0, 2, 4))
 
     @staticmethod
     def dec_to_rgb(decimal_value: int) -> int:
@@ -89,8 +90,7 @@ class Config:
 
     @staticmethod
     def generate(scheme: dict, config: ConfigParser, wallpaper: str) -> dict:
-        for item in config.sections():
-            num = 0
+        for i, item in enumerate(config.sections()):
             template_name = config[item].name
             template_path = Path(config[item]["template_path"]).expanduser()
             output_path = Path(config[item]["output_path"]).expanduser()
@@ -100,7 +100,7 @@ class Config:
                     input_data = input.read()
             except OSError as err:
                 logging.exception(f"Could not open {err.filename}")
-                num += 1
+                i += 1
                 return
 
             output_data = input_data
@@ -118,8 +118,9 @@ class Config:
                 output_data = re.sub(pattern, hex_stripped, output_data)
                 output_data = re.sub(pattern_hex, value, output_data)
                 output_data = re.sub(pattern_rgb, rgb_value, output_data)
-                output_data = re.sub(pattern_wallpaper, wallpaper_value, output_data)
-                num += 1
+                output_data = re.sub(
+                    pattern_wallpaper, wallpaper_value, output_data)
+                i += 1
 
             try:
                 with open(output_path, "w") as output:
@@ -143,6 +144,7 @@ class Theme:
         img = img.resize((basewidth, hsize), Image.Resampling.LANCZOS)
 
         return themeFromImage(img)
+
 
 class Scheme():
     def __init__(self, theme: str, lightmode: bool):
