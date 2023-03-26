@@ -104,22 +104,23 @@ class Config:
                 return
 
             output_data = input_data
-
-            for key, value in scheme.items():
-                pattern = f"@{{{key}}}"
-                pattern_hex = f"@{{{key}.hex}}"
-                pattern_rgb = f"@{{{key}.rgb}}"
-                pattern_wallpaper = "@{wallpaper}"
+            # print(f"i: {i}")
+            for h, (key, value) in enumerate(scheme.items()):
+                # print(f"H: {h}")
+                pattern = re.compile(f"@{{{key}}}")
+                pattern_hex = re.compile(f"@{{{key}.hex}}")
+                pattern_rgb = re.compile(f"@{{{key}.rgb}}")
+                pattern_wallpaper = re.compile("@{wallpaper}")
 
                 hex_stripped = value[1:]
                 rgb_value = f"rgb{Color.hex_to_rgb(hex_stripped)}"
                 wallpaper_value = os.path.abspath(wallpaper)
 
-                output_data = re.sub(pattern, hex_stripped, output_data)
-                output_data = re.sub(pattern_hex, value, output_data)
-                output_data = re.sub(pattern_rgb, rgb_value, output_data)
-                output_data = re.sub(
-                    pattern_wallpaper, wallpaper_value, output_data)
+                output_data = pattern.sub(hex_stripped, output_data)
+                output_data = pattern_hex.sub(value, output_data)
+                output_data = pattern_rgb.sub(rgb_value, output_data)
+                output_data = pattern_wallpaper.sub(
+                    wallpaper_value, output_data)
                 i += 1
 
             try:
