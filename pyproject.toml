@@ -9,7 +9,6 @@ readme = "README.md"
 python = "^3.10"
 material-color-utilities-python = "0.1.5"
 rich = "13.3.1"
-pillow = "^9.5.0"
 
 [tool.poetry.scripts]
 matugen = "matugen.__main__:main"
