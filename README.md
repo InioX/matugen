@@ -29,13 +29,13 @@ poetry install
 Assuming you are in the root of this project:
 ```shell
 # Dark theme
-poetry run python matugen/main.py /path/to/wallpaper/
+poetry run matugen /path/to/wallpaper/
 # Light theme
-poetry run python matugen/main.py /path/to/wallpaper/ -l
+poetry run matugen /path/to/wallpaper/ -l
 ```
 Example:
 ```shell
-poetry run python matugen/main.py ~/wall/snow.png -l
+poetry run matugen ~/wall/snow.png -l
 ```
 
 ## Showcase
