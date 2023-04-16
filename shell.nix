@@ -2,10 +2,10 @@
 
 pkgs.mkShell {
 
-  buildInputs = [
-    pkgs.python3
-    pkgs.poetry
-    pkgs.python310Packages.pip
+  buildInputs = with pkgs; [
+    python3
+    poetry
+    python310Packages.pip
   ];
 
 }
