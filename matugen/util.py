@@ -42,18 +42,18 @@ log = setup_logging()
 
 def reload_apps():
     log.info("Restarting waybar")
-    os.system("killall -SIGUSR2 waybar")
+    os.system("pkill -SIGUSR2 waybar")
 
     log.info("Restarting GTK")
     os.system("gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark")
 
     log.info("Restarting kitty")
-    os.system("killall -SIGUSR1 kitty")
+    os.system("pkill -SIGUSR1 kitty")
 
 
 def set_wallpaper(path: str):
     log.info("Setting wallpaper with swaybg")
-    os.system("killall swaybg > /dev/null 2>&1")
+    os.system("pkill swaybg > /dev/null 2>&1")
     os.system(f"swaybg -i {path}&")
 
 
