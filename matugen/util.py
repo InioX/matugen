@@ -79,7 +79,7 @@ class Config:
     def read(filename: str):
         config = ConfigParser()
         try:
-            config.read(filename)
+            config.read(Path(filename).expanduser())
         except OSError as err:
             logging.exception(f"Could not open {err.filename}")
         else:

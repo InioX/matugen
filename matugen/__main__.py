@@ -13,9 +13,10 @@ def get_scheme(args):
 
 
 def main():
+    CONFIG_PATH = "~/.config/matugen/config.ini"
     args = parse_arguments()
     scheme = get_scheme(args)
-    conf = Config.read("config.ini")
+    conf = Config.read(CONFIG_PATH)
 
     Config.generate(scheme, conf, args.wallpaper)
     reload_apps()
