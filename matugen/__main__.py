@@ -4,7 +4,7 @@ from matugen.util import (
     Config,
     set_wallpaper,
     reload_apps,
-    parse_arguments
+    parse_arguments,
 )
 
 def get_scheme(args):

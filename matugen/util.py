@@ -2,11 +2,16 @@ import os
 import re
 import logging
 import pathlib
+import importlib.metadata
 from material_color_utilities_python import Image, themeFromImage
 from rich.logging import RichHandler
 from configparser import ConfigParser
 from argparse import Namespace, ArgumentParser
 from pathlib import Path
+
+
+def get_version() -> str:
+    return importlib.metadata.version('matugen')
 
 
 def parse_arguments():
@@ -22,6 +27,12 @@ def parse_arguments():
         "-l", "--lightmode",
         help="specify whether to use light mode",
         action="store_true"
+    )
+    parser.add_argument(
+        "--version",
+        help="outputs the version",
+        action="version",
+        version=get_version()
     )
     args: Namespace = parser.parse_args()
     return args
