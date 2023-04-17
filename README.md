@@ -19,14 +19,32 @@
 [Material Design 3](https://m3.material.io/) offers a new color system that allows for more flexible and dynamic use of color. The new system includes a wider range of colors, as well as a range of tints and shades that can be used to create subtle variations in color.
 
 ## Installation
-Assuming you already have [Poetry](https://python-poetry.org/) installed:
+### From Pypi
+>**Note** Assuming you have python with pip installed
+```shell
+pip install matugen
+```
+
+### Usage
+```shell
+# Dark theme
+matugen /path/to/wallpaper/
+# Light theme
+matugen /path/to/wallpaper/ -l
+```
+Example:
+```shell
+matugen ~/wall/snow.png -l
+```
+
+### From repo with poetry
+>**Note** Assuming you already have [Poetry](https://python-poetry.org/) installed:
 ```shell
 git clone https://github.com/InioX/matugen && cd matugen
 poetry install
 ```
 
-## Usage
-Assuming you are in the root of this project:
+#### Usage
 ```shell
 # Dark theme
 poetry run matugen /path/to/wallpaper/
