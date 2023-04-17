@@ -5,11 +5,8 @@ from matugen.util import (
     set_wallpaper,
     reload_apps,
     parse_arguments,
+    get_scheme
 )
-
-def get_scheme(args):
-    scheme = Scheme(Theme.get(args.wallpaper), args.lightmode)
-    return scheme.to_hex()
 
 
 def main():

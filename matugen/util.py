@@ -14,6 +14,11 @@ def get_version() -> str:
     return importlib.metadata.version('matugen')
 
 
+def get_scheme(args):
+    scheme = Scheme(Theme.get(args.wallpaper), args.lightmode)
+    return scheme.to_hex()
+
+
 def parse_arguments():
     parser = ArgumentParser()
 
