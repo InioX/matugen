@@ -123,7 +123,7 @@ class Config:
                 with open(template_path, "r") as input:  # Template file
                     input_data = input.read()
             except OSError as err:
-                logging.exception(f"Could not open {err.filename}")
+                logging.error(f"Could not open {err.filename}")
                 i += 1
                 return
 
