@@ -10,10 +10,9 @@ from matugen.util import (
 
 
 def main():
-    CONFIG_PATH = "~/.config/matugen/config.ini"
     args = parse_arguments()
     scheme = get_scheme(args)
-    conf = Config.read(CONFIG_PATH)
+    conf = Config.read(args.config)
 
     Config.generate(scheme, conf, args.wallpaper)
     reload_apps()

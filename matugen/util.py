@@ -39,6 +39,12 @@ def parse_arguments():
         action="version",
         version=get_version()
     )
+    parser.add_argument(
+        "-c", "--config",
+        help="specify whether to use light mode",
+        default="~/.config/matugen/config.ini",
+        type=str
+    )
     args: Namespace = parser.parse_args()
     return args
 
@@ -94,8 +100,10 @@ class Config:
     @staticmethod
     def read(filename: str):
         config = ConfigParser()
+        config_path = Path(filename).expanduser()
         try:
-            config.read(Path(filename).expanduser())
+            log.info(f"Using config in {config_path}")
+            config.read(config_path)
         except OSError as err:
             logging.exception(f"Could not open {err.filename}")
         else:
