@@ -48,7 +48,6 @@ def parse_arguments():
     args: Namespace = parser.parse_args()
     return args
 
-
 def setup_logging():
     FORMAT = "%(message)s"
     logging.basicConfig(
@@ -67,7 +66,7 @@ def reload_apps():
     os.system("pkill -SIGUSR2 waybar")
 
     log.info("Restarting GTK")
-    os.system("gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark")
+    os.system("gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark > /dev/null 2>&1")
 
     log.info("Restarting kitty")
     os.system("pkill -SIGUSR1 kitty")
@@ -76,7 +75,7 @@ def reload_apps():
 def set_wallpaper(path: str):
     log.info("Setting wallpaper with swaybg")
     os.system("pkill swaybg > /dev/null 2>&1")
-    os.system(f"swaybg -i {path}&")
+    os.system(f"swaybg -i {path} > /dev/null 2>&1 &")
 
 
 class Color:
