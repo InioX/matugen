@@ -13,6 +13,9 @@ rich = "^12.5.1"
 [tool.poetry.scripts]
 matugen = "matugen.__main__:main"
 
+[tool.poetry.group.dev.dependencies]
+autopep8 = "^2.0.2"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
