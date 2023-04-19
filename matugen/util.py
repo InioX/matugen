@@ -24,13 +24,13 @@ def parse_arguments():
 
     parser.add_argument(
         "wallpaper",
-        help="the wallpaper that will be used",
+        help="the wallpaper for generating colorschemes",
         type=str
     )
 
     parser.add_argument(
         "-l", "--lightmode",
-        help="specify whether to use light mode",
+        help="whether to use light mode",
         action="store_true"
     )
     parser.add_argument(
@@ -41,7 +41,7 @@ def parse_arguments():
     )
     parser.add_argument(
         "-c", "--config",
-        help="specify whether to use light mode",
+        help="the config for generating templates",
         default="~/.config/matugen/config.ini",
         type=str
     )
