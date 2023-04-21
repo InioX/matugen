@@ -2,6 +2,7 @@ import os
 import re
 import logging
 import pathlib
+import subprocess
 import importlib.metadata
 from material_color_utilities_python import Image, themeFromImage
 from rich.logging import RichHandler
@@ -62,8 +63,19 @@ log = setup_logging()
 
 
 def reload_apps():
-    log.info("Restarting waybar")
-    os.system("pkill -SIGUSR2 waybar")
+    commands = [
+        ["pkill", "-SIGUSR2", "waybar"],
+        ["gsettings", "set", "org.gnome.desktop.interface",
+            "gtk-theme", "adw-gtk3-dark"],
+        ["pkill", "-SIGUSR1", "kitty"]
+    ]
+    for cmd in commands:
+        subprocess.run(
+            cmd,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
 
     log.info("Restarting GTK")
     os.system("gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark > /dev/null 2>&1")
