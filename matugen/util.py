@@ -99,10 +99,10 @@ class Color:
         return tuple(int(hexa[i:i+2], 16) for i in (0, 2, 4))
 
     @staticmethod
-    def dec_to_rgb(decimal_value: int) -> int:
-        red = (decimal_value >> 16) & 255
-        green = (decimal_value >> 8) & 255
-        blue = decimal_value & 255
+    def dec_to_rgb(dec: int) -> int:
+        red = (dec >> 16) & 255
+        green = (dec >> 8) & 255
+        blue = dec & 255
 
         return red, green, blue
 
