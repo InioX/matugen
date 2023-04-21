@@ -113,13 +113,12 @@ class Config:
         config = ConfigParser()
         config_path = Path(filename).expanduser()
         try:
-            log.info(f"Using config in {config_path}")
             config.read(config_path)
         except OSError as err:
             logging.exception(f"Could not open {err.filename}")
         else:
             logging.info(
-                f"Loaded {len(config.sections())} templates from config file"
+                f"Loaded {len(config.sections())} templates from {config_path}"
             )
             return config
 
