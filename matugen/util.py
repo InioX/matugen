@@ -77,17 +77,23 @@ def reload_apps():
             stderr=subprocess.DEVNULL
         )
 
-    log.info("Restarting GTK")
-    os.system("gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark > /dev/null 2>&1")
 
-    log.info("Restarting kitty")
-    os.system("pkill -SIGUSR1 kitty")
+def get_session():
+    command = "loginctl show-session $(loginctl show-user $(whoami) -p Display --value) -p Type --value"
+    session = subprocess.run(command, capture_output=True, shell=True)
+    return session.stdout.decode().strip()
 
 
 def set_wallpaper(path: str):
-    log.info("Setting wallpaper with swaybg")
-    os.system("pkill swaybg > /dev/null 2>&1")
-    os.system(f"swaybg -i {path} > /dev/null 2>&1 &")
+    session = get_session()
+
+    if session == "wayland":
+        log.info("Wayland detected, setting wallpaper with swaybg")
+        os.system("pkill swaybg > /dev/null 2>&1")
+        os.system(f"swaybg -i {path} > /dev/null 2>&1 &")
+    else:
+        # TODO Use something else for x11
+        return
 
 
 class Color:
