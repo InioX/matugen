@@ -11,6 +11,13 @@ from argparse import Namespace, ArgumentParser
 from pathlib import Path
 
 
+logging.basicConfig(
+    level="INFO", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
+)
+
+log = logging.getLogger("rich")
+
+
 def get_version() -> str:
     return importlib.metadata.version('matugen')
 
@@ -48,18 +55,6 @@ def parse_arguments():
     )
     args: Namespace = parser.parse_args()
     return args
-
-def setup_logging():
-    FORMAT = "%(message)s"
-    logging.basicConfig(
-        level="INFO", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
-    )
-
-    log = logging.getLogger("rich")
-    return log
-
-
-log = setup_logging()
 
 
 def reload_apps():
