@@ -5,7 +5,7 @@ from matugen.util import (
     set_wallpaper,
     reload_apps,
     parse_arguments,
-    get_scheme
+    get_scheme,
 )
 
 
