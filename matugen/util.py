@@ -1,15 +1,15 @@
+import importlib.metadata
+import logging
 import os
 import re
-import logging
-import pathlib
 import subprocess
-import importlib.metadata
-from material_color_utilities_python import Image, themeFromImage
-from rich.logging import RichHandler
+from argparse import ArgumentParser, Namespace
 from configparser import ConfigParser
-from argparse import Namespace, ArgumentParser
 from pathlib import Path
+
+from material_color_utilities_python import Image, themeFromImage
 from rich import traceback
+from rich.logging import RichHandler
 
 traceback.install(extra_lines=3)
 
