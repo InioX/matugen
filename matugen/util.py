@@ -98,18 +98,18 @@ def parse_arguments():
     CONFIG_EXTENSION = Path(args.config).suffix
 
     if WALLPAPER_EXTENSION == "":
-        raise FileNotFoundError("Invalid wallpaper file path provided.")
+        raise FileNotFoundError("Invalid wallpaper file path.")
     elif Path(args.wallpaper).suffix not in VALID_WALLPAPER_EXTENSIONS:
         raise InvalidFileExtension(VALID_WALLPAPER_EXTENSIONS, WALLPAPER_EXTENSION)
     elif not os.path.isfile(WALLPAPER_PATH):
-        raise FileNotFoundError("The wallpaper file provided doesnt exist.")
+        raise FileNotFoundError("The wallpaper file doesnt exist.")
 
     if CONFIG_EXTENSION == "":
-        raise FileNotFoundError("Invalid config file path provided.")
+        raise FileNotFoundError("Invalid config file path.")
     elif Path(args.config).suffix not in VALID_CONFIG_EXTENSIONS:
         raise InvalidFileExtension(VALID_CONFIG_EXTENSIONS, CONFIG_EXTENSION)
     elif not Path.is_file(CONFIG_PATH):
-        raise FileNotFoundError("The config file provided doesnt exist.")
+        raise FileNotFoundError("The config file doesnt exist.")
 
     return args
 
