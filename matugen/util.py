@@ -83,6 +83,30 @@ def parse_arguments():
         type=str,
     )
     args: Namespace = parser.parse_args()
+
+    # Check if the args provided are valid
+    VALID_WALLPAPER_EXTENSIONS = [".png", ".jpg"]
+    VALID_CONFIG_EXTENSIONS = [".ini"]
+    WALLPAPER_PATH = Path(args.wallpaper).expanduser()
+    CONFIG_PATH = Path(args.config).expanduser()
+
+    WALLPAPER_EXTENSION = Path(args.wallpaper).suffix
+    CONFIG_EXTENSION = Path(args.config).suffix
+
+    if WALLPAPER_EXTENSION == "":
+        raise FileNotFoundError("Invalid wallpaper file path provided.")
+    elif Path(args.wallpaper).suffix not in VALID_WALLPAPER_EXTENSIONS:
+        raise InvalidFileExtension(VALID_WALLPAPER_EXTENSIONS, WALLPAPER_EXTENSION)
+    elif not os.path.isfile(WALLPAPER_PATH):
+        raise FileNotFoundError("The wallpaper file provided doesnt exist.")
+
+    if CONFIG_EXTENSION == "":
+        raise FileNotFoundError("Invalid config file path provided.")
+    elif Path(args.config).suffix not in VALID_CONFIG_EXTENSIONS:
+        raise InvalidFileExtension(VALID_CONFIG_EXTENSIONS, CONFIG_EXTENSION)
+    elif not Path.is_file(CONFIG_PATH):
+        raise FileNotFoundError("The config file provided doesnt exist.")
+
     return args
 
 
