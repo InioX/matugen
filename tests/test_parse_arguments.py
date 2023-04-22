@@ -1,7 +1,7 @@
 from argparse import Namespace
 import pytest
 
-from matugen.util import parse_arguments
+from matugen.util import parse_arguments, InvalidFileExtension
 
 VALID_WALLPAPER_PATH = "example/wallpaper.jpg"
 INVALID_WALLPAPER_PATH = "invalid_path"
@@ -104,5 +104,5 @@ class TestParseArguments:
             ),
         )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidFileExtension):
             parse_arguments()
