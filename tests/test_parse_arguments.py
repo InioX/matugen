@@ -134,7 +134,7 @@ class TestParseArguments:
         mocker.patch(
             "argparse.ArgumentParser.parse_args",
             return_value=Namespace(
-                wallpaper=NON_IMAGE_WALLPAPER_PATH, config=VALID_CONFIG_PATH
+                wallpaper=INVALID_WALLPAPER_EXTENSION, config=VALID_CONFIG_PATH
             ),
         )
 
