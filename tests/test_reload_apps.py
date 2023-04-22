@@ -3,6 +3,7 @@ import pytest
 
 from matugen.util import reload_apps
 
+
 class TestReloadApps:
     # Tests that all commands in the commands list run successfully and in the correct order, and that the correct signals are sent to the correct processes.
     def test_happy_path_reload_apps(self, mocker):

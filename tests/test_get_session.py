@@ -3,6 +3,7 @@ import pytest
 
 from matugen.util import get_session
 
+
 class TestGetSession:
     # Tests that the function returns a valid session string when the user is logged in and has a session.
     def test_get_session_happy_path_logged_in_with_session(self, mocker):

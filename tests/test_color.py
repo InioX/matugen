@@ -2,6 +2,7 @@ from matugen.util import Color
 
 import pytest
 
+
 class TestColor:
     # Tests that rgb_to_hex() returns the correct hex string for a valid RGB value.
     def test_rgb_to_hex_happy_path(self):

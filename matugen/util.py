@@ -19,6 +19,7 @@ logging.basicConfig(
 
 log = logging.getLogger("rich")
 
+
 class InvalidFileExtension(Exception):
     """
     Exception raised when provided extension doesnt match with the expected one
@@ -31,8 +32,11 @@ class InvalidFileExtension(Exception):
         self.extension = extension
         self.expected_extension = expected_extension
 
-        self.message = f"Invalid file extension. Expected {expected_extension}, got '{extension}'"
+        self.message = (
+            f"Invalid file extension. Expected {expected_extension}, got '{extension}'"
+        )
         super().__init__(self.message)
+
 
 def get_version() -> str:
     """
