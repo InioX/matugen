@@ -152,7 +152,7 @@ def set_wallpaper(path: str):
     """
     session = get_session()
 
-    # setting the wallpaper on wayland with swaybg.
+    # Setting the wallpaper on wayland with swaybg.
     if session == "wayland":
         log.info("Wayland detected, setting wallpaper with swaybg")
         os.system("pkill swaybg > /dev/null 2>&1")
