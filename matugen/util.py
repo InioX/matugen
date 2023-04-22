@@ -241,6 +241,8 @@ class Config:
         RGB_VALUES = {
             key: f"rgb{Color.hex_to_rgb(value[1:])}" for key, value in scheme.items()
         }
+
+        # TODO: Use pathlib.Path instead of os.path
         WALLPAPER_PATH = os.path.abspath(wallpaper)
 
         for template in templates:
