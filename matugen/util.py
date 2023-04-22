@@ -9,7 +9,9 @@ from rich.logging import RichHandler
 from configparser import ConfigParser
 from argparse import Namespace, ArgumentParser
 from pathlib import Path
+from rich import traceback
 
+traceback.install(extra_lines=3)
 
 logging.basicConfig(
     level="INFO", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
