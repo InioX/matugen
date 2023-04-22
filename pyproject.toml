@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "matugen"
-version = "0.4.0"
+version = "0.4.1"
 description = ""
 authors = ["InioX <justimnix@gmail.com>"]
 readme = "README.md"
