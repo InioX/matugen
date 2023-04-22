@@ -6,7 +6,7 @@ from matugen.util import parse_arguments, InvalidFileExtension
 VALID_WALLPAPER_PATH = "example/wallpaper.jpg"
 INVALID_WALLPAPER_PATH = "invalid_path"
 NONEXISTENT_WALLPAPER_PATH = "nonexistent.jpg"
-NON_IMAGE_WALLPAPER_PATH = "not_an_image.txt"
+INVALID_WALLPAPER_EXTENSION = "not_an_image.txt"
 
 VALID_CONFIG_PATH = "example/config.ini"
 INVALID_CONFIG_PATH = "invalid.ini"
@@ -92,7 +92,7 @@ class TestParseArguments:
             parse_arguments()
 
     # Tests that parse_arguments function raises an error when provided with a wallpaper path that is not an image file.
-    def test_parse_arguments_with_non_image_file_wallpaper_path(self, mocker):
+    def test_parse_arguments_with_invalid_wallpaper_extension(self, mocker):
         """
         Tests that parse_arguments function raises an error when provided with a wallpaper path that is not an image file.
         """
