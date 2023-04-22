@@ -233,44 +233,41 @@ class Config:
             for item in config.sections()
         ]
 
-        for i, template in enumerate(templates):
+        hex_values = {key: value[1:] for key, value in scheme.items()}
+        rgb_values = {
+            key: f"rgb{Color.hex_to_rgb(value[1:])}" for key, value in scheme.items()
+        }
+        wallpaper_path = os.path.abspath(wallpaper)
 
+        for template in templates:
             try:
-                with open(template["template_path"], "r") as input:  # Template file
-                    input_data = input.read()
+                with open(template["template_path"], "r") as input_file:
+                    input_data = input_file.read()
             except OSError as err:
-                logging.error(f"Could not open {err.filename}")
-                i += 1
-                return
+                logging.exception(f"Could not open {err.filename}")
+                continue
 
             output_data = input_data
-            # print(f"i: {i}")
-            for h, (key, value) in enumerate(scheme.items()):
-                # print(f"H: {h}")
+            for key in scheme:
                 pattern = re.compile(f"@{{{key}}}")
                 pattern_hex = re.compile(f"@{{{key}.hex}}")
                 pattern_rgb = re.compile(f"@{{{key}.rgb}}")
                 pattern_wallpaper = re.compile("@{wallpaper}")
 
-                hex_stripped = value[1:]
-                rgb_value = f"rgb{Color.hex_to_rgb(hex_stripped)}"
-                wallpaper_value = os.path.abspath(wallpaper)
-
-                output_data = pattern.sub(hex_stripped, output_data)
-                output_data = pattern_hex.sub(value, output_data)
-                output_data = pattern_rgb.sub(rgb_value, output_data)
-                output_data = pattern_wallpaper.sub(wallpaper_value, output_data)
-                i += 1
+                output_data = pattern.sub(hex_values[key], output_data)
+                output_data = pattern_hex.sub(scheme[key], output_data)
+                output_data = pattern_rgb.sub(rgb_values[key], output_data)
+                output_data = pattern_wallpaper.sub(wallpaper_path, output_data)
 
             try:
-                with open(template["output_path"], "w") as output:
-                    output.write(output_data)
+                with open(template["output_path"], "w") as output_file:
+                    output_file.write(output_data)
             except OSError as err:
                 logging.exception(
                     f'Could not write {template["name"]} template to {err.filename}'
                 )
             else:
-                log.info(
+                logging.info(
                     f'Exported {template["name"]} template to {template["output_path"]}'
                 )
 
