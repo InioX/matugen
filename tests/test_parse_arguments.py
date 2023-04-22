@@ -9,7 +9,9 @@ NONEXISTENT_WALLPAPER_PATH = "nonexistent.jpg"
 INVALID_WALLPAPER_EXTENSION = "not_an_image.txt"
 
 VALID_CONFIG_PATH = "example/config.ini"
-INVALID_CONFIG_PATH = "invalid.ini"
+INVALID_CONFIG_PATH = "invalid_path"
+INVALID_CONFIG_EXTENSTION = "invalid.extension"
+NONEXISTENT_CONFIG_PATH = "nonexistent.ini"
 
 
 class TestParseArguments:
@@ -89,6 +91,38 @@ class TestParseArguments:
         )
 
         with pytest.raises(FileNotFoundError):
+            parse_arguments()
+
+    # Tests that parse_arguments function raises an error when provided with a nonexistent config path.
+    def test_parse_arguments_with_nonexistent_config_path(self, mocker):
+        """
+        Tests that parse_arguments function raises an error when provided with an nonexistent config path.
+        """
+        # Create a mock for the argparse.ArgumentParser.parse_args() method
+        mocker.patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=Namespace(
+                wallpaper=VALID_WALLPAPER_PATH, config=NONEXISTENT_CONFIG_PATH
+            ),
+        )
+
+        with pytest.raises(FileNotFoundError):
+            parse_arguments()
+
+    # Tests that parse_arguments function raises an error when provided with a nonexistent config path.
+    def test_parse_arguments_with_invalid_config_extension(self, mocker):
+        """
+        Tests that parse_arguments function raises an error when provided with an invalid config extension.
+        """
+        # Create a mock for the argparse.ArgumentParser.parse_args() method
+        mocker.patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=Namespace(
+                wallpaper=VALID_WALLPAPER_PATH, config=INVALID_CONFIG_EXTENSTION
+            ),
+        )
+
+        with pytest.raises(InvalidFileExtension):
             parse_arguments()
 
     # Tests that parse_arguments function raises an error when provided with a wallpaper path that is not an image file.
