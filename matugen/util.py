@@ -215,14 +215,14 @@ class Config:
         @return Config object with parsed sections and template names from config file or None if there was an error reading the config.
         """
         config = ConfigParser()
-        config_path = Path(file).expanduser()
+        CONFIG_PATH = Path(file).expanduser()
         try:
-            config.read(config_path)
+            config.read(CONFIG_PATH)
         except OSError as err:
             logging.exception(f"Could not open {err.file}")
         else:
             logging.info(
-                f"Loaded {len(config.sections())} templates from {config_path}"
+                f"Loaded {len(config.sections())} templates from {CONFIG_PATH}"
             )
             return config
 
@@ -237,11 +237,11 @@ class Config:
             for item in config.sections()
         ]
 
-        hex_values = {key: value[1:] for key, value in scheme.items()}
-        rgb_values = {
+        HEX_VALUES = {key: value[1:] for key, value in scheme.items()}
+        RGB_VALUES = {
             key: f"rgb{Color.hex_to_rgb(value[1:])}" for key, value in scheme.items()
         }
-        wallpaper_path = os.path.abspath(wallpaper)
+        WALLPAPER_PATH = os.path.abspath(wallpaper)
 
         for template in templates:
             try:
@@ -253,15 +253,15 @@ class Config:
 
             output_data = input_data
             for key in scheme:
-                pattern = re.compile(f"@{{{key}}}")
-                pattern_hex = re.compile(f"@{{{key}.hex}}")
-                pattern_rgb = re.compile(f"@{{{key}.rgb}}")
-                pattern_wallpaper = re.compile("@{wallpaper}")
+                PATTERN = re.compile(f"@{{{key}}}")
+                PATTERN_HEX = re.compile(f"@{{{key}.hex}}")
+                PATTERN_RGB = re.compile(f"@{{{key}.rgb}}")
+                PATTERN_WALLPAPER = re.compile("@{wallpaper}")
 
-                output_data = pattern.sub(hex_values[key], output_data)
-                output_data = pattern_hex.sub(scheme[key], output_data)
-                output_data = pattern_rgb.sub(rgb_values[key], output_data)
-                output_data = pattern_wallpaper.sub(wallpaper_path, output_data)
+                output_data = PATTERN.sub(HEX_VALUES[key], output_data)
+                output_data = PATTERN_HEX.sub(scheme[key], output_data)
+                output_data = PATTERN_RGB.sub(RGB_VALUES[key], output_data)
+                output_data = PATTERN_WALLPAPER.sub(WALLPAPER_PATH, output_data)
 
             try:
                 with open(template["output_path"], "w") as output_file:
@@ -288,10 +288,10 @@ class Theme:
         """
         log.info(f"Using image {image}")
         img = Image.open(image)
-        basewidth = 64
-        wpercent = basewidth / float(img.size[0])
+        BASEWIDTH = 64
+        wpercent = BASEWIDTH / float(img.size[0])
         hsize = int((float(img.size[1]) * float(wpercent)))
-        img = img.resize((basewidth, hsize), Image.Resampling.LANCZOS)
+        img = img.resize((BASEWIDTH, hsize), Image.Resampling.LANCZOS)
 
         return themeFromImage(img)
 
