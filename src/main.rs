@@ -101,9 +101,9 @@ fn main() -> Result<(), Report> {
         show_color(&scheme, &colors);
     }
 
-    let _config: ConfigFile = ConfigFile::read()?;
+    let config: ConfigFile = ConfigFile::read()?;
 
-    Template::new(&colors, scheme, _config)?;
+    Template::new(&colors, scheme, config)?;
 
     Ok(())
 }
