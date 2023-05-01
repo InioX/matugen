@@ -1,0 +1,7 @@
+{
+    "nixEnvSelector.nixFile": "${workspaceRoot}/flake.nix",
+    "rust-analyzer.linkedProjects": [
+        "./Cargo.toml"
+    ],
+    "rust-analyzer.showUnlinkedFileNotification": false
+}
