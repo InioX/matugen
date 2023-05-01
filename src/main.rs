@@ -1,6 +1,6 @@
 extern crate pretty_env_logger;
 #[macro_use]
-extern crate log;
+extern crate paris_log;
 
 mod util;
 use crate::util::{
@@ -11,7 +11,6 @@ use crate::util::{
     template::Template,
 };
 
-use hex_color::HexColor;
 use log::{Level, LevelFilter};
 
 use color_eyre::{eyre::Result, Report};
@@ -23,8 +22,6 @@ fn main() -> Result<(), Report> {
     color_eyre::install()?;
     let args = Cli::parse();
 
-    println!("{:?}", args);
-
     let log_level: LevelFilter = if args.verbose == Some(true) {
         LevelFilter::Info
     } else if args.quiet == Some(true) {
@@ -32,8 +29,6 @@ fn main() -> Result<(), Report> {
     } else {
         LevelFilter::Warn
     };
-
-    println!("\n\n{:?}", log_level);
 
     pretty_env_logger::env_logger::builder()
         .format_module_path(false)
@@ -45,7 +40,7 @@ fn main() -> Result<(), Report> {
         Commands::Image { path } => CorePalette::new(source_color_from_image(&path)?[0], true),
         Commands::Color { color } => {
             if ! color.starts_with("#") {
-                // TODO: Custom error + Check for length too
+                // Do something here
             };
             
             let hex_stripped = color[1..].to_string();
@@ -102,7 +97,9 @@ fn main() -> Result<(), Report> {
         "inverse_primary",
     ];
 
-    show_color(&scheme, &colors);
+    if args.quiet == Some(false) {
+        show_color(&scheme, &colors);
+    }
 
     let _config: ConfigFile = ConfigFile::read()?;
 

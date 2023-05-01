@@ -74,4 +74,5 @@ pub fn show_color(scheme: &Scheme, colors: &Vec<&str>) {
 
         print!("{}", color_str);
     }
+    println!("\n");
 }

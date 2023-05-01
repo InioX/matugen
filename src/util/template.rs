@@ -91,12 +91,12 @@ impl Template {
             })
         }
 
-        for (_name, template) in &config.templates {
+        for (name, template) in &config.templates {
             let input_path_absolute = template.input_path.try_resolve()?;
             let output_path_absolute = template.output_path.try_resolve()?;
 
             if !input_path_absolute.exists() {
-                warn!("The template {} doesnt exist, skipping...", input_path_absolute.display());
+                warn!("The {} template in <yellow>{}</> doesnt exist, skipping...", name, input_path_absolute.display());
                 continue;
             }
 
@@ -133,7 +133,7 @@ impl Template {
                 .write(true)
                 .open(&output_path_absolute)?;
 
-            info!("Writing to {}", output_path_absolute.display());
+            success!("Exported the {} template to <u>{}</>", name, output_path_absolute.display());
             output_file.write_all(&data.as_bytes())?;
         }
         Ok(())
