@@ -30,13 +30,15 @@ pub fn source_color_from_image(image: &String) -> Result<Vec<[u8; 4]>, Report> {
 
     let (new_width, new_height) = (width / 64, height / 64);
 
-    info!("Resizing image to {}x{} from {}x{}", newheight, newwidth, width, height);
-    let resized_img = img.resize(newheight, newwidth, FilterType::Lanczos3);
+    info!(
+        "Resizing image from {}x{} to {}x{}",
+        width, height, new_height, new_width
+    );
+    let resized_img = img.resize(new_height, new_width, FilterType::Lanczos3);
 
     let mut pixels = vec![];
 
     for pixel in resized_img.pixels() {
-        // TODO: Make this use Color::new()
         let color: Color = Color {
             red: pixel.2[0],
             green: pixel.2[1],
