@@ -28,8 +28,7 @@ pub fn source_color_from_image(image: &String) -> Result<Vec<[u8; 4]>, Report> {
 
     let (width, height) = img.dimensions();
 
-    let newwidth = width / 64;
-    let newheight = height / 64;
+    let (new_width, new_height) = (width / 64, height / 64);
 
     info!("Resizing image to {}x{} from {}x{}", newheight, newwidth, width, height);
     let resized_img = img.resize(newheight, newwidth, FilterType::Lanczos3);
