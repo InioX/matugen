@@ -7,14 +7,13 @@ use std::str;
 
 use std::fs::read_to_string;
 use std::fs::OpenOptions;
-use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
 
 use crate::util::color::SchemeExt;
 use crate::Scheme;
 
-use super::config::{Config, ConfigFile};
+use super::config::ConfigFile;
 use material_color_utilities_rs::util::color::format_argb_as_rgb;
 use resolve_path::PathResolveExt;
 
@@ -44,52 +43,9 @@ impl Template {
     pub fn new(colors: &Vec<&str>, scheme: Scheme, config: ConfigFile) -> Result<(), Report> {
         let prefix: &String = &config.config.prefix.unwrap_or("@".to_string());
 
-        // TODO: add actual logging
         info!("Loaded {} templates.", &config.templates.len());
 
-        let mut regexvec: Vec<Pattern> = vec![];
-
-        for field in colors {
-            let color: Color = Color::new(*Scheme::get_value(&scheme, field));
-
-            regexvec.push(Pattern {
-                hex: ColorType {
-                    pattern: Regex::new(&format!(r#"\{prefix}\{{{field}}}"#).to_string())?,
-                    replacement: format_argb_as_rgb([
-                        color.alpha,
-                        color.red,
-                        color.blue,
-                        color.green,
-                    ]),
-                },
-                hex_stripped: ColorType {
-                    pattern: Regex::new(
-                        &format!(r#"\{prefix}\{{{field}.strip}}"#).to_string(),
-                    )?,
-                    replacement: format_argb_as_rgb([
-                        color.alpha,
-                        color.red,
-                        color.blue,
-                        color.green,
-                    ])[1..]
-                        .to_string(),
-                },
-                rgb: ColorType {
-                    pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.rgb}}"#).to_string())?,
-                    replacement: format!(
-                        "rgb({:?}, {:?}, {:?})",
-                        color.red, color.blue, color.green
-                    ),
-                },
-                rgba: ColorType {
-                    pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.rgba}}"#).to_string())?,
-                    replacement: format!(
-                        "rgba({:?}, {:?}, {:?}, {:?})",
-                        color.red, color.green, color.blue, color.alpha
-                    ),
-                },
-            })
-        }
+        let regexvec: Vec<Pattern> = generate_patterns(colors, scheme, &prefix)?;
 
         for (name, template) in &config.templates {
             let input_path_absolute = template.input_path.try_resolve()?;
@@ -102,40 +58,84 @@ impl Template {
 
             let mut data = read_to_string(&input_path_absolute)?;
 
-            for regex in &regexvec {
-                data = regex
-                    .hex
-                    .pattern
-                    .replace_all(&data, regex.hex.replacement.to_string())
-                    .to_string();
-
-                data = regex
-                    .rgb
-                    .pattern
-                    .replace_all(&data, regex.rgb.replacement.to_string())
-                    .to_string();
-
-                data = regex
-                    .rgba
-                    .pattern
-                    .replace_all(&data, regex.rgba.replacement.to_string())
-                    .to_string();
-
-                data = regex
-                    .hex_stripped
-                    .pattern
-                    .replace_all(&data, regex.hex_stripped.replacement.to_string())
-                    .to_string();
-            }
+            replace_matches(&regexvec, &mut data);
 
             let mut output_file = OpenOptions::new()
                 .create(true)
                 .write(true)
                 .open(&output_path_absolute)?;
 
-            success!("Exported the <b><green>{}</> template to <d><u>{}</>", name, output_path_absolute.display());
+            success!(
+                "Exported the <b><green>{}</> template to <d><u>{}</>",
+                name,
+                output_path_absolute.display()
+            );
             output_file.write_all(&data.as_bytes())?;
         }
         Ok(())
     }
+}
+
+fn replace_matches(regexvec: &Vec<Pattern>, data: &mut String) {
+    for regex in regexvec {
+        *data = regex
+            .hex
+            .pattern
+            .replace_all(&*data, regex.hex.replacement.to_string())
+            .to_string();
+
+        *data = regex
+            .rgb
+            .pattern
+            .replace_all(&*data, regex.rgb.replacement.to_string())
+            .to_string();
+
+        *data = regex
+            .rgba
+            .pattern
+            .replace_all(&*data, regex.rgba.replacement.to_string())
+            .to_string();
+
+        *data = regex
+            .hex_stripped
+            .pattern
+            .replace_all(&*data, regex.hex_stripped.replacement.to_string())
+            .to_string();
+    }
+}
+
+fn generate_patterns(
+    colors: &Vec<&str>,
+    scheme: Scheme,
+    prefix: &String,
+) -> Result<Vec<Pattern>, Report> {
+    let mut regexvec: Vec<Pattern> = vec![];
+    for field in colors {
+        let color: Color = Color::new(*Scheme::get_value(&scheme, field));
+
+        regexvec.push(Pattern {
+            hex: ColorType {
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}}}"#).to_string())?,
+                replacement: format_argb_as_rgb([color.alpha, color.red, color.blue, color.green]),
+            },
+            hex_stripped: ColorType {
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.strip}}"#).to_string())?,
+                replacement: format_argb_as_rgb([color.alpha, color.red, color.blue, color.green])
+                    [1..]
+                    .to_string(),
+            },
+            rgb: ColorType {
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.rgb}}"#).to_string())?,
+                replacement: format!("rgb({:?}, {:?}, {:?})", color.red, color.blue, color.green),
+            },
+            rgba: ColorType {
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.rgba}}"#).to_string())?,
+                replacement: format!(
+                    "rgba({:?}, {:?}, {:?}, {:?})",
+                    color.red, color.green, color.blue, color.alpha
+                ),
+            },
+        });
+    }
+    Ok(regexvec)
 }

@@ -11,7 +11,7 @@ use crate::util::{
     template::Template,
 };
 
-use log::{Level, LevelFilter};
+use log::LevelFilter;
 
 use color_eyre::{eyre::Result, Report};
 use material_color_utilities_rs::{palettes::core::CorePalette, scheme::Scheme};
@@ -22,45 +22,10 @@ fn main() -> Result<(), Report> {
     color_eyre::install()?;
     let args = Cli::parse();
 
-    let log_level: LevelFilter = if args.verbose == Some(true) {
-        LevelFilter::Info
-    } else if args.quiet == Some(true) {
-        LevelFilter::Error
-    } else {
-        LevelFilter::Warn
-    };
+    setup_logging(&args)?;
 
-    pretty_env_logger::env_logger::builder()
-        .format_module_path(false)
-        .format_timestamp(None)
-        .filter_level(log_level)
-        .try_init()?;
-
-    let mut palette: CorePalette = match args.source {
-        Commands::Image { path } => CorePalette::new(source_color_from_image(&path)?[0], true),
-        Commands::Color { mut color } => {
-            if color.starts_with("#") {
-                color = color[1..].to_string();
-            };
-
-            if color.len() < 6 {
-                // Handle error
-            }
-            
-
-            let source_color = Color {
-                red: u8::from_str_radix(&color[0..2], 16)?,
-                green: u8::from_str_radix(&color[2..4], 16)?,
-                blue: u8::from_str_radix(&color[4..6], 16)?,
-                alpha: 255,
-            };
-
-            CorePalette::new(
-                [255, source_color.red, source_color.green, source_color.blue],
-                true,
-            )
-        }
-    };
+    let mut palette = generate_palette(&args)?;
+    let config: ConfigFile = ConfigFile::read()?;
 
     let scheme: Scheme = if args.lightmode == Some(true) {
         Scheme::light_from_core_palette(&mut palette)
@@ -100,13 +65,57 @@ fn main() -> Result<(), Report> {
         "inverse_primary",
     ];
 
+    Template::new(&colors, scheme, config)?;
+
     if args.quiet == Some(false) {
         show_color(&scheme, &colors);
     }
 
-    let config: ConfigFile = ConfigFile::read()?;
-
-    Template::new(&colors, scheme, config)?;
-
     Ok(())
+}
+
+fn setup_logging(args: &Cli) -> Result<(), Report> {
+    let log_level: LevelFilter = if args.verbose == Some(true) {
+        LevelFilter::Info
+    } else if args.quiet == Some(true) {
+        LevelFilter::Error
+    } else {
+        LevelFilter::Warn
+    };
+    pretty_env_logger::env_logger::builder()
+        .format_module_path(false)
+        .format_timestamp(None)
+        .filter_level(log_level)
+        .try_init()?;
+    Ok(())
+}
+
+fn generate_palette(args: &Cli) -> Result<CorePalette, Report> {
+    let palette: CorePalette = match &args.source {
+        Commands::Image { path } => CorePalette::new(source_color_from_image(&path)?[0], true),
+        Commands::Color { color } => {
+            let mut newcolor = color.clone();
+
+            if color.starts_with("#") {
+                newcolor = newcolor[1..].to_string();
+            };
+
+            if newcolor.len() < 6 {
+                // Handle error
+            }
+
+            let source_color = Color {
+                red: u8::from_str_radix(&newcolor[0..2], 16)?,
+                green: u8::from_str_radix(&newcolor[2..4], 16)?,
+                blue: u8::from_str_radix(&newcolor[4..6], 16)?,
+                alpha: 255,
+            };
+
+            CorePalette::new(
+                [255, source_color.red, source_color.green, source_color.blue],
+                true,
+            )
+        }
+    };
+    Ok(palette)
 }
