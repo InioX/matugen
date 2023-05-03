@@ -96,7 +96,7 @@ impl Template {
             let output_path_absolute = template.output_path.try_resolve()?;
 
             if !input_path_absolute.exists() {
-                warn!("The {} template in <yellow>{}</> doesnt exist, skipping...", name, input_path_absolute.display());
+                warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesnt exist, skipping...</>", name, input_path_absolute.display());
                 continue;
             }
 
@@ -133,7 +133,7 @@ impl Template {
                 .write(true)
                 .open(&output_path_absolute)?;
 
-            success!("Exported the {} template to <u>{}</>", name, output_path_absolute.display());
+            success!("Exported the <b><green>{}</> template to <d><u>{}</>", name, output_path_absolute.display());
             output_file.write_all(&data.as_bytes())?;
         }
         Ok(())
