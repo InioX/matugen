@@ -38,17 +38,20 @@ fn main() -> Result<(), Report> {
 
     let mut palette: CorePalette = match args.source {
         Commands::Image { path } => CorePalette::new(source_color_from_image(&path)?[0], true),
-        Commands::Color { color } => {
-            if ! color.starts_with("#") {
-                // Do something here
+        Commands::Color { mut color } => {
+            if color.starts_with("#") {
+                color = color[1..].to_string();
             };
+
+            if color.len() < 6 {
+                // Handle error
+            }
             
-            let hex_stripped = color[1..].to_string();
 
             let source_color = Color {
-                red: u8::from_str_radix(&hex_stripped[0..2], 16)?,
-                green: u8::from_str_radix(&hex_stripped[2..4], 16)?,
-                blue: u8::from_str_radix(&hex_stripped[4..6], 16)?,
+                red: u8::from_str_radix(&color[0..2], 16)?,
+                green: u8::from_str_radix(&color[2..4], 16)?,
+                blue: u8::from_str_radix(&color[4..6], 16)?,
                 alpha: 255,
             };
 
