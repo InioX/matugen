@@ -126,15 +126,12 @@ fn replace_matches(regexvec: &Patterns, data: &mut String) {
             .replace_all(&*data, regex.hex_stripped.replacement.to_string())
             .to_string();
     }
-    match regexvec.image.replacement {
-        Some(image) => {
-            *data = regexvec
-                .image
-                .pattern
-                .replace_all(&*data, image)
-                .to_string();
-        }
-        None => {}
+    if let Some(image) = regexvec.image.replacement {
+        *data = regexvec
+           .image
+           .pattern
+            .replace_all(&*data, image)
+            .to_string();
     }
 }
 
