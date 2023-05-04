@@ -1,5 +1,5 @@
 {
-  description = "A devShell example";
+  description = "A nixos devShell";
 
   inputs = {
     nixpkgs.url      = "github:NixOS/nixpkgs/nixos-unstable";
@@ -19,16 +19,12 @@
       {
         devShells.default = mkShell {
           buildInputs = [
-            openssl
             pkg-config
-            exa
-            fd
             rust-bin.stable.latest.default
           ];
 
           shellHook = ''
-            alias ls=exa
-            alias find=fd
+            
           '';
         };
       }
