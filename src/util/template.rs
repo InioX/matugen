@@ -25,28 +25,26 @@ pub struct Template {
     pub output_path: PathBuf,
 }
 
-#[derive(Debug)]
-struct ColorType {
+struct ColorPattern {
     pattern: Regex,
     replacement: String,
 }
 
-struct Image<'a> {
+struct ImagePattern<'a> {
     pattern: Regex,
     replacement: Option<&'a String>,
 }
 
-#[derive(Debug)]
-struct Pattern {
-    hex: ColorType,
-    hex_stripped: ColorType,
-    rgb: ColorType,
-    rgba: ColorType,
+struct ColorPatterns {
+    hex: ColorPattern,
+    hex_stripped: ColorPattern,
+    rgb: ColorPattern,
+    rgba: ColorPattern,
 }
 
 struct Patterns<'a> {
-    patterns: Vec<Pattern>,
-    image: Image<'a>,
+    colors: Vec<ColorPatterns>,
+    image: ImagePattern<'a>,
 }
 
 use super::color::Color;
@@ -102,7 +100,7 @@ impl Template {
 }
 
 fn replace_matches(regexvec: &Patterns, data: &mut String) {
-    for regex in &regexvec.patterns {
+    for regex in &regexvec.colors {
         *data = regex
             .hex
             .pattern
@@ -142,26 +140,26 @@ fn generate_patterns<'a>(
     prefix: &'a String,
     image: Option<&'a String>,
 ) -> Result<Patterns<'a>, Report> {
-    let mut regexvec: Vec<Pattern> = vec![];
+    let mut regexvec: Vec<ColorPatterns> = vec![];
     for field in colors {
         let color: Color = Color::new(*Scheme::get_value(&scheme, field));
 
-        regexvec.push(Pattern {
-            hex: ColorType {
+        regexvec.push(ColorPatterns {
+            hex: ColorPattern {
                 pattern: Regex::new(&format!(r#"\{prefix}\{{{field}}}"#).to_string())?,
                 replacement: format_argb_as_rgb([color.alpha, color.red, color.blue, color.green]),
             },
-            hex_stripped: ColorType {
+            hex_stripped: ColorPattern {
                 pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.strip}}"#).to_string())?,
                 replacement: format_argb_as_rgb([color.alpha, color.red, color.blue, color.green])
                     [1..]
                     .to_string(),
             },
-            rgb: ColorType {
+            rgb: ColorPattern {
                 pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.rgb}}"#).to_string())?,
                 replacement: format!("rgb({:?}, {:?}, {:?})", color.red, color.blue, color.green),
             },
-            rgba: ColorType {
+            rgba: ColorPattern {
                 pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.rgba}}"#).to_string())?,
                 replacement: format!(
                     "rgba({:?}, {:?}, {:?}, {:?})",
@@ -171,8 +169,8 @@ fn generate_patterns<'a>(
         });
     }
     Ok(Patterns {
-        patterns: regexvec,
-        image: Image {
+        colors: regexvec,
+        image: ImagePattern {
             pattern: Regex::new(&format!(r#"\{prefix}\{{image}}"#))?,
             replacement: image,
         },
