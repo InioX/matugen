@@ -41,8 +41,6 @@ A cross platform tool that generates a colorscheme either from an image or a col
 - MacOS
 
 ## Installation
-### Manually compiling
->**Note** Assuming you have cargo installed
 ```shell
 git clone https://github.com/InioX/matugen && cd matugen
 
