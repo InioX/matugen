@@ -40,7 +40,7 @@ struct Pattern {
 use super::color::Color;
 
 impl Template {
-    pub fn new(colors: &Vec<&str>, scheme: Scheme, config: ConfigFile) -> Result<(), Report> {
+    pub fn generate(colors: &Vec<&str>, scheme: Scheme, config: ConfigFile) -> Result<(), Report> {
         let prefix: &String = &config.config.prefix.unwrap_or("@".to_string());
 
         info!("Loaded {} templates.", &config.templates.len());
