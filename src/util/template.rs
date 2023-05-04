@@ -67,7 +67,7 @@ impl Template {
             Commands::Color { .. } => None,
         };
 
-        let regexvec: Patterns = generate_patterns(colors, scheme, &prefix, image)?;
+        let regexvec: Patterns = generate_patterns(colors, scheme, prefix, image)?;
 
         // println!("{}", imageregex.is_match("@{image}"));
 
@@ -94,7 +94,7 @@ impl Template {
                 name,
                 output_path_absolute.display()
             );
-            output_file.write_all(&data.as_bytes())?;
+            output_file.write_all(data.as_bytes())?;
         }
         Ok(())
     }
@@ -175,7 +175,7 @@ fn generate_patterns<'a>(
     Ok(Patterns {
         patterns: regexvec,
         image: Image {
-            pattern: Regex::new(&format!(r#"\{prefix}\{{image}}"#).to_string())?,
+            pattern: Regex::new(&format!(r#"\{prefix}\{{image}}"#))?,
             replacement: image,
         },
     })

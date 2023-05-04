@@ -66,7 +66,7 @@ pub fn show_color(scheme: &Scheme, colors: &Vec<&str>) {
 
     for field in colors {
 
-        let color: Color = Color::new(*Scheme::get_value(&scheme, field));
+        let color: Color = Color::new(*Scheme::get_value(scheme, field));
 
         let color: owo_colors::Rgb = owo_colors::Rgb(color.red, color.green, color.blue);
 

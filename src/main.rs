@@ -92,11 +92,11 @@ fn setup_logging(args: &Cli) -> Result<(), Report> {
 
 fn generate_palette(args: &Cli) -> Result<CorePalette, Report> {
     let palette: CorePalette = match &args.source {
-        Commands::Image { path } => CorePalette::new(source_color_from_image(&path)?[0], true),
+        Commands::Image { path } => CorePalette::new(source_color_from_image(path)?[0], true),
         Commands::Color { color } => {
             let mut newcolor = color.clone();
 
-            if color.starts_with("#") {
+            if color.starts_with('#') {
                 newcolor = newcolor[1..].to_string();
             };
 
