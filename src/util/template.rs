@@ -84,16 +84,16 @@ impl Template {
 
             let mut output_file = OpenOptions::new()
                 .create(true)
-                .append(false)
+                .truncate(true)
                 .write(true)
                 .open(&output_path_absolute)?;
 
+            output_file.write_all(data.as_bytes())?;
             success!(
                 "Exported the <b><green>{}</> template to <d><u>{}</>",
                 name,
                 output_path_absolute.display()
             );
-            output_file.write_all(data.as_bytes())?;
         }
         Ok(())
     }
