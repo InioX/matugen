@@ -10,9 +10,11 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 
+use crate::util::arguments::Commands;
 use crate::util::color::SchemeExt;
 use crate::Scheme;
 
+use super::arguments::Cli;
 use super::config::ConfigFile;
 use material_color_utilities_rs::util::color::format_argb_as_rgb;
 use resolve_path::PathResolveExt;
@@ -29,6 +31,11 @@ struct ColorType {
     replacement: String,
 }
 
+struct Image<'a> {
+    pattern: Regex,
+    replacement: Option<&'a String>,
+}
+
 #[derive(Debug)]
 struct Pattern {
     hex: ColorType,
@@ -37,15 +44,32 @@ struct Pattern {
     rgba: ColorType,
 }
 
+struct Patterns<'a> {
+    patterns: Vec<Pattern>,
+    image: Image<'a>,
+}
+
 use super::color::Color;
 
 impl Template {
-    pub fn generate(colors: &Vec<&str>, scheme: Scheme, config: ConfigFile) -> Result<(), Report> {
+    pub fn generate(
+        colors: &Vec<&str>,
+        scheme: Scheme,
+        config: ConfigFile,
+        args: &Cli,
+    ) -> Result<(), Report> {
         let prefix: &String = &config.config.prefix.unwrap_or("@".to_string());
 
         info!("Loaded {} templates.", &config.templates.len());
 
-        let regexvec: Vec<Pattern> = generate_patterns(colors, scheme, &prefix)?;
+        let image = match &args.source {
+            Commands::Image { path } => Some(path),
+            Commands::Color { .. } => None,
+        };
+
+        let regexvec: Patterns = generate_patterns(colors, scheme, &prefix, image)?;
+
+        // println!("{}", imageregex.is_match("@{image}"));
 
         for (name, template) in &config.templates {
             let input_path_absolute = template.input_path.try_resolve()?;
@@ -76,8 +100,8 @@ impl Template {
     }
 }
 
-fn replace_matches(regexvec: &Vec<Pattern>, data: &mut String) {
-    for regex in regexvec {
+fn replace_matches(regexvec: &Patterns, data: &mut String) {
+    for regex in &regexvec.patterns {
         *data = regex
             .hex
             .pattern
@@ -102,13 +126,24 @@ fn replace_matches(regexvec: &Vec<Pattern>, data: &mut String) {
             .replace_all(&*data, regex.hex_stripped.replacement.to_string())
             .to_string();
     }
+    match regexvec.image.replacement {
+        Some(image) => {
+            *data = regexvec
+                .image
+                .pattern
+                .replace_all(&*data, image)
+                .to_string();
+        }
+        None => {}
+    }
 }
 
-fn generate_patterns(
-    colors: &Vec<&str>,
+fn generate_patterns<'a>(
+    colors: &'a Vec<&'a str>,
     scheme: Scheme,
-    prefix: &String,
-) -> Result<Vec<Pattern>, Report> {
+    prefix: &'a String,
+    image: Option<&'a String>,
+) -> Result<Patterns<'a>, Report> {
     let mut regexvec: Vec<Pattern> = vec![];
     for field in colors {
         let color: Color = Color::new(*Scheme::get_value(&scheme, field));
@@ -137,5 +172,11 @@ fn generate_patterns(
             },
         });
     }
-    Ok(regexvec)
+    Ok(Patterns {
+        patterns: regexvec,
+        image: Image {
+            pattern: Regex::new(&format!(r#"\{prefix}\{{image}}"#).to_string())?,
+            replacement: image,
+        },
+    })
 }

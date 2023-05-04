@@ -65,7 +65,7 @@ fn main() -> Result<(), Report> {
         "inverse_primary",
     ];
 
-    Template::generate(&colors, scheme, config)?;
+    Template::generate(&colors, scheme, config, &args)?;
 
     if args.quiet == Some(false) {
         show_color(&scheme, &colors);
