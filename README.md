@@ -35,19 +35,33 @@ TODO...
 ```
 
 ## Usage
-```shell
+### From an image
+```sh
 # Dark theme
-matugen /path/to/wallpaper/
+matugen image /path/to/wallpaper/
 # Light theme
-matugen /path/to/wallpaper/ -l
+matugen image /path/to/wallpaper/ -l
 ```
 Example:
-```shell
-matugen ~/wall/snow.png -l
+```sh
+matugen image ~/wall/snow.png -l
+```
+### From a color
+```sh
+# Dark theme
+matugen color <hex color>
+# Light theme
+matugen color <hex color> -l
+```
+Example:
+```sh
+matugen color #ffbf9b
+matugen color ffbf9b -l
 ```
 
+
 ### Creating templates
-The basic syntax for using colors is `@{color}`.
+The basic syntax for using colors is `prefix + {color}` (The default prefix is `@`, so the usage would be `@{color}`).
 
 There are multiple formats you can use:
 ```css
@@ -57,7 +71,7 @@ There are multiple formats you can use:
 
 ```
 
-You can also get the wallpaper by using:
+You can also get the image (if it was provided) by using:
 ```css
 @import url("@{image}"); /* Result: /home/ini/Downloads/wallpaper.jpg
 ```
