@@ -72,7 +72,7 @@ There are multiple formats you can use:
 
 You can also get the wallpaper by using:
 ```css
-@import url("@{wallpaper}"); /* Result: /path/to/wallpaper/ */
+@import url("@{image}"); /* Result: /home/ini/Downloads/wallpaper.jpg
 ```
 
 Example of all the colors:
