@@ -86,6 +86,7 @@ impl Template {
 
             let mut output_file = OpenOptions::new()
                 .create(true)
+                .append(false)
                 .write(true)
                 .open(&output_path_absolute)?;
 
