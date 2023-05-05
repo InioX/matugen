@@ -6,6 +6,7 @@ use std::process::Command;
 pub fn reload_apps_linux(args: &Cli, config: &ConfigFile) -> Result<(), Report> {
 
     reload_app("kitty", "SIGUSR1")?;
+    reload_app("waybar", "SIGUSR2")?;
     
     if config.config.reload_gtk_theme == Some(true) {
         reload_gtk_theme(args)?;
