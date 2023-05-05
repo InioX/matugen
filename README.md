@@ -67,6 +67,7 @@ There are multiple formats you can use:
 ```css
 @define-color primary @{primary.hex}; /* Result: #ffb783 */
 @define-color primary @{primary.rgb}; /* Result: rgb(255, 183, 131) */
+@define-color primary @{primary.rgba}; /* Result: rgba(255, 183, 131, 255) */
 @define-color primary @{primary.strip}; /* Result: #ffb783 */
 
 ```
