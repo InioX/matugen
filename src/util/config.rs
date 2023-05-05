@@ -12,7 +12,7 @@ use crate::Template;
 #[derive(Serialize, Deserialize, Debug)]
 pub enum WallpaperTool {
     Swaybg,
-    Hyprwall,
+    Swww,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

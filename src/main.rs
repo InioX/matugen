@@ -17,7 +17,7 @@ use color_eyre::{eyre::Result, Report};
 use material_color_utilities_rs::{palettes::core::CorePalette, scheme::Scheme};
 
 use clap::Parser;
-use util::reload::reload_apps_linux;
+use util::{reload::reload_apps_linux, wallpaper::set_wallaper};
 
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
@@ -70,6 +70,10 @@ fn main() -> Result<(), Report> {
 
     if config.config.reload_apps == Some(true) {
         reload_apps_linux(&args)?;
+    }
+
+    if config.config.set_wallpaper == Some(true) {
+        set_wallaper(&config, &args)?;
     }
 
     if args.quiet == Some(false) {
