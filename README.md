@@ -124,6 +124,7 @@ reload_apps = true
 set_wallpaper = true
 wallpaper_tool = 'Swww'
 prefix = '@'
+reload_gtk_theme = true
 swww_options = [
     "--transition-type",
     "center",
