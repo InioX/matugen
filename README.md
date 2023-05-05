@@ -122,8 +122,12 @@ Here is the list of the configuration file location for different platforms:
 [config]
 reload_apps = true 
 set_wallpaper = true
-wallpaper_tool = 'Swaybg'
+wallpaper_tool = 'Swww'
 prefix = '@'
+swww_options = [
+    "--transition-type",
+    "center",
+]
 ```
 
 ### Adding templates
