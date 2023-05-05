@@ -53,10 +53,15 @@ impl Template {
     pub fn generate(
         colors: &Vec<&str>,
         scheme: Scheme,
-        config: ConfigFile,
+        config: &ConfigFile,
         args: &Cli,
     ) -> Result<(), Report> {
-        let prefix: &String = &config.config.prefix.unwrap_or("@".to_string());
+        let default_prefix = "@".to_string();
+        
+        let prefix: &String = match &config.config.prefix {
+            Some(prefix) => prefix,
+            None => &default_prefix
+        };
 
         info!("Loaded {} templates.", &config.templates.len());
 

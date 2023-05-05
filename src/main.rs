@@ -17,6 +17,7 @@ use color_eyre::{eyre::Result, Report};
 use material_color_utilities_rs::{palettes::core::CorePalette, scheme::Scheme};
 
 use clap::Parser;
+use util::reload::reload_apps_linux;
 
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
@@ -65,7 +66,11 @@ fn main() -> Result<(), Report> {
         "inverse_primary",
     ];
 
-    Template::generate(&colors, scheme, config, &args)?;
+    Template::generate(&colors, scheme, &config, &args)?;
+
+    if config.config.reload_apps == Some(true) {
+        reload_apps_linux()
+    }
 
     if args.quiet == Some(false) {
         show_color(&scheme, &colors);
