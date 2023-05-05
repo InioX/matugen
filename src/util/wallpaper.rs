@@ -5,7 +5,7 @@ use std::process::Stdio;
 use super::{
     arguments::{Cli, Commands},
     config::{ConfigFile, WallpaperTool},
-    reload::{reload_app}
+    reload::reload_app,
 };
 
 pub fn set_wallaper(config: &ConfigFile, args: &Cli) -> Result<(), Report> {
@@ -21,13 +21,13 @@ pub fn set_wallaper(config: &ConfigFile, args: &Cli) -> Result<(), Report> {
 
     match wallpaper_tool {
         WallpaperTool::Swaybg => set_wallaper_swaybg(path),
-        WallpaperTool::Swww => set_wallaper_swwww(path),
+        WallpaperTool::Swww => set_wallaper_swwww(config, path),
     }
 }
 
 fn set_wallaper_swaybg(path: &String) -> Result<(), Report> {
     reload_app("swaybg", "SIGUSR1")?;
-    
+
     let mut binding = Command::new("swaybg");
     let cmd = binding.stdout(Stdio::null()).stderr(Stdio::null());
     cmd.arg("-i");
@@ -37,11 +37,17 @@ fn set_wallaper_swaybg(path: &String) -> Result<(), Report> {
     Ok(())
 }
 
-fn set_wallaper_swwww(path: &String) -> Result<(), Report> {
+fn set_wallaper_swwww(config: &ConfigFile, path: &String) -> Result<(), Report> {
     let mut binding = Command::new("swww");
     let cmd = binding.stdout(Stdio::null()).stderr(Stdio::null());
     cmd.arg("img");
     cmd.arg(path);
+
+    if let Some(options) = &config.config.swww_options {
+        if options[0] != "" {
+            cmd.args(options);
+        }
+    }
 
     cmd.spawn()?;
     Ok(())
