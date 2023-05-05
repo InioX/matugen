@@ -8,6 +8,7 @@ use super::{
     reload::reload_app,
 };
 
+#[cfg(target_os = "linux")]
 pub fn set_wallaper(config: &ConfigFile, args: &Cli) -> Result<(), Report> {
     let wallpaper_tool = match &config.config.wallpaper_tool {
         Some(wallpaper_tool) => wallpaper_tool,
@@ -25,6 +26,7 @@ pub fn set_wallaper(config: &ConfigFile, args: &Cli) -> Result<(), Report> {
     }
 }
 
+#[cfg(target_os = "linux")]
 fn set_wallaper_swaybg(path: &String) -> Result<(), Report> {
     reload_app("swaybg", "SIGUSR1")?;
 
@@ -37,6 +39,7 @@ fn set_wallaper_swaybg(path: &String) -> Result<(), Report> {
     Ok(())
 }
 
+#[cfg(target_os = "linux")]
 fn set_wallaper_swwww(config: &ConfigFile, path: &String) -> Result<(), Report> {
     let mut binding = Command::new("swww");
     let cmd = binding.stdout(Stdio::null()).stderr(Stdio::null());
