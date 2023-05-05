@@ -69,7 +69,7 @@ fn main() -> Result<(), Report> {
     Template::generate(&colors, scheme, &config, &args)?;
 
     if config.config.reload_apps == Some(true) {
-        reload_apps_linux(&args)?;
+        reload_apps_linux(&args, &config)?;
     }
 
     if config.config.set_wallpaper == Some(true) {
