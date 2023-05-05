@@ -25,12 +25,13 @@ pub fn reload_app(name: &str, signal: &str) -> Result<(), Report> {
 }
 
 fn reload_gtk_theme(args: &Cli) -> Result<(), Report> {
-    info!("Setting gtk theme to {}", "test");
     let mode = if args.lightmode == Some(true) {
         "light"
     } else {
         "dark"
     };
+
+    info!("Setting gtk theme to adw-gtk3-{}", mode);
 
     let mut cmd = Command::new("gsettings");
     cmd.arg("set");
