@@ -57,10 +57,10 @@ impl Template {
         args: &Cli,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
-        
+
         let prefix: &String = match &config.config.prefix {
             Some(prefix) => prefix,
-            None => &default_prefix
+            None => &default_prefix,
         };
 
         info!("Loaded {} templates.", &config.templates.len());
@@ -132,8 +132,8 @@ fn replace_matches(regexvec: &Patterns, data: &mut String) {
     }
     if let Some(image) = regexvec.image.replacement {
         *data = regexvec
-           .image
-           .pattern
+            .image
+            .pattern
             .replace_all(&*data, image)
             .to_string();
     }

@@ -44,7 +44,7 @@ fn set_wallaper_swwww(config: &ConfigFile, path: &String) -> Result<(), Report> 
     cmd.arg(path);
 
     if let Some(options) = &config.config.swww_options {
-        if options[0] != "" {
+        if !options[0].is_empty() {
             cmd.args(options);
         }
     }

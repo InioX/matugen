@@ -42,7 +42,7 @@ impl SchemeExt for Scheme {
             "on_tertiary_container" => &self.on_tertiary_container,
             "error" => &self.error,
             "on_error" => &self.on_error,
-            "error_container"=> &self.error_container,
+            "error_container" => &self.error_container,
             "on_error_container" => &self.on_error_container,
             "background" => &self.background,
             "on_background" => &self.on_background,
@@ -57,20 +57,19 @@ impl SchemeExt for Scheme {
             "inverse_surface" => &self.inverse_surface,
             "inverse_on_surface" => &self.inverse_on_surface,
             "inverse_primary" => &self.inverse_primary,
-            _ => panic!()
+            _ => panic!(),
         }
     }
 }
 
 pub fn show_color(scheme: &Scheme, colors: &Vec<&str>) {
-
     for field in colors {
-
         let color: Color = Color::new(*Scheme::get_value(scheme, field));
 
         let color: owo_colors::Rgb = owo_colors::Rgb(color.red, color.green, color.blue);
 
-        let color_str: owo_colors::BgDynColorDisplay<owo_colors::Rgb, &str> = "    ".on_color(color);
+        let color_str: owo_colors::BgDynColorDisplay<owo_colors::Rgb, &str> =
+            "    ".on_color(color);
 
         print!("{}", color_str);
     }
