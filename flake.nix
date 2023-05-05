@@ -1,5 +1,5 @@
 {
-  description = "Foo Bar";
+  description = " A material you color generation tool for linux ";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
