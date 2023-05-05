@@ -27,11 +27,7 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     /// The image to use for generating a colorscheme
-    Image {
-        path: String,
-    },
+    Image { path: String },
     /// The source color to use for generating a colorscheme
-    Color {
-        color: String,
-    },
+    Color { color: String },
 }
