@@ -20,6 +20,7 @@ pub struct Config {
     pub reload_apps: Option<bool>,
     pub set_wallpaper: Option<bool>,
     pub wallpaper_tool: Option<WallpaperTool>,
+    pub swww_options: Option<Vec<String>>,
     pub prefix: Option<String>,
 }
 
