@@ -1,32 +1,19 @@
 {
-  description = "A nixos devShell";
-
+  description = "Foo Bar";
   inputs = {
-    nixpkgs.url      = "github:NixOS/nixpkgs/nixos-unstable";
-    rust-overlay.url = "github:oxalica/rust-overlay";
-    flake-utils.url  = "github:numtide/flake-utils";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
-
-  outputs = { self, nixpkgs, rust-overlay, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        overlays = [ (import rust-overlay) ];
-        pkgs = import nixpkgs {
-          inherit system overlays;
-        };
-      in
-      with pkgs;
-      {
-        devShells.default = mkShell {
-          buildInputs = [
-            pkg-config
-            rust-bin.stable.latest.default
-          ];
-
-          shellHook = ''
-            
-          '';
-        };
-      }
-    );
+  outputs = { self, nixpkgs }:
+    let
+      supportedSystems = [ "x86_64-linux" ];
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      pkgsFor = nixpkgs.legacyPackages;
+    in {
+      packages = forAllSystems (system: {
+        default = pkgsFor.${system}.callPackage ./. { };
+      });
+      devShells = forAllSystems (system: {
+        default = pkgsFor.${system}.callPackage ./shell.nix { };
+      });
+    };
 }
