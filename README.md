@@ -10,7 +10,7 @@
     ·
     <a href="#usage">Usage</a>
     ·
-    <a href="https://github.com/InioX/matugen/wiki">Wiki</a>
+    <a href="#configuration">Configuration</a>
 </div>
 
 <div align="center">
