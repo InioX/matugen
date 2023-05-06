@@ -12,7 +12,7 @@
 </div>
 
 <div align="center">
-  <sub>A material you color generation tool for linux
+  <sub>A material you color generation tool
 </div>
 
 ## Description
@@ -29,9 +29,29 @@ A cross platform tool that generates a colorscheme either from an image or a col
 
 ## Installation
 ```shell
-git clone https://github.com/InioX/matugen && cd matugen
+cargo install matugen
+```
 
-TODO...
+### NixOS
+Add matugen to your flake inputs:
+```nix
+inputs = {
+  matugen = {
+    url = "github:/InioX/matugen-rs";
+  };
+  # ...
+};
+```
+Then you can add it to your packages:
+```nix
+let
+  system = "x86_64-linux";
+in {
+  environment.systemPackages = with pkgs; [    
+    # ...
+    inputs.matugen.packages.${system}.default
+  ];
+}
 ```
 
 ## Usage
