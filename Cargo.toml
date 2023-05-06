@@ -10,6 +10,8 @@ exclude = [
     "shell.nix",
     "example/*",
 ]
+license = "GPL-2.0"
+license-file = "LICENSE"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
