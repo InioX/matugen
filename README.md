@@ -4,6 +4,8 @@
  </div>
     
 <div align="center">
+  <img alt="Crates.io" src="https://img.shields.io/crates/l/matugen?color=white&logo=license&style=for-the-badge">
+    <img alt="Crates.io" src="https://img.shields.io/crates/v/matugen?color=white&logo=rust&style=for-the-badge"><br>
     <a href="#installation">Installation</a>
     ·
     <a href="#usage">Usage</a>
