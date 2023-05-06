@@ -12,7 +12,11 @@ use super::{
 pub fn set_wallaper(config: &ConfigFile, args: &Cli) -> Result<(), Report> {
     let wallpaper_tool = match &config.config.wallpaper_tool {
         Some(wallpaper_tool) => wallpaper_tool,
-        None => return Ok(warn!("<d>Wallpaper tool not set, not setting wallpaper...</>")),
+        None => {
+            return Ok(warn!(
+                "<d>Wallpaper tool not set, not setting wallpaper...</>"
+            ))
+        }
     };
 
     let path = match &args.source {
