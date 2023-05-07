@@ -1,4 +1,4 @@
->**Warning** This version is unmaintained, please use [matugen-rs](https://github.com/InioX/matugen-rs) instead.
+>**Warning** This branch is unmaintained, please use [this](https://github.com/InioX/Matugen/tree/rust) one instead.
 
 <div align="center">
      <img src="https://user-images.githubusercontent.com/81521595/226138807-db504bdf-4eb5-4fe9-9ee5-a1a1395d70dc.png" width=140>
