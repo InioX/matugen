@@ -39,7 +39,7 @@ Add matugen to your flake inputs:
 ```nix
 inputs = {
   matugen = {
-    url = "github:/InioX/matugen-rs";
+    url = "github:/InioX/Matugen";
   };
   # ...
 };
