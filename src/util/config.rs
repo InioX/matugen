@@ -7,6 +7,7 @@ use color_eyre::{Help, Report};
 
 use serde::{Deserialize, Serialize};
 
+use super::arguments::Cli;
 use crate::Template;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -34,7 +35,17 @@ pub struct ConfigFile {
 }
 
 impl ConfigFile {
-    pub fn read() -> Result<ConfigFile, Report> {
+    pub fn read(args: &Cli) -> Result<ConfigFile, Report> {
+        if let Some(config_file) = &args.config {
+            let content: String = match fs::read_to_string(config_file) {
+                Ok(content) => content,
+                Err(e) => {
+                    return Err(Report::new(e).wrap_err("Could not find the provided config file."))
+                }
+            };
+            return Ok(toml::from_str(&content)?);
+        }
+
         if let Some(proj_dirs) = ProjectDirs::from("com", "InioX", "matugen") {
             let proj_dir = proj_dirs.config_dir();
             let config_file = PathBuf::from(proj_dir).join("config.toml");
@@ -50,10 +61,7 @@ impl ConfigFile {
                         )))
                 }
             };
-
-            let tomlstr: ConfigFile = toml::from_str(&content)?;
-
-            Ok(tomlstr)
+            Ok(toml::from_str(&content)?)
         } else {
             todo!();
         }

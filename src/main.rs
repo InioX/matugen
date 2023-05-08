@@ -27,7 +27,7 @@ fn main() -> Result<(), Report> {
     setup_logging(&args)?;
 
     let mut palette = generate_palette(&args)?;
-    let config: ConfigFile = ConfigFile::read()?;
+    let config: ConfigFile = ConfigFile::read(&args)?;
 
     let scheme: Scheme = if args.lightmode == Some(true) {
         Scheme::light_from_core_palette(&mut palette)
