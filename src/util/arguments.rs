@@ -10,7 +10,7 @@ pub struct Cli {
     pub source: Commands,
 
     /// Sets a custom config file
-    #[arg(short, long, value_name = "FILE")]
+    #[arg(short, long, value_name = "FILE", global = true)]
     pub config: Option<PathBuf>,
 
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
