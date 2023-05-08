@@ -1,5 +1,7 @@
 use material_color_utilities_rs::scheme::Scheme;
-use owo_colors::OwoColorize;
+use owo_colors::{
+    OwoColorize, Style,
+};
 
 // TODO Fix this monstrosity
 
@@ -66,10 +68,18 @@ pub fn show_color(scheme: &Scheme, colors: &Vec<&str>) {
     for field in colors {
         let color: Color = Color::new(*Scheme::get_value(scheme, field));
 
-        let color: owo_colors::Rgb = owo_colors::Rgb(color.red, color.green, color.blue);
+        let luma = color.red as u16 + color.blue as u16 + color.green as u16;
 
-        let color_str: owo_colors::BgDynColorDisplay<owo_colors::Rgb, &str> =
-            "    ".on_color(color);
+        let formatstr = format!("#{:x}{:x}{:x}", color.red, color.green, color.blue);
+        let owo_color: owo_colors::Rgb = owo_colors::Rgb(color.red, color.green, color.blue);
+
+        let style = if luma > 500 {
+            Style::new().black().on_color(owo_color)
+        } else {
+            Style::new().white().on_color(owo_color)
+        };
+
+        let color_str = formatstr.style(style);
 
         print!("{}", color_str);
     }
