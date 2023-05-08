@@ -36,34 +36,45 @@ pub struct ConfigFile {
 
 impl ConfigFile {
     pub fn read(args: &Cli) -> Result<ConfigFile, Report> {
-        if let Some(config_file) = &args.config {
-            let content: String = match fs::read_to_string(config_file) {
-                Ok(content) => content,
-                Err(e) => {
-                    return Err(Report::new(e).wrap_err("Could not find the provided config file."))
-                }
-            };
-            return Ok(toml::from_str(&content)?);
+        match &args.config {
+            Some(config_file) => Ok(Self::read_from_custom_path(config_file)?),
+            None => Ok(Self::read_from_proj_path()?),
         }
+    }
 
+    fn read_from_custom_path(config_file: &PathBuf) -> Result<ConfigFile, Report> {
+        let content: String = match fs::read_to_string(config_file) {
+            Ok(content) => content,
+            Err(e) => {
+                return Err(Report::new(e).wrap_err("Could not find the provided config file."))
+            }
+        };
+        Ok(toml::from_str(&content)?)
+    }
+
+    fn read_from_proj_path() -> Result<ConfigFile, Report> {
         if let Some(proj_dirs) = ProjectDirs::from("com", "InioX", "matugen") {
             let proj_dir = proj_dirs.config_dir();
             let config_file = PathBuf::from(proj_dir).join("config.toml");
 
-            let content: String = match fs::read_to_string(config_file) {
-                Ok(content) => content,
-                Err(e) => {
-                    return Err(Report::new(e)
-                        .note("This might have failed due to the config file not being found.")
-                        .suggestion(format!(
-                            "Try making a config.toml file in {}.",
-                            proj_dir.display()
-                        )))
-                }
-            };
+            if !config_file.exists() {
+                return Ok(Self::read_from_fallback_path()?);
+            }
+
+            let content: String = fs::read_to_string(config_file).unwrap();
             Ok(toml::from_str(&content)?)
         } else {
-            todo!();
+            Ok(Self::read_from_fallback_path()?)
         }
+    }
+
+    fn read_from_fallback_path() -> Result<ConfigFile, Report> {
+        let content: String = String::from(
+            r#"
+            [config]
+            [templates]
+        "#,
+        );
+        Ok(toml::from_str(&content)?)
     }
 }
