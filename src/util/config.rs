@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
-use color_eyre::{Help, Report};
+use color_eyre::Report;
 
 use serde::{Deserialize, Serialize};
 
@@ -58,7 +58,7 @@ impl ConfigFile {
             let config_file = PathBuf::from(proj_dir).join("config.toml");
 
             if !config_file.exists() {
-                return Ok(Self::read_from_fallback_path()?);
+                return Self::read_from_fallback_path();
             }
 
             let content: String = fs::read_to_string(config_file).unwrap();
