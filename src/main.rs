@@ -14,7 +14,7 @@ use crate::util::{
 use log::LevelFilter;
 use std::process::Command;
 
-use color_eyre::{eyre::Result, Report, eyre::WrapErr};
+use color_eyre::{eyre::Result, eyre::WrapErr, Report};
 use material_color_utilities_rs::{palettes::core::CorePalette, scheme::Scheme};
 
 use clap::Parser;
@@ -87,22 +87,23 @@ fn main() -> Result<(), Report> {
 }
 
 fn run_after(config: &ConfigFile) -> Result<(), Report> {
-    Ok(if let Some(commands) = &config.config.run_after {
-
+    if let Some(commands) = &config.config.run_after {
         for command in commands {
             if command.is_empty() {
                 continue;
-            } 
+            }
 
             info!("Running: {:?}", command);
 
             let mut cmd = Command::new(&command[0]);
             for arg in command.iter().skip(1) {
                 cmd.arg(arg);
-            } 
-            cmd.spawn().wrap_err(format!("Error when runnning command: {:?}", cmd))?;
+            }
+            cmd.spawn()
+                .wrap_err(format!("Error when runnning command: {:?}", cmd))?;
         }
-    })
+    };
+    Ok(())
 }
 
 fn setup_logging(args: &Cli) -> Result<(), Report> {
