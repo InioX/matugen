@@ -19,7 +19,7 @@
 
 ## Showcase
 
-Showcase with Hyprland, Waybar, kitty, and fish shell:
+Showcase with Hyprland, Waybar and kitty:
 
 >**Warning** The preview and usage may be outdated.
 
