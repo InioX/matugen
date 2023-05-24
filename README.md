@@ -17,6 +17,15 @@
   <sub>A material you color generation tool
 </div>
 
+## Showcase
+
+Showcase with Hyprland, Waybar, kitty, and fish shell:
+
+>**Warning** The preview and usage may be outdated.
+
+
+<img src="https://user-images.githubusercontent.com/81521595/236634805-15e68f9b-44a5-4efc-b275-0eb1f6a28bd9.gif" width="320" height="180"/>
+     
 ## Description
 
 A cross platform tool that generates a colorscheme either from an image or a color, and exports it to a file from a template.
@@ -165,10 +174,4 @@ output_path = '~/.config/example'
 test2 = { input_path = '~/.config/example/template2.css', output_path = '~/.config/example2' }
 ```
 
-## Showcase
-Showcase with Hyprland, Waybar, kitty, and fish shell:
 
->**Warning**
->The preview and usage may be outdated.
-
-[![](https://markdown-videos.deta.dev/youtube/rMxoORO41rs)](https://youtu.be/rMxoORO41rs)
