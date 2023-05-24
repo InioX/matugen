@@ -160,6 +160,9 @@ swww_options = [
     "--transition-type",
     "center",
 ]
+run_after = [
+  [ "echo", "'hello'" ]
+]
 ```
 
 ### Adding templates
