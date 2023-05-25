@@ -80,8 +80,8 @@ in {
 <img src="./assets/images/help.gif" width=300>
 
 ```sh
-matugen -h # Shorter version
-matugen --help # Longer version
+matugen -h
+matugen --help
 ```
 
 ### Verbose mode
