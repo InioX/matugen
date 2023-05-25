@@ -77,17 +77,23 @@ in {
 ## Usage
 
 ### Help
+<img src="./assets/images/help.gif" width=300>
+
 ```sh
 matugen -h # Shorter version
 matugen --help # Longer version
 ```
 
 ### Verbose mode
+<img src="./assets/images/verbose.gif" width=300>
+
 ```sh
 matugen -v <other-arguments>
 ```
      
 ### Generate from an image
+<img src="./assets/images/image.gif" width=300>
+
 ```sh
 # Dark theme
 matugen image /path/to/wallpaper/
@@ -98,7 +104,10 @@ Example:
 ```sh
 matugen image ~/wall/snow.png -l
 ```
+     
 ### Generate from a color
+<img src="./assets/images/color.gif" width=300>
+
 ```sh
 # Dark theme
 matugen color <hex color>
@@ -110,7 +119,6 @@ Example:
 matugen color #ffbf9b
 matugen color ffbf9b -l
 ```
-
 
 ### Creating templates
 The basic syntax for using colors is `prefix + {color}` (The default prefix is `@`, so the usage would be `@{color}`).
