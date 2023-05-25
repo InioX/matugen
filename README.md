@@ -171,7 +171,7 @@ You can also get the image (if it was provided) by using:
 ```
 
 ## Configuration
-Here is the list of the configuration file location for different platforms:
+Here is a list of different locations for the configuration file:
 - Windows: `C:\Users\user\AppData\Roaming\InioX\matugen\config\config.toml`
 - Linux: `/home/user/.config/matugen/config.toml`
 - MacOS: `/Users/user/Library/Application Support/com.InioX.matugen/config.toml`
@@ -180,6 +180,7 @@ Here is the list of the configuration file location for different platforms:
 
 ### Configuration items
 ```toml
+# config_directory/config.toml
 [config]
 reload_apps = true 
 set_wallpaper = true
