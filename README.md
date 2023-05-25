@@ -4,9 +4,12 @@
  </div>
     
 <div align="center">
-  <img alt="Crates.io" src="https://img.shields.io/crates/l/matugen?color=white&logo=license&style=for-the-badge">
-    <img alt="Crates.io" src="https://img.shields.io/crates/v/matugen?color=white&logo=rust&style=for-the-badge"><br>
-    <a href="#installation">Installation</a>
+     <img src="https://user-images.githubusercontent.com/81521595/236634805-15e68f9b-44a5-4efc-b275-0eb1f6a28bd9.gif" width="330" height="190"/>
+     <br>
+     <img alt="Crates.io" src="https://img.shields.io/crates/l/matugen?color=white&logo=license&style=for-the-badge">
+     <img alt="Crates.io" src="https://img.shields.io/crates/v/matugen?color=white&logo=rust&style=for-the-badge">
+     <br> 
+     <a href="#installation">Installation</a>
     ·
     <a href="#usage">Usage</a>
     ·
@@ -16,15 +19,6 @@
 <div align="center">
   <sub>A cross-platform material you color generation tool
 </div>
-
-## Showcase
-
-Showcase with Hyprland, Waybar and kitty:
-
->**Warning** The preview and usage may be outdated.
-
-
-<img src="https://user-images.githubusercontent.com/81521595/236634805-15e68f9b-44a5-4efc-b275-0eb1f6a28bd9.gif" width="320" height="180"/>
      
 ## Description
 
@@ -35,12 +29,23 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 [Material Design 3](https://m3.material.io/) offers a new color system that allows for more flexible and dynamic use of color. The new system includes a wider range of colors, as well as a range of tints and shades that can be used to create subtle variations in color.
 
 ### Other projects
-- [Mitsugen](https://github.com/DimitrisMilonopoulos/mitsugen) - For gnome-shell, though its based on the [old](https://github.com/InioX/matugen/tree/python) and deprecated python version of Matugen
+- [Mitsugen](https://github.com/DimitrisMilonopoulos/mitsugen) - For gnome-shell, based on the [old](https://github.com/InioX/matugen/tree/python) and deprecated python version of Matugen
      
 ## Supported platforms
 - Windows
 - Linux
 - MacOS
+     
+## Roadmap
+
+- [ ] Add a light/dark option for each template
+- [ ] Improve error handling when using hex color for generating colorscheme
+- [ ] Support more color formats for generating colorscheme
+    - [ ] Rgba
+    - [ ] Rgb
+    - [ ] Hsl
+
+>**Note** Want a feature that is not listed above? Simply [open an issue](https://github.com/InioX/Matugen/issues).
 
 ## Installation
 ```shell
@@ -70,7 +75,19 @@ in {
 ```
 
 ## Usage
-### From an image
+
+### Help
+```sh
+matugen -h # Shorter version
+matugen --help # Longer version
+```
+
+### Verbose mode
+```sh
+matugen -v <other-arguments>
+```
+     
+### Generate from an image
 ```sh
 # Dark theme
 matugen image /path/to/wallpaper/
@@ -81,7 +98,7 @@ Example:
 ```sh
 matugen image ~/wall/snow.png -l
 ```
-### From a color
+### Generate from a color
 ```sh
 # Dark theme
 matugen color <hex color>
@@ -98,7 +115,7 @@ matugen color ffbf9b -l
 ### Creating templates
 The basic syntax for using colors is `prefix + {color}` (The default prefix is `@`, so the usage would be `@{color}`).
 
-There are multiple formats you can use:
+#### Keywords
 ```css
 @define-color primary @{primary.hex}; /* Result: #ffb783 */
 @define-color primary @{primary.rgb}; /* Result: rgb(255, 183, 131) */
@@ -111,8 +128,9 @@ You can also get the image (if it was provided) by using:
 ```css
 @import url("@{image}"); /* Result: /home/ini/Downloads/wallpaper.jpg */
 ```
+>**Note** If no image was provided, Matugen will just skip over the image keyword
 
-Example of all the colors:
+#### Example of all the color keywords:
 ```css
 /*colors.css*/
 @define-color primary @{primary.rgb};
