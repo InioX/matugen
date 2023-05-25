@@ -14,7 +14,7 @@
 </div>
 
 <div align="center">
-  <sub>A material you color generation tool
+  <sub>A cross-platform material you color generation tool
 </div>
 
 ## Showcase
@@ -28,11 +28,15 @@ Showcase with Hyprland, Waybar and kitty:
      
 ## Description
 
-A cross platform tool that generates a colorscheme either from an image or a color, and exports it to a file from a template.
+Matugen is a cross-platform tool that generates a colorscheme either from an image or a color, and exports it to a file from a template. It can also set the wallpaper if one was provided.
+>**Warning** Matugen only supports setting the wallpaper on Linux for now.
 
 ### About Material Design 3
 [Material Design 3](https://m3.material.io/) offers a new color system that allows for more flexible and dynamic use of color. The new system includes a wider range of colors, as well as a range of tints and shades that can be used to create subtle variations in color.
 
+### Other projects
+- [Mitsugen](https://github.com/DimitrisMilonopoulos/mitsugen) - For gnome-shell, though its based on the [old](https://github.com/InioX/matugen/tree/python) and deprecated python version of Matugen
+     
 ## Supported platforms
 - Windows
 - Linux
