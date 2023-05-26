@@ -44,6 +44,12 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
     - [ ] Rgba
     - [ ] Rgb
     - [ ] Hsl
+- [ ] Suport changing the wallpaper on different platforms
+     - [ ] MacOS
+     - [ ] Windows
+- [ ] Support changing the wallpaper on X11
+     - [ ] Feh
+     - [ ] Nitrogen
 
 >**Note** Want a feature that is not listed above? Simply [open an issue](https://github.com/InioX/Matugen/issues).
 
