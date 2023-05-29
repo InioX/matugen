@@ -23,7 +23,7 @@
 ## Description
 
 Matugen is a cross-platform tool that generates a colorscheme either from an image or a color, and exports it to a file from a template. It can also set the wallpaper if one was provided.
->**Warning** Matugen only supports setting the wallpaper on Linux for now.
+
 
 ### About Material Design 3
 [Material Design 3](https://m3.material.io/) offers a new color system that allows for more flexible and dynamic use of color. The new system includes a wider range of colors, as well as a range of tints and shades that can be used to create subtle variations in color.
@@ -35,9 +35,11 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 - Windows
 - Linux
 - MacOS
+>**Warning** Matugen only supports setting the wallpaper and restarting apps on Linux for now.
      
 ## Roadmap
 
+- [ ] Add GTK4 UI
 - [ ] Add a light/dark option for each template
 - [ ] Improve error handling when using hex color for generating colorscheme
 - [ ] Support more color formats for generating colorscheme
@@ -54,6 +56,9 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 >**Note** Want a feature that is not listed above? Simply [open an issue](https://github.com/InioX/Matugen/issues).
 
 ## Installation
+
+### Cargo
+
 ```shell
 cargo install matugen
 ```
