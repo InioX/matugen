@@ -219,4 +219,5 @@ output_path = '~/.config/example'
 test2 = { input_path = '~/.config/example/template2.css', output_path = '~/.config/example2' }
 ```
 
-
+## Acknowledgment
+- [material-color-utilities-rs](https://github.com/alphaqu/material-color-utilities-rs)
