@@ -152,17 +152,17 @@ fn generate_patterns<'a>(
         regexvec.push(ColorPatterns {
             hex: ColorPattern {
                 pattern: Regex::new(&format!(r#"\{prefix}\{{{field}}}"#).to_string())?,
-                replacement: format_argb_as_rgb([color.alpha, color.red, color.blue, color.green]),
+                replacement: format_argb_as_rgb([color.alpha, color.red, color.green, color.blue]),
             },
             hex_stripped: ColorPattern {
                 pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.strip}}"#).to_string())?,
-                replacement: format_argb_as_rgb([color.alpha, color.red, color.blue, color.green])
+                replacement: format_argb_as_rgb([color.alpha, color.red, color.green, color.blue])
                     [1..]
                     .to_string(),
             },
             rgb: ColorPattern {
                 pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.rgb}}"#).to_string())?,
-                replacement: format!("rgb({:?}, {:?}, {:?})", color.red, color.blue, color.green),
+                replacement: format!("rgb({:?}, {:?}, {:?})", color.red, color.green, color.blue),
             },
             rgba: ColorPattern {
                 pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.rgba}}"#).to_string())?,
