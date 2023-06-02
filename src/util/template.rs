@@ -70,6 +70,7 @@ impl Template {
             Commands::Color { .. } => None,
         };
 
+        // TODO Use only one regex and use a for loop with matches?
         let regexvec: Patterns = generate_patterns(colors, scheme, prefix, image)?;
 
         // println!("{}", imageregex.is_match("@{image}"));
@@ -151,7 +152,7 @@ fn generate_patterns<'a>(
 
         regexvec.push(ColorPatterns {
             hex: ColorPattern {
-                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}}}"#).to_string())?,
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}}(\.hex)?}"#).to_string())?,
                 replacement: format_argb_as_rgb([color.alpha, color.red, color.green, color.blue]),
             },
             hex_stripped: ColorPattern {
