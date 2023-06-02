@@ -642,8 +642,6 @@ dependencies = [
 [[package]]
 name = "material-color-utilities-rs"
 version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b19ed4f8533e7a76068b9c212ee9d2680892faf2db8cf868266d77b8627a84f"
 dependencies = [
  "ahash",
  "lazy_static",
