@@ -202,6 +202,9 @@ swww_options = [
     "--transition-type",
     "center",
 ]
+feh_options = [
+    "--bg-tile",
+]
 run_after = [
   [ "echo", "'hello'" ]
 ]
