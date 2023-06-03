@@ -14,6 +14,7 @@ use crate::Template;
 pub enum WallpaperTool {
     Swaybg,
     Swww,
+    Nitrogen,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

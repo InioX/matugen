@@ -27,6 +27,7 @@ pub fn set_wallaper(config: &ConfigFile, args: &Cli) -> Result<(), Report> {
     match wallpaper_tool {
         WallpaperTool::Swaybg => set_wallaper_swaybg(path),
         WallpaperTool::Swww => set_wallaper_swwww(config, path),
+        WallpaperTool::Nitrogen => set_wallaper_nitrogen(path),
     }
 }
 
@@ -55,6 +56,16 @@ fn set_wallaper_swwww(config: &ConfigFile, path: &String) -> Result<(), Report> 
             cmd.args(options);
         }
     }
+
+    cmd.spawn()?;
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn set_wallaper_nitrogen(path: &String) -> Result<(), Report> {
+    let mut binding = Command::new("nitrogen");
+    let cmd = binding.stdout(Stdio::null()).stderr(Stdio::null());
+    cmd.arg(path);
 
     cmd.spawn()?;
     Ok(())
