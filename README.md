@@ -106,10 +106,13 @@ matugen -v <other-arguments>
 <img src="./assets/images/image.gif" width=300>
 
 ```sh
-# Dark theme
+# Dark mode
 matugen image /path/to/wallpaper/
-# Light theme
+# Light mode
 matugen image /path/to/wallpaper/ -l
+# AMOLED/"pure dark" mode
+matugen image /path/to/wallpaper/ -a
+
 ```
 Example:
 ```sh
@@ -120,15 +123,18 @@ matugen image ~/wall/snow.png -l
 <img src="./assets/images/color.gif" width=300>
 
 ```sh
-# Dark theme
+# Dark mode
 matugen color <hex color>
-# Light theme
+# Light mode
 matugen color <hex color> -l
+# AMOLED/"pure dark" mode
+matugen color <hex color> -a
 ```
 Example:
 ```sh
 matugen color #ffbf9b
 matugen color ffbf9b -l
+matugen color ffbf9b -a
 ```
 
 ### Creating templates
