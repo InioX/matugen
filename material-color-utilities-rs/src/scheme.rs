@@ -156,4 +156,38 @@ impl Scheme {
             inverse_primary: core.a1.tone(40),
         }
     }
+
+    pub fn pure_dark_from_core_palette(core: &mut CorePalette) -> Scheme {
+        Scheme {
+            primary: core.a1.tone(80),
+            on_primary: core.a1.tone(20),
+            primary_container: core.a1.tone(30),
+            on_primary_container: core.a1.tone(90),
+            secondary: core.a2.tone(80),
+            on_secondary: core.a2.tone(20),
+            secondary_container: core.a2.tone(30),
+            on_secondary_container: core.a2.tone(90),
+            tertiary: core.a3.tone(80),
+            on_tertiary: core.a3.tone(20),
+            tertiary_container: core.a3.tone(30),
+            on_tertiary_container: core.a3.tone(90),
+            error: core.error.tone(80),
+            on_error: core.error.tone(20),
+            error_container: core.error.tone(30),
+            on_error_container: core.error.tone(80),
+            background: core.n1.tone(0),
+            on_background: core.n1.tone(90),
+            surface: core.n1.tone(0),
+            on_surface: core.n1.tone(90),
+            surface_variant: core.n2.tone(5),
+            on_surface_variant: core.n2.tone(80),
+            outline: core.n2.tone(60),
+            outline_variant: core.n2.tone(30),
+            shadow: core.n1.tone(0),
+            scrim: core.n1.tone(0),
+            inverse_surface: core.n1.tone(90),
+            inverse_on_surface: core.n1.tone(20),
+            inverse_primary: core.a1.tone(40),
+        }
+    }
 }

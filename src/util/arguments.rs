@@ -1,7 +1,7 @@
 use clap::{arg, ArgAction, Parser, Subcommand};
 use std::path::PathBuf;
 
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 #[command(version, long_about = None)]
 pub struct Cli {
     /// Optional name to operate on
@@ -22,6 +22,10 @@ pub struct Cli {
     /// Whether to use lightmode for the colorscheme
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub lightmode: Option<bool>,
+
+    /// Whether to use amoled mode for the colorscheme
+    #[arg(short, long, global = true, action=ArgAction::SetTrue)]
+    pub amoled: Option<bool>,
 }
 
 #[derive(Subcommand, Debug)]
