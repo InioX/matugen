@@ -190,6 +190,18 @@ Here is a list of different locations for the configuration file:
 >**Note** You can also use a custom configuration path by using the `-c` argument
 
 ### Configuration items
+| Name             | Type          | Default | Description                                                                    |
+|------------------|---------------|---------|--------------------------------------------------------------------------------|
+| reload_apps      | bool          | false   | Whether to reload apps.                                                        |
+| set_wallpaper    | bool          | false   | Whether to set the wallpaper (if `true`, requires `wallpaper_tool` to be set). |
+| wallpaper_tool   | String        | None    | The wallpaper tool to use (`Swwww`, `Swaybg`, `Feh`, `Nitrogen`).              |
+| prefix           | String        | "@"     | The prefix to use (for example: `@{primary}`)                                  |
+| reload_gtk_theme | bool          | false   | Whether to reload the gtk theme.                                               |
+| run_after        | Vec<String>   | []      | The commands to run after the templates have been generated.                   |
+| swww_options     | <Vec<String>> | []      | The options to use for [Swwww](https://github.com/Horus645/swww)               |
+| feh_options      | <Vec<String>> | []      | The options to use for [Feh](https://github.com/derf/feh)                      |
+
+### Example configuration
 ```toml
 # config_directory/config.toml
 [config]
