@@ -31,6 +31,8 @@ fn main() -> Result<(), Report> {
 
     let scheme: Scheme = if args.lightmode == Some(true) {
         Scheme::light_from_core_palette(&mut palette)
+    } else if args.amoled == Some(true) {
+        Scheme::pure_dark_from_core_palette(&mut palette)
     } else {
         Scheme::dark_from_core_palette(&mut palette)
     };
