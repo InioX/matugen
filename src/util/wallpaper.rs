@@ -28,6 +28,7 @@ pub fn set_wallaper(config: &ConfigFile, args: &Cli) -> Result<(), Report> {
         WallpaperTool::Swaybg => set_wallaper_swaybg(path),
         WallpaperTool::Swww => set_wallaper_swwww(config, path),
         WallpaperTool::Nitrogen => set_wallaper_nitrogen(path),
+        WallpaperTool::Feh => set_wallaper_feh(config, path),
     }
 }
 
@@ -65,6 +66,25 @@ fn set_wallaper_swwww(config: &ConfigFile, path: &String) -> Result<(), Report> 
 fn set_wallaper_nitrogen(path: &String) -> Result<(), Report> {
     let mut binding = Command::new("nitrogen");
     let cmd = binding.stdout(Stdio::null()).stderr(Stdio::null());
+    cmd.arg(path);
+
+    cmd.spawn()?;
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn set_wallaper_feh(config: &ConfigFile, path: &String) -> Result<(), Report> {
+    let mut binding = Command::new("feh");
+    let cmd = binding.stdout(Stdio::null()).stderr(Stdio::null());
+
+    if let Some(options) = &config.config.feh_options {
+        if !options[0].is_empty() {
+            cmd.args(options);
+        } else {
+            cmd.arg("--bg-scale");
+        }
+    }
+
     cmd.arg(path);
 
     cmd.spawn()?;
