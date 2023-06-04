@@ -12,21 +12,46 @@ pub struct CorePalette {
     pub error: TonalPalette,
 }
 
+#[cfg_attr(feature = "clap", derive(Copy, Clone, Debug, clap::ValueEnum))]
+pub enum ColorPalette {
+    Default,
+    Triadic,
+    Adjacent,
+}
+
 impl CorePalette {
-    pub fn new(argb: [u8; 4], is_content: bool) -> CorePalette {
+    pub fn new(argb: [u8; 4], is_content: bool, color_palette: &ColorPalette) -> CorePalette {
         let hct = Hct::from_int(argb);
         let hue = hct.hue();
         let chroma = hct.chroma();
         let error = TonalPalette::from_hue_and_chroma(25.0, 84.0);
 
         if is_content {
-            CorePalette {
-                a1: TonalPalette::from_hue_and_chroma(hue, chroma),
-                a2: TonalPalette::from_hue_and_chroma(hue, chroma / 3.),
-                a3: TonalPalette::from_hue_and_chroma(hue + 60., chroma / 2.),
-                n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0)),
-                n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
-                error,
+            match &color_palette {
+                ColorPalette::Default => CorePalette {
+                    a1: TonalPalette::from_hue_and_chroma(hue, chroma),
+                    a2: TonalPalette::from_hue_and_chroma(hue, chroma / 3.),
+                    a3: TonalPalette::from_hue_and_chroma(hue + 60., chroma / 2.),
+                    n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0)),
+                    n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
+                    error,
+                },
+                ColorPalette::Triadic => CorePalette {
+                    a1: TonalPalette::from_hue_and_chroma(hue, chroma),
+                    a2: TonalPalette::from_hue_and_chroma(hue + 90., chroma / 3.),
+                    a3: TonalPalette::from_hue_and_chroma(hue - 90., chroma / 2.),
+                    n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0)),
+                    n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
+                    error,
+                },
+                ColorPalette::Adjacent => CorePalette {
+                    a1: TonalPalette::from_hue_and_chroma(hue, chroma),
+                    a2: TonalPalette::from_hue_and_chroma(hue + 30., chroma / 3.),
+                    a3: TonalPalette::from_hue_and_chroma(hue - 30., chroma / 2.),
+                    n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0)),
+                    n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
+                    error,
+                },
             }
         } else {
             CorePalette {

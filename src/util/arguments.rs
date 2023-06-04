@@ -1,4 +1,5 @@
 use clap::{arg, ArgAction, Parser, Subcommand};
+use material_color_utilities_rs::palettes::core::ColorPalette;
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -8,6 +9,10 @@ pub struct Cli {
     // name: Option<String>,
     #[command(subcommand)]
     pub source: Commands,
+
+    /// Sets a custom color palette
+    #[arg(short, long, value_name = "COLORSCHEME", global = true, default_value="default")]
+    pub palette: Option<ColorPalette>,
 
     /// Sets a custom config file
     #[arg(short, long, value_name = "FILE", global = true)]
@@ -19,19 +24,19 @@ pub struct Cli {
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub quiet: Option<bool>,
 
-    /// Whether to use lightmode for the colorscheme
+    /// Whether to use lightmode for the color scheme
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub lightmode: Option<bool>,
 
-    /// Whether to use amoled mode for the colorscheme
+    /// Whether to use amoled mode for the color scheme
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub amoled: Option<bool>,
 }
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// The image to use for generating a colorscheme
+    /// The image to use for generating a color scheme
     Image { path: String },
-    /// The source color to use for generating a colorscheme
+    /// The source color to use for generating a color scheme
     Color { color: String },
 }

@@ -15,10 +15,13 @@ use log::LevelFilter;
 use std::process::Command;
 
 use color_eyre::{eyre::Result, eyre::WrapErr, Report};
-use material_color_utilities_rs::{palettes::core::CorePalette, scheme::Scheme};
+use material_color_utilities_rs::{
+    palettes::core::{ColorPalette, CorePalette},
+    scheme::Scheme,
+};
 
 use clap::Parser;
-use util::{reload::reload_apps_linux, wallpaper::set_wallaper};
+use util::{color, reload::reload_apps_linux, wallpaper::set_wallaper};
 
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
@@ -26,7 +29,7 @@ fn main() -> Result<(), Report> {
 
     setup_logging(&args)?;
 
-    let mut palette = generate_palette(&args)?;
+    let mut palette: CorePalette = generate_palette(&args, &args.palette.unwrap())?;
     let config: ConfigFile = ConfigFile::read(&args)?;
 
     let scheme: Scheme = if args.lightmode == Some(true) {
@@ -83,6 +86,8 @@ fn main() -> Result<(), Report> {
         show_color(&scheme, &colors);
     }
 
+    println!("palette: 3{:?}", &args.palette);
+
     run_after(&config)?;
 
     Ok(())
@@ -124,9 +129,11 @@ fn setup_logging(args: &Cli) -> Result<(), Report> {
     Ok(())
 }
 
-fn generate_palette(args: &Cli) -> Result<CorePalette, Report> {
+fn generate_palette(args: &Cli, color_palette: &ColorPalette) -> Result<CorePalette, Report> {
     let palette: CorePalette = match &args.source {
-        Commands::Image { path } => CorePalette::new(source_color_from_image(path)?[0], true),
+        Commands::Image { path } => {
+            CorePalette::new(source_color_from_image(path)?[0], true, color_palette)
+        }
         Commands::Color { color } => {
             let mut newcolor = color.clone();
 
@@ -148,6 +155,7 @@ fn generate_palette(args: &Cli) -> Result<CorePalette, Report> {
             CorePalette::new(
                 [255, source_color.red, source_color.green, source_color.blue],
                 true,
+                color_palette,
             )
         }
     };

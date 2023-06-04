@@ -16,7 +16,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-material-color-utilities-rs = { version = "0.2.1", features = ["serde"] }
+material-color-utilities-rs = { version = "0.2.1", features = ["serde", "clap"] }
 image = "0.24.6"
 owo-colors = "3.5.0"
 clap = { version = "4.2.4", features = ["derive"] }
