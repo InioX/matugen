@@ -24,42 +24,42 @@ impl CorePalette {
         let hct = Hct::from_int(argb);
         let hue = hct.hue();
         let chroma = hct.chroma();
-        let error = TonalPalette::from_hue_and_chroma(25.0, 84.0);
+        let error = TonalPalette::from_hue_and_chroma(25.0, 84.0, 0.);
 
         if is_content {
             match &color_palette {
                 ColorPalette::Default => CorePalette {
-                    a1: TonalPalette::from_hue_and_chroma(hue, chroma),
-                    a2: TonalPalette::from_hue_and_chroma(hue, chroma / 3.),
-                    a3: TonalPalette::from_hue_and_chroma(hue + 60., chroma / 2.),
-                    n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0)),
-                    n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
+                    a1: TonalPalette::from_hue_and_chroma(hue, chroma, 0.),
+                    a2: TonalPalette::from_hue_and_chroma(hue, chroma / 3., 0.),
+                    a3: TonalPalette::from_hue_and_chroma(hue, chroma / 2., 60.),
+                    n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0), 0.),
+                    n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0), 0.),
                     error,
                 },
                 ColorPalette::Triadic => CorePalette {
-                    a1: TonalPalette::from_hue_and_chroma(hue, chroma),
-                    a2: TonalPalette::from_hue_and_chroma(hue + 90., chroma / 3.),
-                    a3: TonalPalette::from_hue_and_chroma(hue - 90., chroma / 2.),
-                    n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0)),
-                    n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
+                    a1: TonalPalette::from_hue_and_chroma(hue, chroma, 0.),
+                    a2: TonalPalette::from_hue_and_chroma(hue, chroma / 3., 90.),
+                    a3: TonalPalette::from_hue_and_chroma(hue, chroma / 2., -90.),
+                    n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0), 0.),
+                    n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0), 0.),
                     error,
                 },
                 ColorPalette::Adjacent => CorePalette {
-                    a1: TonalPalette::from_hue_and_chroma(hue, chroma),
-                    a2: TonalPalette::from_hue_and_chroma(hue + 30., chroma / 3.),
-                    a3: TonalPalette::from_hue_and_chroma(hue - 30., chroma / 2.),
-                    n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0)),
-                    n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
+                    a1: TonalPalette::from_hue_and_chroma(hue, chroma, 0.),
+                    a2: TonalPalette::from_hue_and_chroma(hue, chroma / 3., 30.),
+                    a3: TonalPalette::from_hue_and_chroma(hue, chroma / 2., -30.),
+                    n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0), 0.),
+                    n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0), 0.),
                     error,
                 },
             }
         } else {
             CorePalette {
-                a1: TonalPalette::from_hue_and_chroma(hue, 48.0f64.max(chroma)),
-                a2: TonalPalette::from_hue_and_chroma(hue, 16.),
-                a3: TonalPalette::from_hue_and_chroma(hue + 60., 24.),
-                n1: TonalPalette::from_hue_and_chroma(hue, 4.),
-                n2: TonalPalette::from_hue_and_chroma(hue, 8.),
+                a1: TonalPalette::from_hue_and_chroma(hue, 48.0f64.max(chroma), 0.),
+                a2: TonalPalette::from_hue_and_chroma(hue, 16., 0.),
+                a3: TonalPalette::from_hue_and_chroma(hue + 60., 24., 0.),
+                n1: TonalPalette::from_hue_and_chroma(hue, 4., 0.),
+                n2: TonalPalette::from_hue_and_chroma(hue, 8., 0.),
                 error,
             }
         }
