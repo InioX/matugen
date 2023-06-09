@@ -13,13 +13,13 @@ pub struct TonalPalette {
 impl TonalPalette {
     pub fn from_int(argb: [u8; 4]) -> TonalPalette {
         let hct = Hct::from_int(argb);
-        Self::from_hue_and_chroma(hct.hue(), hct.chroma(), 0.)
+        Self::from_hue_and_chroma(hct.hue(), hct.chroma())
     }
 
-    pub fn from_hue_and_chroma(hue: f64, chroma: f64, angle: f64) -> TonalPalette {
+    pub fn from_hue_and_chroma(hue: f64, chroma: f64) -> TonalPalette {
         TonalPalette {
             cache: Default::default(),
-            hue: hue + angle,
+            hue,
             chroma,
         }
     }
