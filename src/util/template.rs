@@ -47,7 +47,7 @@ struct Patterns<'a> {
     image: ImagePattern<'a>,
 }
 
-use colors_transform::{AlphaColor, Color as TransformColor, Rgb};
+use colors_transform::{Color as TransformColor, Rgb, AlphaColor};
 
 use super::color::Color;
 
@@ -74,6 +74,8 @@ impl Template {
 
         // TODO Use only one regex and use a for loop with matches?
         let regexvec: Patterns = generate_patterns(colors, scheme, prefix, image)?;
+
+        // println!("{}", imageregex.is_match("@{image}"));
 
         for (name, template) in &config.templates {
             let input_path_absolute = template.input_path.try_resolve()?;
@@ -105,84 +107,80 @@ impl Template {
     }
 }
 
-fn replace_single_match(regex: &ColorPattern, data: &mut String, scheme: Scheme) -> String {
-    let captures = regex.pattern.captures(&data);
+fn replace_custom_match(regex: &Regex, data: &mut String, scheme: Scheme) {
+    let captures = regex.captures(&data);
 
-    if captures.is_none() {
-        return data.to_string();
-    }
+    if let Some(caps) = captures {
+        let (field, format, hue, saturation) = (caps.get(1), caps.get(2), caps.get(3), caps.get(4));
 
-    let caps = captures.unwrap();
+        if hue.is_none() | saturation.is_none() == false {
+            println!("hue: {:?} saturation: {:?}", hue, saturation);
+            println!("regex: {:?}", regex);
+            println!("field: {:?}", field);
 
-    println!("{:?}", caps);
+            let color: [u8; 4] = *Scheme::get_value(&scheme, field.unwrap().into());
 
-    let (field, format, hue, saturation, lightness) = (
-        caps.get(1),
-        caps.get(2),
-        caps.get(3),
-        caps.get(5),
-        caps.get(7),
-    );
+            let modified_color: Rgb = Rgb::from(color[1] as f32, color[2] as f32, color[3] as f32)
+                .set_hue(hue.unwrap().as_str().parse::<f32>().unwrap())
+                .set_saturation(saturation.unwrap().as_str().parse::<f32>().unwrap());
 
-    if hue.is_none() | saturation.is_none() | lightness.is_none() {
-        return regex
-        .pattern
-        .replace_all(&*data, regex.replacement.to_string())
-        .to_string()
-    }
+            let parsed_format: &str = match format {
+                Some(format) => format.as_str(),
+                None => ".hex",
+            };
 
-    let parsed_format: &str = match format {
-        Some(format) => format.as_str(),
-        None => ".hex",
-    };
+            let bleh_color = match parsed_format {
+                ".hex" => modified_color.to_css_hex_string(),
+                ".strip" => modified_color.to_css_hex_string()[..1].to_string(),
+                ".rgb" => modified_color.to_css_string(),
+                ".rgba" => {
+                    format!(
+                        "rgba({:?}, {:?}, {:?}, {:?})",
+                        modified_color.get_red(),
+                        modified_color.get_green(),
+                        modified_color.get_blue(),
+                        modified_color.get_alpha()
+                    )
+                }
+                _ => panic!(),
+            };
 
-    if hue.is_none() | saturation.is_none() | lightness.is_none() {
-        println!("none");
-       return data.to_string() 
-    }
-
-    let color: [u8; 4] = *Scheme::get_value(&scheme, field.unwrap().into());
-
-    let modified_color: Rgb = Rgb::from(color[1] as f32, color[2] as f32, color[3] as f32)
-        .adjust_hue(hue.unwrap().as_str().parse::<f32>().unwrap())
-        .saturate(saturation.unwrap().as_str().parse::<f32>().unwrap())
-        .lighten(lightness.unwrap().as_str().parse::<f32>().unwrap());
-
-    let replacement_color = match parsed_format {
-        ".hex" => modified_color.to_css_hex_string(),
-        ".strip" => modified_color.to_css_hex_string()[..1].to_string(),
-        ".rgba" => {
-            format!(
-                "rgba({}, {}, {}, {})",
-                modified_color.get_red() as i64,
-                modified_color.get_green() as i64,
-                modified_color.get_blue() as i64,
-                modified_color.get_alpha() as i64
-            )
+            *data = regex.replace(&*data, bleh_color).to_string()
         }
-        ".rgb" => modified_color.to_css_string(),
-        _ => String::from(""),
-    };
-
-    println!(
-        "replaced: {:?} {:?} {:?} {:?} {:?}",
-        field.unwrap().as_str(),
-        parsed_format,
-        hue.unwrap().as_str(),
-        saturation.unwrap().as_str(),
-        lightness.unwrap().as_str()
-    );
-
-    *data = regex.pattern.replace(&*data, replacement_color).to_string();
-    return data.to_string();
+    }
 }
 
 fn replace_matches(regexvec: &Patterns, data: &mut String, scheme: Scheme) {
     for regex in &regexvec.colors {
-        *data = replace_single_match(&regex.hex, data, scheme);
-        *data = replace_single_match(&regex.rgb, data, scheme);
-        *data = replace_single_match(&regex.rgba, data, scheme);
-        *data = replace_single_match(&regex.hex_stripped, data, scheme);
+        println!("{:?}", regex.hex.pattern);
+
+        replace_custom_match(&regex.hex.pattern, data, scheme);
+        *data = regex
+            .hex
+            .pattern
+            .replace_all(&*data, regex.hex.replacement.to_string())
+            .to_string();
+
+        replace_custom_match(&regex.rgb.pattern, data, scheme);
+        *data = regex
+            .rgb
+            .pattern
+            .replace_all(&*data, regex.rgb.replacement.to_string())
+            .to_string();
+
+        replace_custom_match(&regex.rgba.pattern, data, scheme);
+        *data = regex
+            .rgba
+            .pattern
+            .replace_all(&*data, regex.rgba.replacement.to_string())
+            .to_string();
+
+        replace_custom_match(&regex.hex_stripped.pattern, data, scheme);
+        *data = regex
+            .hex_stripped
+            .pattern
+            .replace_all(&*data, regex.hex_stripped.replacement.to_string())
+            .to_string();
     }
     if let Some(image) = regexvec.image.replacement {
         *data = regexvec
@@ -205,21 +203,21 @@ fn generate_patterns<'a>(
 
         regexvec.push(ColorPatterns {
             hex: ColorPattern {
-                pattern: Regex::new(&format!(r#"\{prefix}\{{({field})(\.hex)?(?:\(\s*([+-]?([0-9]*[.])?[0-9]+)?\s*[,| ]\s*([+-]?([0-9]*[.])?[0-9]+)\s*[,| ]\s*?([+-]?([0-9]*[.])?[0-9]+)?\)\)?)?\}}"#).to_string())?,
+                pattern: Regex::new(&format!(r#"\{prefix}\{{({field})(\.hex)?(?:\(\s*(-?\d{{1,3}})?\s*[,]\s*(-?\d{{1,3}})?\)?\s*\)?)?\}}"#).to_string())?,
                 replacement: format_argb_as_rgb([color.alpha, color.red, color.green, color.blue]),
             },
             hex_stripped: ColorPattern {
-                pattern: Regex::new(&format!(r#"\{prefix}\{{({field})(\.strip)(?:\(\s*([+-]?([0-9]*[.])?[0-9]+)?\s*[,| ]\s*([+-]?([0-9]*[.])?[0-9]+)\s*[,| ]\s*?([+-]?([0-9]*[.])?[0-9]+)?\)\)?)?\}}"#).to_string())?,
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}\.strip(?:\(\s*(-?\d{{1,3}})?\s*[,]\s*(-?\d{{1,3}})?\)?\s*\)?)?\}}"#).to_string())?,
                 replacement: format_argb_as_rgb([color.alpha, color.red, color.green, color.blue])
                     [1..]
                     .to_string(),
             },
             rgb: ColorPattern {
-                pattern: Regex::new(&format!(r#"\{prefix}\{{({field})(\.rgb)(?:\(\s*([+-]?([0-9]*[.])?[0-9]+)?\s*[,| ]\s*([+-]?([0-9]*[.])?[0-9]+)\s*[,| ]\s*?([+-]?([0-9]*[.])?[0-9]+)?\)\)?)?\}}"#).to_string())?,
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}\.rgb(?:\(\s*(-?\d{{1,3}})?\s*[,]\s*(-?\d{{1,3}})?\)?\s*\)?)?\}}"#).to_string())?,
                 replacement: format!("rgb({:?}, {:?}, {:?})", color.red, color.green, color.blue),
             },
             rgba: ColorPattern {
-                pattern: Regex::new(&format!(r#"\{prefix}\{{({field})(\.rgba)(?:\(\s*([+-]?([0-9]*[.])?[0-9]+)?\s*[,| ]\s*([+-]?([0-9]*[.])?[0-9]+)\s*[,| ]\s*?([+-]?([0-9]*[.])?[0-9]+)?\)\)?)?\}}"#).to_string())?,
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}\.rgba(?:\(\s*(-?\d{{1,3}})?\s*[,]\s*(-?\d{{1,3}})?\)?\s*\)?)?\}}"#).to_string())?,
                 replacement: format!(
                     "rgba({:?}, {:?}, {:?}, {:?})",
                     color.red, color.green, color.blue, color.alpha
