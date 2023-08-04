@@ -47,7 +47,7 @@ struct Patterns<'a> {
     image: ImagePattern<'a>,
 }
 
-use colors_transform::{Color as TransformColor, Rgb, AlphaColor};
+use colors_transform::{Color as TransformColor, Rgb};
 
 use super::color::Color;
 
@@ -111,8 +111,9 @@ fn replace_custom_match(regex: &Regex, data: &mut String, scheme: Scheme) {
     let captures = regex.captures(&data);
 
     if let Some(caps) = captures {
-        let (field, format, hue, saturation) = (caps.get(1), caps.get(2), caps.get(3), caps.get(4));
-
+        let (field, format, hue, saturation) =
+            (caps.get(1), caps.get(2), caps.get(3), caps.get(4));
+        
         if hue.is_none() | saturation.is_none() == false {
             println!("hue: {:?} saturation: {:?}", hue, saturation);
             println!("regex: {:?}", regex);
@@ -120,40 +121,43 @@ fn replace_custom_match(regex: &Regex, data: &mut String, scheme: Scheme) {
 
             let color: [u8; 4] = *Scheme::get_value(&scheme, field.unwrap().into());
 
-            let modified_color: Rgb = Rgb::from(color[1] as f32, color[2] as f32, color[3] as f32)
+            let bleh: Rgb = Rgb::from(color[1] as f32, color[2] as f32, color[3] as f32)
                 .set_hue(hue.unwrap().as_str().parse::<f32>().unwrap())
                 .set_saturation(saturation.unwrap().as_str().parse::<f32>().unwrap());
 
             let parsed_format: &str = match format {
                 Some(format) => format.as_str(),
-                None => ".hex",
+                None => ".hex"
             };
 
             let bleh_color = match parsed_format {
-                ".hex" => modified_color.to_css_hex_string(),
-                ".strip" => modified_color.to_css_hex_string()[..1].to_string(),
-                ".rgb" => modified_color.to_css_string(),
+                ".hex" => {
+                    bleh.to_css_hex_string()
+                },
+                ".strip" => {
+                    bleh.to_css_hex_string()[..1].to_string()
+                },
+                ".rgb" => {
+                    bleh.to_css_string()
+                },
                 ".rgba" => {
-                    format!(
-                        "rgba({:?}, {:?}, {:?}, {:?})",
-                        modified_color.get_red(),
-                        modified_color.get_green(),
-                        modified_color.get_blue(),
-                        modified_color.get_alpha()
-                    )
-                }
-                _ => panic!(),
+                    bleh.to_css_string()
+                },
+                _ => panic!()
             };
 
-            *data = regex.replace(&*data, bleh_color).to_string()
+            *data = regex
+                .replace(&*data, bleh_color)
+                .to_string()
         }
     }
 }
 
 fn replace_matches(regexvec: &Patterns, data: &mut String, scheme: Scheme) {
     for regex in &regexvec.colors {
-        println!("{:?}", regex.hex.pattern);
 
+        println!("{:?}", regex.hex.pattern);
+        
         replace_custom_match(&regex.hex.pattern, data, scheme);
         *data = regex
             .hex
