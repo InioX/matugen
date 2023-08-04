@@ -47,8 +47,6 @@ struct Patterns<'a> {
     image: ImagePattern<'a>,
 }
 
-use colors_transform::{Color as TransformColor, Rgb};
-
 use super::color::Color;
 
 impl Template {
@@ -88,7 +86,7 @@ impl Template {
 
             let mut data = read_to_string(&input_path_absolute)?;
 
-            replace_matches(&regexvec, &mut data, scheme);
+            replace_matches(&regexvec, &mut data);
 
             let mut output_file = OpenOptions::new()
                 .create(true)
@@ -107,79 +105,26 @@ impl Template {
     }
 }
 
-fn replace_custom_match(regex: &Regex, data: &mut String, scheme: Scheme) {
-    let captures = regex.captures(&data);
-
-    if let Some(caps) = captures {
-        let (field, format, hue, saturation) =
-            (caps.get(1), caps.get(2), caps.get(3), caps.get(4));
-        
-        if hue.is_none() | saturation.is_none() == false {
-            println!("hue: {:?} saturation: {:?}", hue, saturation);
-            println!("regex: {:?}", regex);
-            println!("field: {:?}", field);
-
-            let color: [u8; 4] = *Scheme::get_value(&scheme, field.unwrap().into());
-
-            let bleh: Rgb = Rgb::from(color[1] as f32, color[2] as f32, color[3] as f32)
-                .set_hue(hue.unwrap().as_str().parse::<f32>().unwrap())
-                .set_saturation(saturation.unwrap().as_str().parse::<f32>().unwrap());
-
-            let parsed_format: &str = match format {
-                Some(format) => format.as_str(),
-                None => ".hex"
-            };
-
-            let bleh_color = match parsed_format {
-                ".hex" => {
-                    bleh.to_css_hex_string()
-                },
-                ".strip" => {
-                    bleh.to_css_hex_string()[..1].to_string()
-                },
-                ".rgb" => {
-                    bleh.to_css_string()
-                },
-                ".rgba" => {
-                    bleh.to_css_string()
-                },
-                _ => panic!()
-            };
-
-            *data = regex
-                .replace(&*data, bleh_color)
-                .to_string()
-        }
-    }
-}
-
-fn replace_matches(regexvec: &Patterns, data: &mut String, scheme: Scheme) {
+fn replace_matches(regexvec: &Patterns, data: &mut String) {
     for regex in &regexvec.colors {
-
-        println!("{:?}", regex.hex.pattern);
-        
-        replace_custom_match(&regex.hex.pattern, data, scheme);
         *data = regex
             .hex
             .pattern
             .replace_all(&*data, regex.hex.replacement.to_string())
             .to_string();
 
-        replace_custom_match(&regex.rgb.pattern, data, scheme);
         *data = regex
             .rgb
             .pattern
             .replace_all(&*data, regex.rgb.replacement.to_string())
             .to_string();
 
-        replace_custom_match(&regex.rgba.pattern, data, scheme);
         *data = regex
             .rgba
             .pattern
             .replace_all(&*data, regex.rgba.replacement.to_string())
             .to_string();
 
-        replace_custom_match(&regex.hex_stripped.pattern, data, scheme);
         *data = regex
             .hex_stripped
             .pattern
@@ -207,21 +152,21 @@ fn generate_patterns<'a>(
 
         regexvec.push(ColorPatterns {
             hex: ColorPattern {
-                pattern: Regex::new(&format!(r#"\{prefix}\{{({field})(\.hex)?(?:\(\s*(-?\d{{1,3}})?\s*[,]\s*(-?\d{{1,3}})?\)?\s*\)?)?\}}"#).to_string())?,
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}(\.hex)?}}"#).to_string())?,
                 replacement: format_argb_as_rgb([color.alpha, color.red, color.green, color.blue]),
             },
             hex_stripped: ColorPattern {
-                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}\.strip(?:\(\s*(-?\d{{1,3}})?\s*[,]\s*(-?\d{{1,3}})?\)?\s*\)?)?\}}"#).to_string())?,
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.strip}}"#).to_string())?,
                 replacement: format_argb_as_rgb([color.alpha, color.red, color.green, color.blue])
                     [1..]
                     .to_string(),
             },
             rgb: ColorPattern {
-                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}\.rgb(?:\(\s*(-?\d{{1,3}})?\s*[,]\s*(-?\d{{1,3}})?\)?\s*\)?)?\}}"#).to_string())?,
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.rgb}}"#).to_string())?,
                 replacement: format!("rgb({:?}, {:?}, {:?})", color.red, color.green, color.blue),
             },
             rgba: ColorPattern {
-                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}\.rgba(?:\(\s*(-?\d{{1,3}})?\s*[,]\s*(-?\d{{1,3}})?\)?\s*\)?)?\}}"#).to_string())?,
+                pattern: Regex::new(&format!(r#"\{prefix}\{{{field}.rgba}}"#).to_string())?,
                 replacement: format!(
                     "rgba({:?}, {:?}, {:?}, {:?})",
                     color.red, color.green, color.blue, color.alpha
