@@ -4,7 +4,7 @@ extern crate paris_log;
 
 mod util;
 use crate::util::{
-    arguments::{Cli, Commands},
+    arguments::{Cli, ColorFormat, Commands},
     color::{show_color, Color},
     config::ConfigFile,
     image::source_color_from_image,
@@ -13,12 +13,18 @@ use crate::util::{
 
 use log::LevelFilter;
 use std::process::Command;
+use std::str::FromStr;
 
 use color_eyre::{eyre::Result, eyre::WrapErr, Report};
-use material_color_utilities_rs::{palettes::core::CorePalette, scheme::Scheme};
+use material_color_utilities_rs::{
+    palettes::core::{ColorPalette, CorePalette},
+    scheme::Scheme,
+};
+
+use colorsys::{ColorAlpha, ColorTransform, Hsl, Rgb, SaturationInSpace};
 
 use clap::Parser;
-use util::{reload::reload_apps_linux, wallpaper::set_wallaper};
+use util::{color, reload::reload_apps_linux, wallpaper::set_wallaper};
 
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
@@ -26,7 +32,7 @@ fn main() -> Result<(), Report> {
 
     setup_logging(&args)?;
 
-    let mut palette = generate_palette(&args)?;
+    let mut palette: CorePalette = generate_palette(&args, &args.palette.unwrap())?;
     let config: ConfigFile = ConfigFile::read(&args)?;
 
     let scheme: Scheme = if args.lightmode == Some(true) {
@@ -83,6 +89,8 @@ fn main() -> Result<(), Report> {
         show_color(&scheme, &colors);
     }
 
+    println!("palette: 3{:?}", &args.palette);
+
     run_after(&config)?;
 
     Ok(())
@@ -124,30 +132,31 @@ fn setup_logging(args: &Cli) -> Result<(), Report> {
     Ok(())
 }
 
-fn generate_palette(args: &Cli) -> Result<CorePalette, Report> {
+fn generate_palette(args: &Cli, color_palette: &ColorPalette) -> Result<CorePalette, Report> {
     let palette: CorePalette = match &args.source {
-        Commands::Image { path } => CorePalette::new(source_color_from_image(path)?[0], true),
-        Commands::Color { color } => {
-            let mut newcolor = color.clone();
+        Commands::Image { path } => {
+            CorePalette::new(source_color_from_image(path)?[0], true, color_palette)
+        }
+        Commands::Color(color) => {
+            let source_color: Rgb;
 
-            if color.starts_with('#') {
-                newcolor = newcolor[1..].to_string();
-            };
-
-            if newcolor.len() < 6 {
-                // Handle error
+            match color {
+                ColorFormat::Hex { string } => source_color = Rgb::from_hex_str(string).unwrap(),
+                ColorFormat::Rgb { string } => source_color = string.parse().unwrap(),
+                ColorFormat::Hsl { string } => source_color = Hsl::from_str(string).unwrap().into(),
             }
 
-            let source_color = Color {
-                red: u8::from_str_radix(&newcolor[0..2], 16)?,
-                green: u8::from_str_radix(&newcolor[2..4], 16)?,
-                blue: u8::from_str_radix(&newcolor[4..6], 16)?,
-                alpha: 255,
-            };
+            println!("{:?}", source_color);
 
             CorePalette::new(
-                [255, source_color.red, source_color.green, source_color.blue],
+                [
+                    source_color.alpha() as u8,
+                    source_color.red() as u8,
+                    source_color.blue() as u8,
+                    source_color.green() as u8,
+                ],
                 true,
+                color_palette,
             )
         }
     };
