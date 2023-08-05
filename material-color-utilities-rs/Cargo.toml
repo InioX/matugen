@@ -13,6 +13,7 @@ lazy_static = "1.4.0"
 serde = { version = "1.0", optional = true, features = ["derive"] }
 rand = "0.8.5"
 num = "0.4"
+clap = { version = "4.2.4", features = ["derive"], optional = true }
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
