@@ -7,7 +7,7 @@ Set Width 1200
 Set Height 750
 
 # Image - default
-Type "matugen image assets/images/green.jpg -p 'default'"
+Type "matugen color hsl 'hsl(114, 22%, 75%)'"
 Sleep 500ms
 Enter
 
