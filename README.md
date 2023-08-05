@@ -41,11 +41,10 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 
 - [ ] Add GTK4 UI
 - [ ] Add a light/dark option for each template
-- [ ] Improve error handling when using hex color for generating colorscheme
-- [ ] Support more color formats for generating colorscheme
-    - [ ] Rgba
-    - [ ] Rgb
-    - [ ] Hsl
+- [x] Support more color formats for generating colorscheme
+    - [x] Rgba
+    - [x] Rgb
+    - [x] Hsl
 - [ ] Suport changing the wallpaper on different platforms
      - [ ] MacOS
      - [ ] Windows
