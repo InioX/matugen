@@ -35,7 +35,8 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 - Windows
 - Linux
 - MacOS
->**Warning** Matugen only supports setting the wallpaper and restarting apps on Linux for now.
+- NetBSD
+>**Warning** Matugen only supports setting the wallpaper and restarting apps on Linux and NetBSD for now.
      
 ## Roadmap
 
