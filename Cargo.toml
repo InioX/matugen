@@ -16,7 +16,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-material-color-utilities-rs = { version = "0.2.1", features = ["serde", "clap"] }
+material-color-utilities-rs = { version= "0.3.0" ,package = "ini-material-color-utilities-rs", path = "material-color-utilities-rs", features = ["serde", "clap"] }
 image = "0.24.6"
 owo-colors = "3.5.0"
 clap = { version = "4.2.4", features = ["derive"] }
@@ -31,5 +31,5 @@ log = "0.4.17"
 paris-log = { version = "1.0.2", features = ["icons"] }
 colorsys = "0.6.7"
 
-[patch.crates-io]
-material-color-utilities-rs = { path = "./material-color-utilities-rs" }
+[workspace]
+members = ["material-color-utilities-rs"]
