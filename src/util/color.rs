@@ -81,28 +81,5 @@ pub fn show_color(scheme: &Scheme, colors: &Vec<&str>) {
 
         print!("{}", color_str);
     }
-
     println!("\n");
-
-    // Very lazy to do for testing, but it works
-    // Remove this later
-    let colors_2 = ["primary", "secondary", "tertiary"];
-    for field in colors_2 {
-        let color: Color = Color::new(*Scheme::get_value(scheme, field));
-
-        let luma = color.red as u16 + color.blue as u16 + color.green as u16;
-
-        let formatstr = format!("#{:x}{:x}{:x}", color.red, color.green, color.blue);
-        let owo_color: owo_colors::Rgb = owo_colors::Rgb(color.red, color.green, color.blue);
-
-        let style = if luma > 500 {
-            Style::new().black().on_color(owo_color)
-        } else {
-            Style::new().white().on_color(owo_color)
-        };
-
-        let color_str = formatstr.style(style);
-
-        print!("{}: {} ", field, color_str);
-    }
 }
