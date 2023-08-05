@@ -89,8 +89,6 @@ fn main() -> Result<(), Report> {
         show_color(&scheme, &colors);
     }
 
-    println!("palette: 3{:?}", &args.palette);
-
     run_after(&config)?;
 
     Ok(())
