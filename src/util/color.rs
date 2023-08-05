@@ -1,7 +1,5 @@
 use material_color_utilities_rs::{scheme::Scheme, util::color::format_argb_as_rgb};
-use owo_colors::{
-    OwoColorize, Style,
-};
+use owo_colors::{OwoColorize, Style};
 
 // TODO Fix this monstrosity
 

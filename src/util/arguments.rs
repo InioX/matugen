@@ -11,7 +11,13 @@ pub struct Cli {
     pub source: Commands,
 
     /// Sets a custom color palette
-    #[arg(short, long, value_name = "COLORSCHEME", global = true, default_value="default")]
+    #[arg(
+        short,
+        long,
+        value_name = "COLORSCHEME",
+        global = true,
+        default_value = "default"
+    )]
     pub palette: Option<ColorPalette>,
 
     /// Sets a custom config file
@@ -44,7 +50,7 @@ pub enum Commands {
 
 #[derive(Parser, Debug)]
 pub enum ColorFormat {
-   Hex { string: String },
-   Rgb { string: String },
-   Hsl { string: String },
+    Hex { string: String },
+    Rgb { string: String },
+    Hsl { string: String },
 }
