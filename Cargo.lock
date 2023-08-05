@@ -88,6 +88,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "assert_approx_eq"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c07dab4369547dbe5114677b33fbbf724971019f3818172d59a97a61c774ffd"
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -562,6 +568,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "ini-material-color-utilities-rs"
+version = "0.2.1"
+dependencies = [
+ "ahash",
+ "assert_approx_eq",
+ "clap",
+ "lazy_static",
+ "num",
+ "rand",
+ "serde",
+]
+
+[[package]]
 name = "io-lifetimes"
 version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -646,18 +665,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "material-color-utilities-rs"
-version = "0.2.1"
-dependencies = [
- "ahash",
- "clap",
- "lazy_static",
- "num",
- "rand",
- "serde",
-]
-
-[[package]]
 name = "matugen"
 version = "0.8.3"
 dependencies = [
@@ -666,8 +673,8 @@ dependencies = [
  "colorsys",
  "directories",
  "image",
+ "ini-material-color-utilities-rs",
  "log",
- "material-color-utilities-rs",
  "owo-colors",
  "paris-log",
  "pretty_env_logger",
