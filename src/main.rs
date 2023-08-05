@@ -4,7 +4,7 @@ extern crate paris_log;
 
 mod util;
 use crate::util::{
-    arguments::{Cli, Commands},
+    arguments::{Cli, Commands, ColorFormat},
     color::{show_color, Color},
     config::ConfigFile,
     image::source_color_from_image,
@@ -13,12 +13,15 @@ use crate::util::{
 
 use log::LevelFilter;
 use std::process::Command;
+use std::str::FromStr;
 
 use color_eyre::{eyre::Result, eyre::WrapErr, Report};
 use material_color_utilities_rs::{
     palettes::core::{ColorPalette, CorePalette},
     scheme::Scheme,
 };
+
+use colorsys::{Hsl, Rgb, ColorTransform,ColorAlpha, SaturationInSpace};
 
 use clap::Parser;
 use util::{color, reload::reload_apps_linux, wallpaper::set_wallaper};
@@ -134,26 +137,20 @@ fn generate_palette(args: &Cli, color_palette: &ColorPalette) -> Result<CorePale
         Commands::Image { path } => {
             CorePalette::new(source_color_from_image(path)?[0], true, color_palette)
         }
-        Commands::Color { color } => {
-            let mut newcolor = color.clone();
+        Commands::Color(color) => {
 
-            if color.starts_with('#') {
-                newcolor = newcolor[1..].to_string();
-            };
+            let source_color: Rgb;
 
-            if newcolor.len() < 6 {
-                // Handle error
+            match color {
+                ColorFormat::Hex { string } => source_color = Rgb::from_hex_str(string).unwrap(),
+                ColorFormat::Rgb { string } => source_color = string.parse().unwrap(),
+                ColorFormat::Hsl { string } => source_color = Hsl::from_str(string).unwrap().into(),
             }
 
-            let source_color = Color {
-                red: u8::from_str_radix(&newcolor[0..2], 16)?,
-                green: u8::from_str_radix(&newcolor[2..4], 16)?,
-                blue: u8::from_str_radix(&newcolor[4..6], 16)?,
-                alpha: 255,
-            };
+            println!("{:?}", source_color);
 
             CorePalette::new(
-                [255, source_color.red, source_color.green, source_color.blue],
+                [source_color.alpha() as u8, source_color.red() as u8, source_color.blue() as u8, source_color.green() as u8],
                 true,
                 color_palette,
             )

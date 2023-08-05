@@ -1,4 +1,4 @@
-use clap::{arg, ArgAction, Parser, Subcommand};
+use clap::{arg, ArgAction, Parser, Subcommand, ValueEnum};
 use material_color_utilities_rs::palettes::core::ColorPalette;
 use std::path::PathBuf;
 
@@ -38,5 +38,13 @@ pub enum Commands {
     /// The image to use for generating a color scheme
     Image { path: String },
     /// The source color to use for generating a color scheme
-    Color { color: String },
+    #[clap(subcommand)]
+    Color(ColorFormat),
+}
+
+#[derive(Parser, Debug)]
+pub enum ColorFormat {
+   Hex { string: String },
+   Rgb { string: String },
+   Hsl { string: String },
 }

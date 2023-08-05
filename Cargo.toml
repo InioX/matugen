@@ -29,6 +29,7 @@ regex = "1.8.1"
 pretty_env_logger = "0.4.0"
 log = "0.4.17"
 paris-log = { version = "1.0.2", features = ["icons"] }
+colorsys = "0.6.7"
 
 [patch.crates-io]
 material-color-utilities-rs = { path = "./material-color-utilities-rs" }
