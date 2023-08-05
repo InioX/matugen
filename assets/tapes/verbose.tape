@@ -7,7 +7,7 @@ Set Width 1200
 Set Height 1850
 
 # Image
-Type "matugen image -v ~/Downloads/wallpaper-1.jpg"
+Type "matugen image -v assets/images/green.jpg"
 Sleep 500ms
 Enter
 
@@ -18,7 +18,7 @@ Ctrl+L
 Sleep 500ms
 
 # Color
-Type "matugen color -v '#debdc3'"
+Type "matugen color hex -v '#debdc3'"
 Sleep 500ms
 Enter
 

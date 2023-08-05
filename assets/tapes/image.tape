@@ -7,7 +7,7 @@ Set Width 1200
 Set Height 600
 
 # Image
-Type "matugen image ~/Downloads/wallpaper-1.jpg"
+Type "matugen image assets/images/green.jpg"
 Sleep 500ms
 Enter
 
