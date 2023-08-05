@@ -569,7 +569,7 @@ dependencies = [
 
 [[package]]
 name = "ini-material-color-utilities-rs"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "ahash",
  "assert_approx_eq",
