@@ -123,17 +123,17 @@ matugen image ~/wall/snow.png -l
 
 ```sh
 # Dark mode
-matugen color <hex color>
+matugen color hsl <hsl color> -l
 # Light mode
-matugen color <hex color> -l
+matugen color hex <hex color> -l
 # AMOLED/"pure dark" mode
-matugen color <hex color> -a
+matugen color rgb <rgb color> -a
 ```
 Example:
 ```sh
-matugen color #ffbf9b
-matugen color ffbf9b -l
-matugen color ffbf9b -a
+matugen color hex "#ffbf9b"
+matugen color rgb "rgb(63, 106, 171)" -l
+matugen color hsl "hsl(216.34, 45.75%, 45.88%)" -a
 ```
 
 ### Creating templates
