@@ -86,6 +86,9 @@ in {
 
 ## Usage
 
+>**Note** For some reason the output of the colors is a bit weird in the gifs, here is how the output actually looks:
+<img src="https://media.discordapp.net/attachments/1107367450909081662/1137395882749341736/image.png?width=1360&height=102" width="50%">
+
 ### Help
 <img src="./assets/images/help.gif" width=300>
 
