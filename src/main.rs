@@ -141,12 +141,12 @@ fn generate_palette(args: &Cli, color_palette: &ColorPalette) -> Result<CorePale
             let source_color: Rgb;
 
             match color {
-                ColorFormat::Hex { string } => source_color = Rgb::from_hex_str(string).unwrap(),
-                ColorFormat::Rgb { string } => source_color = string.parse().unwrap(),
-                ColorFormat::Hsl { string } => source_color = Hsl::from_str(string).unwrap().into(),
+                ColorFormat::Hex { string } => source_color = Rgb::from_hex_str(string).expect("Invalid hex color string provided"),
+                ColorFormat::Rgb { string } => source_color = string.parse().expect("Invalid rgb color string provided"),
+                ColorFormat::Hsl { string } => source_color = Hsl::from_str(string).expect("Invalid hsl color string provided").into(),
             }
 
-            println!("{:?}", source_color);
+            debug!("{:?}", source_color);
 
             CorePalette::new(
                 [
