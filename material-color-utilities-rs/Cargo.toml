@@ -1,6 +1,6 @@
 [package]
-name = "material-color-utilities-rs"
-version = "0.2.1"
+name = "ini-material-color-utilities-rs"
+version = "0.3.0"
 edition = "2021"
 license-file = "./LICENSE"
 description = "A rust port of Material Design color utilities"
