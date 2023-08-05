@@ -4,7 +4,7 @@ Output help.gif
 # Set up a 1200x600 terminal with 46px font.
 Set FontSize 46
 Set Width 1200
-Set Height 1300
+Set Height 1400
 
 # Short help
 Type "matugen -h"
