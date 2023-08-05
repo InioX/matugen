@@ -4,7 +4,7 @@ extern crate paris_log;
 
 mod util;
 use crate::util::{
-    arguments::{Cli, Commands, ColorFormat},
+    arguments::{Cli, ColorFormat, Commands},
     color::{show_color, Color},
     config::ConfigFile,
     image::source_color_from_image,
@@ -21,7 +21,7 @@ use material_color_utilities_rs::{
     scheme::Scheme,
 };
 
-use colorsys::{Hsl, Rgb, ColorTransform,ColorAlpha, SaturationInSpace};
+use colorsys::{ColorAlpha, ColorTransform, Hsl, Rgb, SaturationInSpace};
 
 use clap::Parser;
 use util::{color, reload::reload_apps_linux, wallpaper::set_wallaper};
@@ -138,7 +138,6 @@ fn generate_palette(args: &Cli, color_palette: &ColorPalette) -> Result<CorePale
             CorePalette::new(source_color_from_image(path)?[0], true, color_palette)
         }
         Commands::Color(color) => {
-
             let source_color: Rgb;
 
             match color {
@@ -150,7 +149,12 @@ fn generate_palette(args: &Cli, color_palette: &ColorPalette) -> Result<CorePale
             println!("{:?}", source_color);
 
             CorePalette::new(
-                [source_color.alpha() as u8, source_color.red() as u8, source_color.blue() as u8, source_color.green() as u8],
+                [
+                    source_color.alpha() as u8,
+                    source_color.red() as u8,
+                    source_color.blue() as u8,
+                    source_color.green() as u8,
+                ],
                 true,
                 color_palette,
             )
