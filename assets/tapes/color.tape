@@ -4,7 +4,7 @@ Output color.gif
 # Set up a 1200x600 terminal with 46px font.
 Set FontSize 46
 Set Width 1200
-Set Height 900
+Set Height 750
 
 # Hex
 Type "matugen color hex '#FFBF9B'"
