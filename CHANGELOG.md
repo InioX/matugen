@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.4](https://github.com/InioX/Matugen/compare/matugen-v0.8.3...matugen-v0.8.4) - 2023-08-05
+
+### Other
+- update cargo and flake lockfiles
+
 ## [0.8.3](https://github.com/InioX/Matugen/compare/v0.8.2...v0.8.3) - 2023-08-05
 
 ### Added
