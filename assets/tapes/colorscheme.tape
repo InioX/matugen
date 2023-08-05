@@ -16,7 +16,7 @@ Sleep 2s
 Ctrl+L
 
 # Hex - triadic
-Type "matugen color hex '#FFBF9B' -p 'triadic'"
+Type "matugen color hex '#b3cdb0' -p 'triadic'"
 Sleep 500ms
 Enter
 
@@ -25,7 +25,7 @@ Sleep 2s
 Ctrl+L
 
 # Hsl - adjacent
-Type "matugen color hsl 'hsl(300, 26.7%, 52.4%)' -p "adjacent""
+Type "matugen color rgb 'rgb(179,205,176)' -p "adjacent""
 Sleep 500ms
 Enter
 
