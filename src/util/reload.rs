@@ -2,7 +2,7 @@ use super::{arguments::Cli, config::ConfigFile};
 use color_eyre::{eyre::Result, Report};
 use std::process::Command;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "netbsd"))]
 pub fn reload_apps_linux(args: &Cli, config: &ConfigFile) -> Result<(), Report> {
     reload_app("kitty", "SIGUSR1")?;
     reload_app("waybar", "SIGUSR2")?;
