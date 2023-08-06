@@ -85,6 +85,16 @@ in {
 }
 ```
 
+### NetBSD
+```shell
+pkgin install matugen
+```
+or, if you prefer to build it from source
+```shell
+cd /usr/pkgsrc/graphics/matugen
+make install
+```
+
 ## Usage
 
 >**Note** For some reason the output of the colors is a bit weird in the gifs, here is how the output actually looks:
