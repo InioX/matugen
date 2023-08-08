@@ -224,10 +224,10 @@ Here is a list of different locations for the configuration file:
 ### Apps
 | Name      | Type | Default | Description                      |
 |-----------|------|---------|----------------------------------|
-| kitty     | bool | None    | Whether to reload kitty.         |
-| waybar    | bool | None    | Whether to reload waybar.        |
-| dunst     | bool | None    | Whether to reload dunst.         |
-| gtk_theme | bool | None    | Whether to reload the GTK theme. |
+| kitty     | bool | true    | Whether to reload kitty.         |
+| waybar    | bool | true    | Whether to reload waybar.        |
+| dunst     | bool | true    | Whether to reload dunst.         |
+| gtk_theme | bool | true    | Whether to reload the GTK theme. |
 
 ### Example configuration
 ```toml
