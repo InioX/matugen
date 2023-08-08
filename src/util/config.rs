@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
-use color_eyre::Report;
+use color_eyre::{Help, Report};
 
 use serde::{Deserialize, Serialize};
 
@@ -44,6 +44,8 @@ pub struct ConfigFile {
     pub templates: HashMap<String, Template>,
 }
 
+const ERROR_TEXT: &str = "Error reading config file, check https://github.com/InioX/Matugen#configuration for help";
+
 impl ConfigFile {
     pub fn read(args: &Cli) -> Result<ConfigFile, Report> {
         match &args.config {
@@ -59,7 +61,12 @@ impl ConfigFile {
                 return Err(Report::new(e).wrap_err("Could not find the provided config file."))
             }
         };
-        Ok(toml::from_str(&content)?)
+
+        match toml::from_str(&content) {
+            Ok(res) => return Ok(res),
+            Err(e) => return Err(Report::new(e)
+            .suggestion(ERROR_TEXT))
+        }
     }
 
     fn read_from_proj_path() -> Result<ConfigFile, Report> {
@@ -72,7 +79,11 @@ impl ConfigFile {
             }
 
             let content: String = fs::read_to_string(config_file).unwrap();
-            Ok(toml::from_str(&content)?)
+            match toml::from_str(&content) {
+                Ok(res) => return Ok(res),
+                Err(e) => return Err(Report::new(e)
+                .suggestion(ERROR_TEXT))
+            }
         } else {
             Ok(Self::read_from_fallback_path()?)
         }
