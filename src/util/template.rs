@@ -107,7 +107,7 @@ impl Template {
 
 fn replace_matches(regexvec: &Patterns, data: &mut String) {
     for regex in &regexvec.colors {
-        let captures = regex.pattern.captures(&data);
+        let captures = regex.pattern.captures(data);
 
         let format = if let Some(caps) = captures {
             caps.get(1)
@@ -120,25 +120,25 @@ fn replace_matches(regexvec: &Patterns, data: &mut String) {
                 ".hex" => {
                     *data = regex
                         .pattern
-                        .replace_all(&data, &regex.replacements.hex)
+                        .replace_all(data, &regex.replacements.hex)
                         .to_string()
                 }
                 ".strip" => {
                     *data = regex
                         .pattern
-                        .replace_all(&data, &regex.replacements.hex_stripped)
+                        .replace_all(data, &regex.replacements.hex_stripped)
                         .to_string()
                 }
                 ".rgb" => {
                     *data = regex
                         .pattern
-                        .replace_all(&data, &regex.replacements.rgb)
+                        .replace_all(data, &regex.replacements.rgb)
                         .to_string()
                 }
                 ".rgba" => {
                     *data = regex
                         .pattern
-                        .replace_all(&data, &regex.replacements.rgba)
+                        .replace_all(data, &regex.replacements.rgba)
                         .to_string()
                 }
                 _ => continue,
@@ -146,7 +146,7 @@ fn replace_matches(regexvec: &Patterns, data: &mut String) {
         } else {
             *data = regex
                 .pattern
-                .replace_all(&data, &regex.replacements.hex)
+                .replace_all(data, &regex.replacements.hex)
                 .to_string()
         }
     }
