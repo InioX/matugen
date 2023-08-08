@@ -36,6 +36,7 @@ pub struct Apps {
    pub kitty: bool,
    pub waybar: bool,
    pub gtk_theme: bool,
+   pub dunst: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
