@@ -226,6 +226,7 @@ Here is a list of different locations for the configuration file:
 |-----------|------|---------|----------------------------------|
 | kitty     | bool | None    | Whether to reload kitty.         |
 | waybar    | bool | None    | Whether to reload waybar.        |
+| dunst     | bool | None    | Whether to reload dunst.         |
 | gtk_theme | bool | None    | Whether to reload the GTK theme. |
 
 ### Example configuration
@@ -249,7 +250,7 @@ run_after = [
 waybar = true
 kitty = true
 gtk_theme = true
-
+dunst = true
 ```
 
 ### Adding templates
