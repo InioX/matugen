@@ -5,7 +5,7 @@ extern crate paris_log;
 mod util;
 use crate::util::{
     arguments::{Cli, ColorFormat, Commands},
-    color::{show_color, Color},
+    color::{show_color},
     config::ConfigFile,
     image::source_color_from_image,
     template::Template,
@@ -21,10 +21,10 @@ use material_color_utilities_rs::{
     scheme::Scheme,
 };
 
-use colorsys::{ColorAlpha, ColorTransform, Hsl, Rgb, SaturationInSpace};
+use colorsys::{ColorAlpha, Hsl, Rgb};
 
 use clap::Parser;
-use util::{color, reload::reload_apps_linux, wallpaper::set_wallaper};
+use util::{reload::reload_apps_linux, wallpaper::set_wallaper};
 
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
