@@ -33,10 +33,10 @@ pub struct Config {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Apps {
-   pub kitty: bool,
-   pub waybar: bool,
-   pub gtk_theme: bool,
-   pub dunst: bool,
+   pub kitty: Option<bool>,
+   pub waybar: Option<bool>,
+   pub gtk_theme: Option<bool>,
+   pub dunst: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

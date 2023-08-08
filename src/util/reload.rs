@@ -13,19 +13,19 @@ pub fn reload_apps_linux(args: &Cli, config: &ConfigFile) -> Result<(), Report> 
 
     let reload_apps_list = &config.config.reload_apps_list.as_ref().unwrap();
 
-    if reload_apps_list.waybar {
+    if reload_apps_list.waybar == Some(true) || reload_apps_list.waybar.is_none() {
         reload_app("waybar", "SIGUSR2")?;
     }
 
-    if reload_apps_list.kitty {
+    if reload_apps_list.kitty == Some(true) || reload_apps_list.waybar.is_none() {
         reload_app("kitty", "SIGUSR1")?;
     }
     
-    if reload_apps_list.dunst {
+    if reload_apps_list.dunst == Some(true) || reload_apps_list.waybar.is_none() {
         reload_app("dunst", "SIGUSR2")?;
     }
     
-    if reload_apps_list.gtk_theme {
+    if reload_apps_list.gtk_theme == Some(true) || reload_apps_list.waybar.is_none() {
         reload_gtk_theme(args)?;
     }
 
