@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0](https://github.com/InioX/Matugen/compare/matugen-v0.8.4...matugen-v0.9.0) - 2023-08-08
+
+### Added
+- *(reload apps)* make every app true by default
+- *(reload apps)* add dunst
+- *(config)* add suggestion to error message
+- *(config)* [**breaking**] add reload_apps_list
+
+### Fixed
+- add NetBSD support
+
+### Other
+- add removed notice for `reload_gtk_theme`
+- run clippy --fix
+
 ## [0.8.4](https://github.com/InioX/Matugen/compare/matugen-v0.8.3...matugen-v0.8.4) - 2023-08-05
 
 ### Other
