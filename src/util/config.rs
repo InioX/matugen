@@ -21,7 +21,7 @@ pub enum WallpaperTool {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub reload_apps: Option<bool>,
-    pub reload_gtk_theme: Option<bool>,
+    pub reload_apps_list: Option<Apps>,
     pub set_wallpaper: Option<bool>,
     pub wallpaper_tool: Option<WallpaperTool>,
     // TODO: Add a `Command` struct
@@ -29,6 +29,13 @@ pub struct Config {
     pub feh_options: Option<Vec<String>>,
     pub run_after: Option<Vec<Vec<String>>>,
     pub prefix: Option<String>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct Apps {
+   pub kitty: bool,
+   pub waybar: bool,
+   pub gtk_theme: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
