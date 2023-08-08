@@ -1,4 +1,4 @@
-use clap::{arg, ArgAction, Parser, Subcommand, ValueEnum};
+use clap::{arg, ArgAction, Parser, Subcommand};
 use material_color_utilities_rs::palettes::core::ColorPalette;
 use std::path::PathBuf;
 

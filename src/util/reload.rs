@@ -1,7 +1,7 @@
 use super::{arguments::Cli, config::ConfigFile};
 use color_eyre::{eyre::Result, Report};
 use std::process::Command;
-use super::config::Apps;
+
 
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
 pub fn reload_apps_linux(args: &Cli, config: &ConfigFile) -> Result<(), Report> {
@@ -21,7 +21,7 @@ pub fn reload_apps_linux(args: &Cli, config: &ConfigFile) -> Result<(), Report> 
         reload_app("kitty", "SIGUSR1")?;
     }
 
-    if reload_apps_list.gtk_theme == true {
+    if reload_apps_list.gtk_theme {
         reload_gtk_theme(args)?;
     }
 
