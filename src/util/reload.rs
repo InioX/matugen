@@ -20,7 +20,11 @@ pub fn reload_apps_linux(args: &Cli, config: &ConfigFile) -> Result<(), Report> 
     if reload_apps_list.kitty {
         reload_app("kitty", "SIGUSR1")?;
     }
-
+    
+    if reload_apps_list.dunst {
+        reload_app("dunst", "SIGUSR2")?;
+    }
+    
     if reload_apps_list.gtk_theme {
         reload_gtk_theme(args)?;
     }
