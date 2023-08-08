@@ -213,33 +213,43 @@ Here is a list of different locations for the configuration file:
 | Name             | Type                 | Default | Description                                                                    |
 |------------------|----------------------|---------|--------------------------------------------------------------------------------|
 | reload_apps      | bool                 | false   | Whether to reload apps.                                                        |
+| reload_apps_list | Apps (see below)     | None    | Which apps to reload.                                                          |
 | set_wallpaper    | bool                 | false   | Whether to set the wallpaper (if `true`, requires `wallpaper_tool` to be set). |
 | wallpaper_tool   | String               | None    | The wallpaper tool to use (`Swwww`, `Swaybg`, `Feh`, `Nitrogen`).              |
 | prefix           | String               | "@"     | The prefix to use (for example: `@{primary}`)                                  |
-| reload_gtk_theme | bool                 | false   | Whether to reload the gtk theme.                                               |
-| run_after        | Vec\<Vec\<String\>\> | []      | The commands to run after the templates have been generated.                   |
-| swww_options     | Vec\<String\>        | []      | The options to use for [Swwww](https://github.com/Horus645/swww)               |
+| run_after        | Vec\<String\>        | []      | The commands to run after the templates have been generated.                   |
+| swww_options     | Vec\<Vec\<String\>\> | []      | The options to use for [Swww](https://github.com/Horus645/swww)               |
 | feh_options      | Vec\<String\>        | []      | The options to use for [Feh](https://github.com/derf/feh)                      |
+
+### Apps
+| Name      | Type | Default | Description                      |
+|-----------|------|---------|----------------------------------|
+| kitty     | bool | None    | Whether to reload kitty.         |
+| waybar    | bool | None    | Whether to reload waybar.        |
+| gtk_theme | bool | None    | Whether to reload the GTK theme. |
 
 ### Example configuration
 ```toml
 # config_directory/config.toml
 [config]
-reload_apps = true 
+reload_apps = true
 set_wallpaper = true
 wallpaper_tool = 'Swww'
 prefix = '@'
-reload_gtk_theme = true
 swww_options = [
     "--transition-type",
     "center",
 ]
-feh_options = [
-    "--bg-tile",
-]
 run_after = [
-  [ "echo", "'hello'" ]
+    [ "echo", "'hello'" ],
+    [ "echo", "'hello again'" ],
 ]
+
+[config.reload_apps_list]
+waybar = true
+kitty = true
+gtk_theme = true
+
 ```
 
 ### Adding templates
