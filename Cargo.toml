@@ -2,7 +2,7 @@
 name = "matugen"
 version = "0.9.0"
 description = "A material you color generation tool with templates"
-repository = "https://github.com/InioX/matugen-rs"
+repository = "https://github.com/InioX/matugen"
 categories = ["command-line-utilities"]
 exclude = [
     "default.nix",
