@@ -85,12 +85,12 @@ fn main() -> Result<(), Report> {
         set_wallaper(&config, &args)?;
     }
 
+    run_after(&config)?;
+    
     if args.quiet == Some(false) {
         show_color(&scheme, &colors);
     }
-
-    run_after(&config)?;
-
+    
     Ok(())
 }
 
