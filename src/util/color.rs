@@ -1,6 +1,8 @@
 use material_color_utilities_rs::scheme::Scheme;
 use owo_colors::{OwoColorize, Style};
 
+use prettytable::{format, Cell, Row, Table};
+
 // TODO Fix this monstrosity
 
 #[derive(Debug)]
@@ -63,12 +65,30 @@ impl SchemeExt for Scheme {
 }
 
 pub fn show_color(scheme: &Scheme, colors: &Vec<&str>) {
+    let mut table = Table::new();
+    let format = format::FormatBuilder::new()
+        .column_separator('│')
+        .borders('│')
+        .separators(
+            &[format::LinePosition::Top, format::LinePosition::Top],
+            format::LineSeparator::new('─', '┬', '╭', '╮'),
+        )
+        .separators(
+            &[format::LinePosition::Bottom, format::LinePosition::Bottom],
+            format::LineSeparator::new('─', '┴', '╰', '╯'),
+        )
+        .padding(1, 1)
+        .build();
+    
+    table.set_format(format);
+    // table.set_format(*format::consts::FORMAT_CLEAN);
+
     for field in colors {
         let color: Color = Color::new(*Scheme::get_value(scheme, field));
 
         let luma = color.red as u16 + color.blue as u16 + color.green as u16;
 
-        let formatstr = format!("#{:x}{:x}{:x}", color.red, color.green, color.blue);
+        let formatstr = "  ";
         let owo_color: owo_colors::Rgb = owo_colors::Rgb(color.red, color.green, color.blue);
 
         let style = if luma > 500 {
@@ -79,7 +99,17 @@ pub fn show_color(scheme: &Scheme, colors: &Vec<&str>) {
 
         let color_str = formatstr.style(style);
 
-        print!("{}", color_str);
+        table.add_row(Row::new(vec![
+            Cell::new(format!("{}", color_str).as_str()),
+            Cell::new(
+                format!("#{:x}{:x}{:x}", color.red, color.green, color.blue)
+                    .to_uppercase()
+                    .as_str(),
+            ),
+            Cell::new(field),
+        ]));
+
+        // print!("{} #{} ", color_str, );
     }
-    println!("\n");
+    table.printstd();
 }
