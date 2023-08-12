@@ -2,13 +2,11 @@ use super::{arguments::Cli, config::ConfigFile};
 use color_eyre::{eyre::Result, Report};
 use std::process::Command;
 
-
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
 pub fn reload_apps_linux(args: &Cli, config: &ConfigFile) -> Result<(), Report> {
-    
     if config.config.reload_apps_list.is_none() {
         warn!("<d>The option <yellow><u>config.reload_apps<b></><d> is set to <u><green>TRUE</>, but <yellow><u>config.reload_apps_list</><d> is <u><red>EMPTY</>. Not restarting any apps...</>");
-        return Ok(())
+        return Ok(());
     }
 
     let reload_apps_list = &config.config.reload_apps_list.as_ref().unwrap();
@@ -20,11 +18,11 @@ pub fn reload_apps_linux(args: &Cli, config: &ConfigFile) -> Result<(), Report> 
     if reload_apps_list.kitty == Some(true) || reload_apps_list.waybar.is_none() {
         reload_app("kitty", "SIGUSR1")?;
     }
-    
+
     if reload_apps_list.dunst == Some(true) || reload_apps_list.waybar.is_none() {
         reload_app("dunst", "SIGUSR2")?;
     }
-    
+
     if reload_apps_list.gtk_theme == Some(true) || reload_apps_list.waybar.is_none() {
         reload_gtk_theme(args)?;
     }

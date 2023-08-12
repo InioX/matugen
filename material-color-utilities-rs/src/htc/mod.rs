@@ -94,13 +94,12 @@ impl Hct {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use assert_approx_eq::assert_approx_eq;
+    use super::*;
     use crate::htc::viewing_conditions::ViewingConditions;
     use crate::util::color::y_from_lstar;
-    use super::*;
+    use assert_approx_eq::assert_approx_eq;
 
     const BLACK: [u8; 4] = [0xff, 0x00, 0x00, 0x00];
     const WHITE: [u8; 4] = [0xff, 0xff, 0xff, 0xff];
@@ -184,9 +183,7 @@ mod tests {
     fn gamut_map_colors() {
         fn gamut_map_test(color_to_test: [u8; 4]) {
             let cam = Cam16::from_argb(color_to_test);
-            let color =
-                Hct::from(cam.hue(), cam.chroma(), lstar_from_argb(color_to_test))
-                    .to_int();
+            let color = Hct::from(cam.hue(), cam.chroma(), lstar_from_argb(color_to_test)).to_int();
             assert_eq!(color_to_test, color);
         }
 
