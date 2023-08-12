@@ -79,17 +79,19 @@ fn main() -> Result<(), Report> {
         "inverse_primary",
     ];
 
-    Template::generate(&colors, scheme, &config, &args, &source_color)?;
+    if args.dry_run == Some(false) {
+        Template::generate(&colors, scheme, &config, &args, &source_color)?;
 
-    if config.config.reload_apps == Some(true) {
-        reload_apps_linux(&args, &config)?;
+        if config.config.reload_apps == Some(true) {
+            reload_apps_linux(&args, &config)?;
+        }
+
+        if config.config.set_wallpaper == Some(true) {
+            set_wallaper(&config, &args)?;
+        }
+
+        run_after(&config)?;
     }
-
-    if config.config.set_wallpaper == Some(true) {
-        set_wallaper(&config, &args)?;
-    }
-
-    run_after(&config)?;
 
     if args.quiet == Some(false) {
         show_color(&scheme, &colors, &source_color);
