@@ -33,10 +33,10 @@ pub struct Config {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Apps {
-   pub kitty: Option<bool>,
-   pub waybar: Option<bool>,
-   pub gtk_theme: Option<bool>,
-   pub dunst: Option<bool>,
+    pub kitty: Option<bool>,
+    pub waybar: Option<bool>,
+    pub gtk_theme: Option<bool>,
+    pub dunst: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -45,7 +45,8 @@ pub struct ConfigFile {
     pub templates: HashMap<String, Template>,
 }
 
-const ERROR_TEXT: &str = "Error reading config file, check https://github.com/InioX/Matugen#configuration for help";
+const ERROR_TEXT: &str =
+    "Error reading config file, check https://github.com/InioX/Matugen#configuration for help";
 
 impl ConfigFile {
     pub fn read(args: &Cli) -> Result<ConfigFile, Report> {
@@ -65,8 +66,7 @@ impl ConfigFile {
 
         match toml::from_str(&content) {
             Ok(res) => return Ok(res),
-            Err(e) => return Err(Report::new(e)
-            .suggestion(ERROR_TEXT))
+            Err(e) => return Err(Report::new(e).suggestion(ERROR_TEXT)),
         }
     }
 
@@ -82,8 +82,7 @@ impl ConfigFile {
             let content: String = fs::read_to_string(config_file).unwrap();
             match toml::from_str(&content) {
                 Ok(res) => return Ok(res),
-                Err(e) => return Err(Report::new(e)
-                .suggestion(ERROR_TEXT))
+                Err(e) => return Err(Report::new(e).suggestion(ERROR_TEXT)),
             }
         } else {
             Ok(Self::read_from_fallback_path()?)
