@@ -55,6 +55,7 @@ impl Template {
         scheme: Scheme,
         config: &ConfigFile,
         args: &Cli,
+        source_color: &[u8; 4],
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -71,7 +72,7 @@ impl Template {
         };
 
         // TODO Use only one regex and use a for loop with matches?
-        let regexvec: Patterns = generate_patterns(colors, scheme, prefix, image)?;
+        let regexvec: Patterns = generate_patterns(colors, scheme, prefix, image, source_color)?;
 
         // println!("{}", imageregex.is_match("@{image}"));
 
@@ -165,10 +166,11 @@ fn generate_patterns<'a>(
     scheme: Scheme,
     prefix: &'a String,
     image: Option<&'a String>,
+    source_color: &[u8; 4],
 ) -> Result<Patterns<'a>, Report> {
     let mut regexvec: Vec<ColorPattern> = vec![];
     for field in colors {
-        let color: Color = Color::new(*Scheme::get_value(&scheme, field));
+        let color: Color = Color::new(*Scheme::get_value(&scheme, field, source_color));
 
         regexvec.push(ColorPattern {
             pattern: Regex::new(

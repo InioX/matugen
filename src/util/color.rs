@@ -25,10 +25,10 @@ impl Color {
 }
 
 pub trait SchemeExt {
-    fn get_value(&self, field: &str) -> &[u8; 4];
+    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4];
 }
 impl SchemeExt for Scheme {
-    fn get_value(&self, field: &str) -> &[u8; 4] {
+    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4] {
         match field {
             "primary" => &self.primary,
             "on_primary" => &self.on_primary,
@@ -59,12 +59,13 @@ impl SchemeExt for Scheme {
             "inverse_surface" => &self.inverse_surface,
             "inverse_on_surface" => &self.inverse_on_surface,
             "inverse_primary" => &self.inverse_primary,
+            "source_color" => &source_color,
             _ => panic!(),
         }
     }
 }
 
-pub fn show_color(scheme: &Scheme, colors: &Vec<&str>) {
+pub fn show_color(scheme: &Scheme, colors: &Vec<&str>, source_color: &[u8; 4]) {
     let mut table = Table::new();
     let format = format::FormatBuilder::new()
         .column_separator('│')
@@ -79,12 +80,12 @@ pub fn show_color(scheme: &Scheme, colors: &Vec<&str>) {
         )
         .padding(1, 1)
         .build();
-    
+
     table.set_format(format);
     // table.set_format(*format::consts::FORMAT_CLEAN);
 
     for field in colors {
-        let color: Color = Color::new(*Scheme::get_value(scheme, field));
+        let color: Color = Color::new(*Scheme::get_value(scheme, field, source_color));
 
         let luma = color.red as u16 + color.blue as u16 + color.green as u16;
 
