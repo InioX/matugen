@@ -37,6 +37,10 @@ pub struct Cli {
     /// Whether to use amoled mode for the color scheme
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub amoled: Option<bool>,
+
+    /// Will not generate templates, reload apps, set wallpaper or run any commands
+    #[arg(long, global = true, action=ArgAction::SetTrue)]
+    pub dry_run: Option<bool>,
 }
 
 #[derive(Subcommand, Debug)]
