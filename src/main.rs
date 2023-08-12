@@ -158,8 +158,8 @@ fn get_source_color(args: &Cli) -> Result<[u8; 4], Report> {
             [
                 src.alpha() as u8,
                 src.red() as u8,
-                src.blue() as u8,
                 src.green() as u8,
+                src.blue() as u8,
             ]
         }
     };
