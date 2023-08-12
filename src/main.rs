@@ -5,7 +5,7 @@ extern crate paris_log;
 mod util;
 use crate::util::{
     arguments::{Cli, ColorFormat, Commands},
-    color::{show_color},
+    color::show_color,
     config::ConfigFile,
     image::source_color_from_image,
     template::Template,
@@ -32,7 +32,10 @@ fn main() -> Result<(), Report> {
 
     setup_logging(&args)?;
 
-    let mut palette: CorePalette = generate_palette(&args, &args.palette.unwrap())?;
+    let source_color = get_source_color(&args)?;
+
+    let mut palette: CorePalette = generate_palette(&args.palette.unwrap(), source_color)?;
+
     let config: ConfigFile = ConfigFile::read(&args)?;
 
     let scheme: Scheme = if args.lightmode == Some(true) {
@@ -44,6 +47,7 @@ fn main() -> Result<(), Report> {
     };
 
     let colors = vec![
+        "source_color",
         "primary",
         "on_primary",
         "primary_container",
@@ -75,7 +79,7 @@ fn main() -> Result<(), Report> {
         "inverse_primary",
     ];
 
-    Template::generate(&colors, scheme, &config, &args)?;
+    Template::generate(&colors, scheme, &config, &args, &source_color)?;
 
     if config.config.reload_apps == Some(true) {
         reload_apps_linux(&args, &config)?;
@@ -86,11 +90,11 @@ fn main() -> Result<(), Report> {
     }
 
     run_after(&config)?;
-    
+
     if args.quiet == Some(false) {
-        show_color(&scheme, &colors);
+        show_color(&scheme, &colors, &source_color);
     }
-    
+
     Ok(())
 }
 
@@ -130,33 +134,50 @@ fn setup_logging(args: &Cli) -> Result<(), Report> {
     Ok(())
 }
 
-fn generate_palette(args: &Cli, color_palette: &ColorPalette) -> Result<CorePalette, Report> {
-    let palette: CorePalette = match &args.source {
-        Commands::Image { path } => {
-            CorePalette::new(source_color_from_image(path)?[0], true, color_palette)
-        }
+fn get_source_color(args: &Cli) -> Result<[u8; 4], Report> {
+    let source_color: [u8; 4] = match &args.source {
+        Commands::Image { path } => source_color_from_image(path)?[0],
         Commands::Color(color) => {
-            let source_color: Rgb;
+            let src: Rgb;
 
             match color {
-                ColorFormat::Hex { string } => source_color = Rgb::from_hex_str(string).expect("Invalid hex color string provided"),
-                ColorFormat::Rgb { string } => source_color = string.parse().expect("Invalid rgb color string provided"),
-                ColorFormat::Hsl { string } => source_color = Hsl::from_str(string).expect("Invalid hsl color string provided").into(),
+                ColorFormat::Hex { string } => {
+                    src = Rgb::from_hex_str(string).expect("Invalid hex color string provided")
+                }
+                ColorFormat::Rgb { string } => {
+                    src = string.parse().expect("Invalid rgb color string provided")
+                }
+                ColorFormat::Hsl { string } => {
+                    src = Hsl::from_str(string)
+                        .expect("Invalid hsl color string provided")
+                        .into()
+                }
             }
-
-            debug!("{:?}", source_color);
-
-            CorePalette::new(
-                [
-                    source_color.alpha() as u8,
-                    source_color.red() as u8,
-                    source_color.blue() as u8,
-                    source_color.green() as u8,
-                ],
-                true,
-                color_palette,
-            )
+            [
+                src.alpha() as u8,
+                src.red() as u8,
+                src.blue() as u8,
+                src.green() as u8,
+            ]
         }
     };
-    Ok(palette)
+    Ok(source_color)
+}
+
+fn generate_palette(
+    color_palette: &ColorPalette,
+    source_color: [u8; 4],
+) -> Result<CorePalette, Report> {
+    debug!("{:?}", source_color);
+
+    Ok(CorePalette::new(
+        [
+            source_color[0],
+            source_color[1],
+            source_color[2],
+            source_color[3],
+        ],
+        true,
+        color_palette,
+    ))
 }
