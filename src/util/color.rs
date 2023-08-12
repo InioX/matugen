@@ -1,4 +1,7 @@
-use material_color_utilities_rs::scheme::Scheme;
+use material_color_utilities_rs::{
+    scheme::Scheme,
+    util::color::format_argb_as_rgb
+};
 use owo_colors::{OwoColorize, Style};
 
 use prettytable::{format, Cell, Row, Table};
@@ -103,7 +106,7 @@ pub fn show_color(scheme: &Scheme, colors: &Vec<&str>, source_color: &[u8; 4]) {
         table.add_row(Row::new(vec![
             Cell::new(format!("{}", color_str).as_str()),
             Cell::new(
-                format!("#{:x}{:x}{:x}", color.red, color.green, color.blue)
+                format!("{}", format_argb_as_rgb([color.alpha, color.red, color.green, color.blue]))
                     .to_uppercase()
                     .as_str(),
             ),
