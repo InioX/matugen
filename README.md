@@ -256,11 +256,11 @@ dunst = true
 ### Adding templates
 | Name            | Type                  | Default                   | Description                             |
 |-----------------|-----------------------|---------------------------|-----------------------------------------|
-| scheme          | Option\<Schemes\> | Scheme provided in args   | Which scheme to use for the template.   |
+| scheme          | Option\<Modes\>       | Mode provided in args     | Which scheme to use for the template.   |
 | input_path      | PathBuf               | None                      | Path to the template file.              |
 | output_path     | PathBuf               | None                      | Path to export the template to.         |
 
-### Schemes
+### Modes
 <table>
 <tr>
     <td>Light</td>
@@ -281,7 +281,7 @@ dunst = true
 [templates.test] # First way of adding template
 input_path = '~/.config/example/template.css'
 output_path = '~/.config/example'
-scheme = "Light" # First letter MUST be upper-case
+mode = "Light" # First letter MUST be upper-case
 
 [templates] # Another way
 test2 = { input_path = '~/.config/example/template2.css', output_path = '~/.config/example2' }
