@@ -120,11 +120,11 @@ matugen -v <other-arguments>
 
 ```sh
 # Dark mode
-matugen image /path/to/wallpaper/
+matugen image /path/to/wallpaper/ -m "dark"
 # Light mode
-matugen image /path/to/wallpaper/ -l
+matugen image /path/to/wallpaper/ -m "light"
 # AMOLED/"pure dark" mode
-matugen image /path/to/wallpaper/ -a
+matugen image /path/to/wallpaper/ -m "amoled"
 
 ```
 Example:
@@ -137,17 +137,17 @@ matugen image ~/wall/snow.png -l
 
 ```sh
 # Dark mode
-matugen color hsl <hsl color> -l
+matugen color hsl <hsl color> -m "dark"
 # Light mode
-matugen color hex <hex color> -l
+matugen color hex <hex color> -m "light"
 # AMOLED/"pure dark" mode
-matugen color rgb <rgb color> -a
+matugen color rgb <rgb color> -m "amoled"
 ```
 Example:
 ```sh
 matugen color hex "#ffbf9b"
-matugen color rgb "rgb(63, 106, 171)" -l
-matugen color hsl "hsl(216.34, 45.75%, 45.88%)" -a
+matugen color rgb "rgb(63, 106, 171)" -m "light"
+matugen color hsl "hsl(216.34, 45.75%, 45.88%)" -m "amoled"
 ```
 
 ### Creating templates
@@ -279,7 +279,7 @@ dunst = true
     <td><img src="https://media.discordapp.net/attachments/1134177615964545024/1140270155205713920/image.png?width=1216&height=684"></td>
     <td><img src="https://media.discordapp.net/attachments/1134177615964545024/1140270375956119623/image.png?width=1216&height=684"></td>
   </tr>
- </table>
+</table>
 
 ### Example
 ```toml
