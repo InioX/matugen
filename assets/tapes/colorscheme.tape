@@ -1,5 +1,5 @@
 # Where should we write the GIF?
-Output colorscheme.gif
+Output assets/images/colorscheme.gif
 
 # Set up a 1200x600 terminal with 46px font.
 Set FontSize 46

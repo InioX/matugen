@@ -1,5 +1,5 @@
 # Where should we write the GIF?
-Output verbose.gif
+Output assets/images/verbose.gif
 
 # Set up a 1200x1800 terminal with 40px font.
 Set FontSize 40
