@@ -1,7 +1,4 @@
-use material_color_utilities_rs::{
-    scheme::Scheme,
-    util::color::format_argb_as_rgb
-};
+use material_color_utilities_rs::{scheme::Scheme, util::color::format_argb_as_rgb};
 use owo_colors::{OwoColorize, Style};
 
 use prettytable::{format, Cell, Row, Table};
@@ -70,7 +67,12 @@ impl SchemeExt for Scheme {
     }
 }
 
-pub fn show_color(schemes: &Schemes, colors: &Vec<&str>, source_color: &[u8; 4], default_scheme: &SchemesEnum) {
+pub fn show_color(
+    schemes: &Schemes,
+    colors: &Vec<&str>,
+    source_color: &[u8; 4],
+    default_scheme: &SchemesEnum,
+) {
     let mut table = Table::new();
     let format = format::FormatBuilder::new()
         .column_separator('│')
@@ -108,9 +110,12 @@ pub fn show_color(schemes: &Schemes, colors: &Vec<&str>, source_color: &[u8; 4],
         table.add_row(Row::new(vec![
             Cell::new(format!("{}", color_str).as_str()),
             Cell::new(
-                format!("{}", format_argb_as_rgb([color.alpha, color.red, color.green, color.blue]))
-                    .to_uppercase()
-                    .as_str(),
+                format!(
+                    "{}",
+                    format_argb_as_rgb([color.alpha, color.red, color.green, color.blue])
+                )
+                .to_uppercase()
+                .as_str(),
             ),
             Cell::new(field),
         ]));

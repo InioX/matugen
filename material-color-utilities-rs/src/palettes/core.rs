@@ -48,7 +48,7 @@ impl CorePalette {
                         n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
                         error,
                     }
-                },
+                }
                 ColorPalette::Adjacent => {
                     angle = 30.;
                     CorePalette {
@@ -59,13 +59,13 @@ impl CorePalette {
                         n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
                         error,
                     }
-                },
+                }
             }
         } else {
             CorePalette {
                 a1: TonalPalette::from_hue_and_chroma(hue, 48.0f64.max(chroma)),
                 a2: TonalPalette::from_hue_and_chroma(hue, 16.),
-                a3: TonalPalette::from_hue_and_chroma(hue + 60.,24.),
+                a3: TonalPalette::from_hue_and_chroma(hue + 60., 24.),
                 n1: TonalPalette::from_hue_and_chroma(hue, 4.),
                 n2: TonalPalette::from_hue_and_chroma(hue, 8.),
                 error,
