@@ -23,8 +23,22 @@ use material_color_utilities_rs::{
 
 use colorsys::{ColorAlpha, Hsl, Rgb};
 
+use serde::{Deserialize, Serialize};
 use clap::Parser;
+
 use util::{reload::reload_apps_linux, wallpaper::set_wallaper};
+pub struct Schemes {
+    pub light: Scheme,
+    pub dark: Scheme,
+    pub amoled: Scheme,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum SchemesEnum {
+    Light,
+    Dark,
+    Amoled,
+}
 
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
@@ -38,12 +52,18 @@ fn main() -> Result<(), Report> {
 
     let config: ConfigFile = ConfigFile::read(&args)?;
 
-    let scheme: Scheme = if args.lightmode == Some(true) {
-        Scheme::light_from_core_palette(&mut palette)
+    let default_scheme: SchemesEnum = if args.lightmode == Some(true) {
+        SchemesEnum::Light
     } else if args.amoled == Some(true) {
-        Scheme::pure_dark_from_core_palette(&mut palette)
+        SchemesEnum::Amoled
     } else {
-        Scheme::dark_from_core_palette(&mut palette)
+        SchemesEnum::Dark
+    };
+
+    let schemes: Schemes = Schemes {
+        light: Scheme::light_from_core_palette(&mut palette),
+        dark: Scheme::pure_dark_from_core_palette(&mut palette),
+        amoled: Scheme::dark_from_core_palette(&mut palette),
     };
 
     let colors = vec![
@@ -79,8 +99,41 @@ fn main() -> Result<(), Report> {
         "inverse_primary",
     ];
 
+    let android_colors = vec![
+        "source_color",
+        "primary",
+        "on_primary",
+        "primary_container",
+        "on_primary_container",
+        "secondary",
+        "on_secondary",
+        "secondary_container",
+        "on_secondary_container",
+        "tertiary",
+        "on_tertiary",
+        "tertiary_container",
+        "on_tertiary_container",
+        "error",
+        "on_error",
+        "error_container",
+        "on_error_container",
+        "background",
+        "on_background",
+        "surface",
+        "on_surface",
+        "surface_variant",
+        "on_surface_variant",
+        "outline",
+        "outline_variant",
+        "shadow",
+        "scrim",
+        "inverse_surface",
+        "inverse_on_surface",
+        "inverse_primary",
+    ];
+
     if args.dry_run == Some(false) {
-        Template::generate(&colors, scheme, &config, &args, &source_color)?;
+        Template::generate(&colors, &schemes, &config, &args, &source_color, &default_scheme)?;
 
         if config.config.reload_apps == Some(true) {
             reload_apps_linux(&args, &config)?;
@@ -94,7 +147,7 @@ fn main() -> Result<(), Report> {
     }
 
     if args.quiet == Some(false) {
-        show_color(&scheme, &colors, &source_color);
+        show_color(&schemes, &colors, &source_color, &default_scheme);
     }
 
     Ok(())
