@@ -23,8 +23,8 @@ use material_color_utilities_rs::{
 
 use colorsys::{ColorAlpha, Hsl, Rgb};
 
-use serde::{Deserialize, Serialize};
 use clap::Parser;
+use serde::{Deserialize, Serialize};
 
 use util::{reload::reload_apps_linux, wallpaper::set_wallaper};
 pub struct Schemes {
@@ -133,7 +133,14 @@ fn main() -> Result<(), Report> {
     ];
 
     if args.dry_run == Some(false) {
-        Template::generate(&colors, &schemes, &config, &args, &source_color, &default_scheme)?;
+        Template::generate(
+            &colors,
+            &schemes,
+            &config,
+            &args,
+            &source_color,
+            &default_scheme,
+        )?;
 
         if config.config.reload_apps == Some(true) {
             reload_apps_linux(&args, &config)?;
