@@ -261,7 +261,7 @@ dunst = true
 ### Adding templates
 | Name            | Type                  | Default                   | Description                             |
 |-----------------|-----------------------|---------------------------|-----------------------------------------|
-| scheme          | Option\<Modes\>       | Mode provided in args     | Which scheme to use for the template.   |
+| mode            | Option\<Modes\>       | Mode provided in args     | Which scheme to use for the template.   |
 | input_path      | PathBuf               | None                      | Path to the template file.              |
 | output_path     | PathBuf               | None                      | Path to export the template to.         |
 
