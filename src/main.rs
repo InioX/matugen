@@ -148,7 +148,7 @@ fn main() -> Result<(), Report> {
     }
 
     if args.quiet == Some(false) {
-        show_color(&schemes, &colors, &source_color, &default_scheme);
+        show_color(&schemes, &colors, &source_color);
     }
 
     Ok(())

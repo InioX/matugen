@@ -71,56 +71,91 @@ pub fn show_color(
     schemes: &Schemes,
     colors: &Vec<&str>,
     source_color: &[u8; 4],
-    default_scheme: &SchemesEnum,
 ) {
     let mut table = Table::new();
     let format = format::FormatBuilder::new()
         .column_separator('│')
         .borders('│')
         .separators(
-            &[format::LinePosition::Top, format::LinePosition::Top],
+            &[format::LinePosition::Title],
+            format::LineSeparator::new('─', '┼', '├', '┤'),
+        )        .separators(
+            &[format::LinePosition::Top],
             format::LineSeparator::new('─', '┬', '╭', '╮'),
         )
         .separators(
-            &[format::LinePosition::Bottom, format::LinePosition::Bottom],
+            &[format::LinePosition::Bottom],
             format::LineSeparator::new('─', '┴', '╰', '╯'),
         )
         .padding(1, 1)
         .build();
 
     table.set_format(format);
+
+    table.set_titles(Row::new(vec![
+        Cell::new("NAME").style_spec("c"),
+        Cell::new("LIGHT").style_spec("c"),
+        Cell::new("LIGHT").style_spec("c"),
+        Cell::new("DARK").style_spec("c"),
+        Cell::new("DARK").style_spec("c"),
+        Cell::new("AMOLED").style_spec("c"),
+        Cell::new("AMOLED").style_spec("c"),
+    ]));
     // table.set_format(*format::consts::FORMAT_CLEAN);
 
     for field in colors {
-        let color: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
-
-        let luma = color.red as u16 + color.blue as u16 + color.green as u16;
-
         let formatstr = "  ";
-        let owo_color: owo_colors::Rgb = owo_colors::Rgb(color.red, color.green, color.blue);
 
-        let style = if luma > 500 {
-            Style::new().black().on_color(owo_color)
-        } else {
-            Style::new().white().on_color(owo_color)
-        };
-
-        let color_str = formatstr.style(style);
+        let color_light: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
+        let color_dark: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
+        let color_amoled: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
 
         table.add_row(Row::new(vec![
-            Cell::new(format!("{}", color_str).as_str()),
+            // Color names
+            Cell::new(field).style_spec(""),
+            // Light scheme
             Cell::new(
                 format!(
                     "{}",
-                    format_argb_as_rgb([color.alpha, color.red, color.green, color.blue])
+                    format_argb_as_rgb([color_light.alpha, color_light.red, color_light.green, color_light.blue])
                 )
                 .to_uppercase()
                 .as_str(),
-            ),
-            Cell::new(field),
+            ).style_spec("c"),
+            Cell::new(format!("{}", formatstr.style(generate_style(&color_light))).as_str()).style_spec("c"),
+            // Dark scheme
+            Cell::new(
+                format!(
+                    "{}",
+                    format_argb_as_rgb([color_dark.alpha, color_dark.red, color_dark.green, color_dark.blue])
+                )
+                .to_uppercase()
+                .as_str(),
+            ).style_spec("c"),
+            Cell::new(format!("{}", formatstr.style(generate_style(&color_dark))).as_str()).style_spec("c"),
+            // Amoled theme 
+            Cell::new(
+                format!(
+                    "{}",
+                    format_argb_as_rgb([color_amoled.alpha, color_amoled.red, color_amoled.green, color_amoled.blue])
+                )
+                .to_uppercase()
+                .as_str(),
+            ).style_spec("c"),
+            Cell::new(format!("{}", formatstr.style(generate_style(&color_amoled))).as_str()).style_spec("c"),
         ]));
-
-        // print!("{} #{} ", color_str, );
     }
     table.printstd();
+}
+
+fn generate_style(color: &Color) -> Style {
+    let luma = color.red as u16 + color.blue as u16 + color.green as u16;
+
+    let owo_color: owo_colors::Rgb = owo_colors::Rgb(color.red, color.green, color.blue);
+
+    if luma > 500 {
+        Style::new().black().on_color(owo_color)
+    } else {
+        Style::new().white().on_color(owo_color)
+    }
 }
