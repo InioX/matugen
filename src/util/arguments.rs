@@ -33,16 +33,8 @@ pub struct Cli {
     pub quiet: Option<bool>,
 
     /// Which mode to use for the color scheme
-    #[arg(value_enum, short, long, global = true)]
+    #[arg(value_enum, short, long, global = true, value_name = "MODE")]
     pub mode: Option<SchemesEnum>,
-
-    /// Whether to use lightmode for the color scheme
-    #[arg(short, long, global = true, action=ArgAction::SetTrue)]
-    pub lightmode: Option<bool>,
-
-    /// Whether to use amoled mode for the color scheme
-    #[arg(short, long, global = true, action=ArgAction::SetTrue)]
-    pub amoled: Option<bool>,
 
     /// Will not generate templates, reload apps, set wallpaper or run any commands
     #[arg(long, global = true, action=ArgAction::SetTrue)]
