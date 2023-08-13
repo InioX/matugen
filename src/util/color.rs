@@ -6,6 +6,8 @@ use owo_colors::{OwoColorize, Style};
 
 use prettytable::{format, Cell, Row, Table};
 
+use crate::{Schemes, SchemesEnum};
+
 // TODO Fix this monstrosity
 
 #[derive(Debug)]
@@ -68,7 +70,7 @@ impl SchemeExt for Scheme {
     }
 }
 
-pub fn show_color(scheme: &Scheme, colors: &Vec<&str>, source_color: &[u8; 4]) {
+pub fn show_color(schemes: &Schemes, colors: &Vec<&str>, source_color: &[u8; 4], default_scheme: &SchemesEnum) {
     let mut table = Table::new();
     let format = format::FormatBuilder::new()
         .column_separator('│')
@@ -88,7 +90,7 @@ pub fn show_color(scheme: &Scheme, colors: &Vec<&str>, source_color: &[u8; 4]) {
     // table.set_format(*format::consts::FORMAT_CLEAN);
 
     for field in colors {
-        let color: Color = Color::new(*Scheme::get_value(scheme, field, source_color));
+        let color: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
 
         let luma = color.red as u16 + color.blue as u16 + color.green as u16;
 

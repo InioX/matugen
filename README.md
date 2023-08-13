@@ -41,7 +41,7 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 ## Roadmap
 
 - [ ] Add GTK4 UI
-- [ ] Add a light/dark option for each template
+- [x] Add a light/dark/amoled option for each template
 - [x] Support more color formats for generating colorscheme
     - [x] Rgba
     - [x] Rgb
@@ -229,7 +229,7 @@ Here is a list of different locations for the configuration file:
 | dunst     | bool | true    | Whether to reload dunst.         |
 | gtk_theme | bool | true    | Whether to reload the GTK theme. |
 
-### Example configuration
+### Example
 ```toml
 # config_directory/config.toml
 [config]
@@ -254,12 +254,34 @@ dunst = true
 ```
 
 ### Adding templates
+| Name            | Type                  | Default                   | Description                             |
+|-----------------|-----------------------|---------------------------|-----------------------------------------|
+| scheme          | Option\<Schemes\> | Scheme provided in args   | Which scheme to use for the template.   |
+| input_path      | PathBuf               | None                      | Path to the template file.              |
+| output_path     | PathBuf               | None                      | Path to export the template to.         |
+
+### Schemes
+<table>
+<tr>
+    <td>Light</td>
+    <td>Dark</td>
+    <td>Amoled</sup></td>
+  </tr>
+    <tr>
+    <td><img src="https://media.discordapp.net/attachments/1134177615964545024/1140270597381832774/image.png?width=1216&height=684"></td>
+    <td><img src="https://media.discordapp.net/attachments/1134177615964545024/1140270155205713920/image.png?width=1216&height=684"></td>
+    <td><img src="https://media.discordapp.net/attachments/1134177615964545024/1140270375956119623/image.png?width=1216&height=684"></td>
+  </tr>
+ </table>
+
+### Example
 ```toml
 # config_directory/config.toml
 
 [templates.test] # First way of adding template
 input_path = '~/.config/example/template.css'
 output_path = '~/.config/example'
+scheme = "Light" # First letter MUST be upper-case
 
 [templates] # Another way
 test2 = { input_path = '~/.config/example/template2.css', output_path = '~/.config/example2' }
