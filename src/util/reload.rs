@@ -1,6 +1,9 @@
 use super::{arguments::Cli, config::ConfigFile};
 use color_eyre::{eyre::Result, Report};
+use material_color_utilities_rs::scheme::Scheme;
 use std::process::Command;
+
+use crate::SchemesEnum;
 
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
 pub fn reload_apps_linux(args: &Cli, config: &ConfigFile) -> Result<(), Report> {
@@ -41,10 +44,11 @@ pub fn reload_app(name: &str, signal: &str) -> Result<(), Report> {
 }
 
 fn reload_gtk_theme(args: &Cli) -> Result<(), Report> {
-    let mode = if args.lightmode == Some(true) {
-        "light"
-    } else {
-        "dark"
+    let mode = match args.mode {
+        Some(SchemesEnum::Light) => "light",
+        Some(SchemesEnum::Dark) => "dark",
+        Some(SchemesEnum::Amoled) => "dark",
+        None => "dark",
     };
 
     info!("Setting gtk theme to adw-gtk3-{}", mode);
