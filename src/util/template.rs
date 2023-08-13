@@ -26,7 +26,7 @@ use crate::{Schemes, SchemesEnum};
 pub struct Template {
     pub input_path: PathBuf,
     pub output_path: PathBuf,
-    pub scheme: Option<SchemesEnum>,
+    pub mode: Option<SchemesEnum>,
 }
 
 struct ColorPattern {
@@ -99,7 +99,7 @@ impl Template {
             replace_matches(
                 &regexvec,
                 &mut data,
-                &template.scheme,
+                &template.mode,
                 &schemes,
                 &default_scheme,
             );
