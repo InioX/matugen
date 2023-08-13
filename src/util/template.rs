@@ -84,7 +84,6 @@ impl Template {
         let regexvec: Patterns = generate_patterns(colors, &schemes, prefix, image, source_color)?;
 
         for (name, template) in &config.templates {
-            println!("{}", name);
 
             let input_path_absolute = template.input_path.try_resolve()?;
             let output_path_absolute = template.output_path.try_resolve()?;
@@ -150,8 +149,6 @@ fn replace_matches(
                 SchemesEnum::Amoled => &regex.replacements.amoled,
             }
         };
-
-        dbg!(scheme);
 
         if format.is_some() {
             match format.unwrap().as_str() {
