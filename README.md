@@ -163,6 +163,11 @@ The basic syntax for using colors is `prefix + {color}` (The default prefix is `
 
 ```
 
+You can get the source color (color used for generating colorscheme) by using:
+```css
+@import url("@{source_color}"); /* Result: #ffb783*/
+```
+
 You can also get the image (if it was provided) by using:
 ```css
 @import url("@{image}"); /* Result: /home/ini/Downloads/wallpaper.jpg */
