@@ -1,6 +1,6 @@
 use color_eyre::{eyre::Result, Report};
 
-use material_color_utilities_rs::scheme;
+
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -124,7 +124,7 @@ fn replace_matches(
     regexvec: &Patterns,
     data: &mut String,
     scheme: &Option<SchemesEnum>,
-    schemes: &Schemes,
+    _schemes: &Schemes,
     default_scheme: &SchemesEnum,
 ) {
     for regex in &regexvec.colors {

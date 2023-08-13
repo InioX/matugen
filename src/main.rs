@@ -93,7 +93,7 @@ fn main() -> Result<(), Report> {
         "inverse_primary",
     ];
 
-    let android_colors = vec![
+    let _android_colors = vec![
         "source_color",
         "primary",
         "on_primary",
