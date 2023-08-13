@@ -62,8 +62,8 @@ fn main() -> Result<(), Report> {
 
     let schemes: Schemes = Schemes {
         light: Scheme::light_from_core_palette(&mut palette),
-        dark: Scheme::pure_dark_from_core_palette(&mut palette),
-        amoled: Scheme::dark_from_core_palette(&mut palette),
+        dark: Scheme::dark_from_core_palette(&mut palette),
+        amoled: Scheme::pure_dark_from_core_palette(&mut palette),
     };
 
     let colors = vec![
