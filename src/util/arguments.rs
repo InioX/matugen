@@ -1,6 +1,8 @@
-use clap::{arg, ArgAction, Parser, Subcommand};
+use clap::{arg, ArgAction, Parser, Subcommand, ValueEnum};
 use material_color_utilities_rs::palettes::core::ColorPalette;
 use std::path::PathBuf;
+
+use crate::SchemesEnum;
 
 #[derive(Parser)]
 #[command(version, long_about = None)]
@@ -29,6 +31,10 @@ pub struct Cli {
 
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub quiet: Option<bool>,
+
+    /// Which mode to use for the color scheme
+    #[arg(value_enum, short, long, global = true)]
+    pub mode: Option<SchemesEnum>,
 
     /// Whether to use lightmode for the color scheme
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
