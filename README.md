@@ -97,8 +97,33 @@ make install
 
 ## Usage
 
->**Note** For some reason the output of the colors is a bit weird in the gifs, here is how the output actually looks:
-<img src="https://media.discordapp.net/attachments/1107367450909081662/1137395882749341736/image.png?width=1360&height=102" width="50%">
+### Modes
+<table>
+<tr>
+    <td>Light</td>
+    <td>Dark</td>
+    <td>Amoled</sup></td>
+  </tr>
+    <tr>
+    <td><img src="https://media.discordapp.net/attachments/1134177615964545024/1140270597381832774/image.png"></td>
+    <td><img src="https://media.discordapp.net/attachments/1134177615964545024/1140270155205713920/image.png"></td>
+    <td><img src="https://media.discordapp.net/attachments/1134177615964545024/1140270375956119623/image.png"></td>
+  </tr>
+</table>
+
+### Palettes
+<table>
+<tr>
+    <td>Default</td>
+    <td>Triadic</td>
+    <td>Adjacent</sup></td>
+  </tr>
+    <tr>
+    <td><img src="https://cdn.discordapp.com/attachments/1134177615964545024/1140342805013725244/image.png"></td>
+    <td><img src="https://cdn.discordapp.com/attachments/1134177615964545024/1140342896525049866/image.png"></td>
+    <td><img src="https://cdn.discordapp.com/attachments/1134177615964545024/1140342950262472776/image.png"></td>
+  </tr>
+</table>
 
 ### Help
 <img src="./assets/images/help.gif" width=300>
@@ -266,20 +291,9 @@ dunst = true
 | output_path     | PathBuf               | None                      | Path to export the template to.         |
 
 ### Modes
->**Note** The `mode' key will override the mode specified in the arguments, only for that template.
+>**Note** The `mode` key will override the mode specified in the arguments, only for that template.
 
-<table>
-<tr>
-    <td>Light</td>
-    <td>Dark</td>
-    <td>Amoled</sup></td>
-  </tr>
-    <tr>
-    <td><img src="https://media.discordapp.net/attachments/1134177615964545024/1140270597381832774/image.png?width=1216&height=684"></td>
-    <td><img src="https://media.discordapp.net/attachments/1134177615964545024/1140270155205713920/image.png?width=1216&height=684"></td>
-    <td><img src="https://media.discordapp.net/attachments/1134177615964545024/1140270375956119623/image.png?width=1216&height=684"></td>
-  </tr>
-</table>
+For all available modes, look at the <a href="#usage">usage</a>.
 
 ### Example
 ```toml

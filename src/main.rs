@@ -147,7 +147,7 @@ fn main() -> Result<(), Report> {
         run_after(&config)?;
     }
 
-    if args.quiet == Some(false) {
+    if args.show_colors == Some(true) {
         show_color(&schemes, &colors, &source_color);
     }
 

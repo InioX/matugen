@@ -16,7 +16,7 @@ pub struct Cli {
     #[arg(
         short,
         long,
-        value_name = "COLORSCHEME",
+        value_name = "PALETTE",
         global = true,
         default_value = "default"
     )]
@@ -29,16 +29,21 @@ pub struct Cli {
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub verbose: Option<bool>,
 
+    /// Whether to only show errors.
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub quiet: Option<bool>,
 
     /// Which mode to use for the color scheme
-    #[arg(value_enum, short, long, global = true, value_name = "MODE")]
+    #[arg(value_enum, short, long, global = true, value_name = "MODE", default_value = "dark")]
     pub mode: Option<SchemesEnum>,
 
     /// Will not generate templates, reload apps, set wallpaper or run any commands
     #[arg(long, global = true, action=ArgAction::SetTrue)]
     pub dry_run: Option<bool>,
+
+    /// Whether to show colors or not
+    #[arg(long, global = true, action=ArgAction::SetTrue, default_value = "false")]
+    pub show_colors: Option<bool>,
 }
 
 #[derive(Subcommand, Debug)]
