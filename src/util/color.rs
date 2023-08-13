@@ -107,8 +107,8 @@ pub fn show_color(
         let formatstr = "  ";
 
         let color_light: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
-        let color_dark: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
-        let color_amoled: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
+        let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
+        let color_amoled: Color = Color::new(*Scheme::get_value(&schemes.amoled, field, source_color));
 
         table.add_row(Row::new(vec![
             // Color names
