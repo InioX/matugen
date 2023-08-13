@@ -1,10 +1,12 @@
 # Where should we write the GIF?
 Output assets/images/color.gif
 
-# Set up a 1200x600 terminal with 46px font.
-Set FontSize 46
-Set Width 1200
-Set Height 750
+Set WindowBar Colorful
+
+Set TypingSpeed 75ms
+Set FontSize 22
+Set Width 800
+Set Height 300
 
 # Hex
 Type "matugen color hex '#FFBF9B'"

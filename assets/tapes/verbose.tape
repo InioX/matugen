@@ -1,10 +1,9 @@
 # Where should we write the GIF?
 Output assets/images/verbose.gif
 
-# Set up a 1200x1800 terminal with 40px font.
-Set FontSize 40
-Set Width 1200
-Set Height 1850
+Set FontSize 22
+Set Width 1450
+Set Height 725
 
 # Image
 Type "matugen image -v assets/images/green.jpg"

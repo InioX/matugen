@@ -1,13 +1,13 @@
 # Where should we write the GIF?
-Output assets/images/colorscheme.gif
+Output assets/images/palette.gif
 
-# Set up a 1200x600 terminal with 46px font.
-Set FontSize 46
-Set Width 1200
-Set Height 750
+Set TypingSpeed 75ms
+Set FontSize 22
+Set Width 1000
+Set Height 300
 
 # Image - default
-Type "matugen color hsl 'hsl(114, 22%, 75%)'"
+Type "matugen color hsl 'hsl(114, 22%, 75%)' -p 'default'"
 Sleep 500ms
 Enter
 
@@ -25,7 +25,7 @@ Sleep 2s
 Ctrl+L
 
 # Hsl - adjacent
-Type "matugen color rgb 'rgb(179,205,176)' -p "adjacent""
+Type "matugen color rgb 'rgb(179,205,176)' -p 'adjacent'"
 Sleep 500ms
 Enter
 
