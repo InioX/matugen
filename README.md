@@ -266,6 +266,8 @@ dunst = true
 | output_path     | PathBuf               | None                      | Path to export the template to.         |
 
 ### Modes
+>**Note** The `mode' key will override the mode specified in the arguments, only for that template.
+
 <table>
 <tr>
     <td>Light</td>
