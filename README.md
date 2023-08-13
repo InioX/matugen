@@ -98,6 +98,8 @@ make install
 ## Usage
 
 ### Modes
+<img src="./assets/images/modes.gif" width=450>
+
 <table>
 <tr>
     <td>Light</td>
@@ -112,6 +114,8 @@ make install
 </table>
 
 ### Palettes
+<img src="./assets/images/palette.gif" width=450>
+
 <table>
 <tr>
     <td>Default</td>
@@ -126,22 +130,29 @@ make install
 </table>
 
 ### Help
-<img src="./assets/images/help.gif" width=300>
+<img src="./assets/images/help.gif" width=450>
 
 ```sh
 matugen -h
 matugen --help
 ```
 
+### Show colors
+<img src="https://media.discordapp.net/attachments/1134177615964545024/1140373989294874764/image.png?width=837&height=684" width=300>
+
+```sh
+matugen --show-colors <other-arguments>
+```
+
 ### Verbose mode
-<img src="./assets/images/verbose.gif" width=300>
+<img src="./assets/images/verbose.gif" width=450>
 
 ```sh
 matugen -v <other-arguments>
 ```
      
 ### Generate from an image
-<img src="./assets/images/image.gif" width=300>
+<img src="./assets/images/image.gif" width=450>
 
 ```sh
 # Dark mode
@@ -158,7 +169,7 @@ matugen image ~/wall/snow.png -l
 ```
      
 ### Generate from a color
-<img src="./assets/images/color.gif" width=300>
+<img src="./assets/images/color.gif" width=450>
 
 ```sh
 # Dark mode
