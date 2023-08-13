@@ -3,7 +3,7 @@ use owo_colors::{OwoColorize, Style};
 
 use prettytable::{format, Cell, Row, Table};
 
-use crate::{Schemes, SchemesEnum};
+use crate::{Schemes};
 
 // TODO Fix this monstrosity
 

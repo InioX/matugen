@@ -1,6 +1,6 @@
 use super::{arguments::Cli, config::ConfigFile};
 use color_eyre::{eyre::Result, Report};
-use material_color_utilities_rs::scheme::Scheme;
+
 use std::process::Command;
 
 use crate::SchemesEnum;
