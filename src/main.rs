@@ -23,7 +23,7 @@ use material_color_utilities_rs::{
 
 use colorsys::{ColorAlpha, Hsl, Rgb};
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use serde::{Deserialize, Serialize};
 
 use util::{reload::reload_apps_linux, wallpaper::set_wallaper};
@@ -33,7 +33,7 @@ pub struct Schemes {
     pub amoled: Scheme,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum SchemesEnum {
     Light,
     Dark,
@@ -52,13 +52,7 @@ fn main() -> Result<(), Report> {
 
     let config: ConfigFile = ConfigFile::read(&args)?;
 
-    let default_scheme: SchemesEnum = if args.lightmode == Some(true) {
-        SchemesEnum::Light
-    } else if args.amoled == Some(true) {
-        SchemesEnum::Amoled
-    } else {
-        SchemesEnum::Dark
-    };
+    let default_scheme = args.mode.expect("Something went wrong while parsing the mode");
 
     let schemes: Schemes = Schemes {
         light: Scheme::light_from_core_palette(&mut palette),
