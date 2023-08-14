@@ -60,7 +60,7 @@ use super::color::Color;
 
 impl Template {
     pub fn generate(
-        colors: &Vec<&str>,
+        colors: &[&'static str; 30],
         schemes: &Schemes,
         config: &ConfigFile,
         args: &Cli,
@@ -196,7 +196,7 @@ fn replace_matches(
 }
 
 fn generate_patterns<'a>(
-    colors: &'a Vec<&'a str>,
+    colors: &[&'static str; 30],
     schemes: &Schemes,
     prefix: &'a String,
     image: Option<&'a String>,
