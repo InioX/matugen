@@ -3,7 +3,13 @@ use owo_colors::{OwoColorize, Style};
 
 use prettytable::{format, Cell, Row, Table};
 
-use crate::{Schemes};
+use crate::Schemes;
+
+use super::arguments::{ColorFormat, Source};
+use super::image::source_color_from_image;
+use colorsys::{ColorAlpha, Hsl, Rgb};
+use std::str::FromStr;
+use color_eyre::{eyre::Result, Report};
 
 // TODO Fix this monstrosity
 
@@ -158,4 +164,34 @@ fn generate_style(color: &Color) -> Style {
     } else {
         Style::new().white().on_color(owo_color)
     }
+}
+
+pub fn get_source_color(source: &Source) -> Result<[u8; 4], Report> {
+    let source_color: [u8; 4] = match &source {
+        Source::Image { path } => source_color_from_image(path)?[0],
+        Source::Color(color) => {
+            let src: Rgb;
+
+            match color {
+                ColorFormat::Hex { string } => {
+                    src = Rgb::from_hex_str(string).expect("Invalid hex color string provided")
+                }
+                ColorFormat::Rgb { string } => {
+                    src = string.parse().expect("Invalid rgb color string provided")
+                }
+                ColorFormat::Hsl { string } => {
+                    src = Hsl::from_str(string)
+                        .expect("Invalid hsl color string provided")
+                        .into()
+                }
+            }
+            [
+                src.alpha() as u8,
+                src.red() as u8,
+                src.green() as u8,
+                src.blue() as u8,
+            ]
+        }
+    };
+    Ok(source_color)
 }

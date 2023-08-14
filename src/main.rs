@@ -4,24 +4,20 @@ extern crate paris_log;
 
 mod util;
 use crate::util::{
-    arguments::{Cli, ColorFormat, Source},
-    color::show_color,
+    arguments::Cli,
+    color::{show_color, get_source_color},
     config::ConfigFile,
-    image::source_color_from_image,
     template::Template,
 };
 
 use log::LevelFilter;
 use std::process::Command;
-use std::str::FromStr;
 
 use color_eyre::{eyre::Result, eyre::WrapErr, Report};
 use material_color_utilities_rs::{
     palettes::core::{ColorPalette, CorePalette},
     scheme::Scheme,
 };
-
-use colorsys::{ColorAlpha, Hsl, Rgb};
 
 use clap::{Parser, ValueEnum};
 use serde::{Deserialize, Serialize};
@@ -184,36 +180,6 @@ fn setup_logging(args: &Cli) -> Result<(), Report> {
         .filter_level(log_level)
         .try_init()?;
     Ok(())
-}
-
-fn get_source_color(source: &Source) -> Result<[u8; 4], Report> {
-    let source_color: [u8; 4] = match &source {
-        Source::Image { path } => source_color_from_image(path)?[0],
-        Source::Color(color) => {
-            let src: Rgb;
-
-            match color {
-                ColorFormat::Hex { string } => {
-                    src = Rgb::from_hex_str(string).expect("Invalid hex color string provided")
-                }
-                ColorFormat::Rgb { string } => {
-                    src = string.parse().expect("Invalid rgb color string provided")
-                }
-                ColorFormat::Hsl { string } => {
-                    src = Hsl::from_str(string)
-                        .expect("Invalid hsl color string provided")
-                        .into()
-                }
-            }
-            [
-                src.alpha() as u8,
-                src.red() as u8,
-                src.green() as u8,
-                src.blue() as u8,
-            ]
-        }
-    };
-    Ok(source_color)
 }
 
 fn generate_palette(
