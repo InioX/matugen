@@ -11,7 +11,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 
-use crate::util::arguments::Commands;
+use crate::util::arguments::Source;
 use crate::util::color::SchemeExt;
 use crate::Scheme;
 
@@ -77,8 +77,8 @@ impl Template {
         info!("Loaded {} templates.", &config.templates.len());
 
         let image = match &args.source {
-            Commands::Image { path } => Some(path),
-            Commands::Color { .. } => None,
+            Source::Image { path } => Some(path),
+            Source::Color { .. } => None,
         };
 
         let regexvec: Patterns = generate_patterns(colors, &schemes, prefix, image, source_color)?;

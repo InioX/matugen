@@ -10,7 +10,7 @@ pub struct Cli {
     /// Optional name to operate on
     // name: Option<String>,
     #[command(subcommand)]
-    pub source: Commands,
+    pub source: Source,
 
     /// Sets a custom color palette
     #[arg(
@@ -47,7 +47,7 @@ pub struct Cli {
 }
 
 #[derive(Subcommand, Debug)]
-pub enum Commands {
+pub enum Source {
     /// The image to use for generating a color scheme
     Image { path: String },
     /// The source color to use for generating a color scheme
