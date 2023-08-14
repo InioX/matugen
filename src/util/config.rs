@@ -48,6 +48,11 @@ pub struct ConfigFile {
 const ERROR_TEXT: &str =
     "Error reading config file, check https://github.com/InioX/Matugen#configuration for help";
 
+const DEFAULT_CONFIG: &str = r#"
+[config]
+[templates]
+"#;
+
 impl ConfigFile {
     pub fn read(args: &Cli) -> Result<ConfigFile, Report> {
         match &args.config {
@@ -90,12 +95,6 @@ impl ConfigFile {
     }
 
     fn read_from_fallback_path() -> Result<ConfigFile, Report> {
-        let content: String = String::from(
-            r#"
-            [config]
-            [templates]
-        "#,
-        );
-        Ok(toml::from_str(&content)?)
+        Ok(toml::from_str(&DEFAULT_CONFIG)?)
     }
 }
