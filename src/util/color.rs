@@ -69,7 +69,7 @@ impl SchemeExt for Scheme {
 
 pub fn show_color(
     schemes: &Schemes,
-    colors: &Vec<&str>,
+    colors: &[&'static str; 30],
     source_color: &[u8; 4],
 ) {
     let mut table = Table::new();
