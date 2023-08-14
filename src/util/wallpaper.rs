@@ -3,7 +3,7 @@ use std::process::Command;
 use std::process::Stdio;
 
 use super::{
-    arguments::{Cli, Commands},
+    arguments::{Cli, Source},
     config::{ConfigFile, WallpaperTool},
     reload::reload_app,
 };
@@ -20,8 +20,8 @@ pub fn set_wallaper(config: &ConfigFile, args: &Cli) -> Result<(), Report> {
     };
 
     let path = match &args.source {
-        Commands::Image { path } => path,
-        Commands::Color { .. } => return Ok(()),
+        Source::Image { path } => path,
+        Source::Color { .. } => return Ok(()),
     };
 
     match wallpaper_tool {

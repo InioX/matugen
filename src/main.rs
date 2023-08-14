@@ -4,7 +4,7 @@ extern crate paris_log;
 
 mod util;
 use crate::util::{
-    arguments::{Cli, ColorFormat, Commands},
+    arguments::{Cli, ColorFormat, Source},
     color::show_color,
     config::ConfigFile,
     image::source_color_from_image,
@@ -107,7 +107,7 @@ fn main() -> Result<(), Report> {
     
     setup_logging(&args)?;
 
-    let source_color = get_source_color(&args)?;
+    let source_color = get_source_color(&args.source)?;
 
     let mut palette: CorePalette = generate_palette(&args.palette.unwrap(), source_color)?;
 
@@ -186,10 +186,10 @@ fn setup_logging(args: &Cli) -> Result<(), Report> {
     Ok(())
 }
 
-fn get_source_color(args: &Cli) -> Result<[u8; 4], Report> {
-    let source_color: [u8; 4] = match &args.source {
-        Commands::Image { path } => source_color_from_image(path)?[0],
-        Commands::Color(color) => {
+fn get_source_color(source: &Source) -> Result<[u8; 4], Report> {
+    let source_color: [u8; 4] = match &source {
+        Source::Image { path } => source_color_from_image(path)?[0],
+        Source::Color(color) => {
             let src: Rgb;
 
             match color {
