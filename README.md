@@ -213,33 +213,34 @@ You can also get the image (if it was provided) by using:
 #### Example of all the color keywords:
 ```css
 /*colors.css*/
-@define-color primary @{primary.rgb};
-@define-color onPrimary @{on_primary.rgb};
-@define-color primaryContainer @{primary_container.strip};
-@define-color onPrimaryContainer @{on_primary_container};
+@define-color primary @{primary};
+@define-color on_primary @{on_primary};
+@define-color primary_container @{primary_container};
+@define-color on_primary_container @{on_primary_container};
 @define-color secondary @{secondary};
-@define-color onSecondary @{on_secondary.strip};
-@define-color secondaryContainer @{secondary_container.rgba};
-@define-color onSecondaryContainer @{on_secondary_container};
+@define-color on_secondary @{on_secondary};
+@define-color secondary_container @{secondary_container};
+@define-color on_secondary_container @{on_secondary_container};
 @define-color tertiary @{tertiary};
-@define-color onTertiary @{on_tertiary};
-@define-color tertiaryContainer @{tertiary_container};
-@define-color onTertiaryContainer @{on_tertiary_container.strip};
+@define-color on_tertiary @{on_tertiary};
+@define-color tertiary_container @{tertiary_container};
+@define-color on_tertiary_container @{on_tertiary_container};
 @define-color error @{error};
-@define-color onError @{on_error.rgba};
-@define-color errorContainer @{error_container.rgba};
-@define-color onErrorContainer @{on_error_container};
+@define-color on_error @{on_error};
+@define-color error_container @{error_container};
+@define-color on_error_container @{on_error_container};
 @define-color background @{background};
-@define-color onBackground @{on_background.strip};
+@define-color on_background @{on_background};
 @define-color surface @{surface};
-@define-color onSurface @{on_surface};
-@define-color surfaceVariant @{surface_variant};
-@define-color onSurfaceVariant @{on_surface_variant};
-@define-color outline @{outline.rgba};
+@define-color on_surface @{on_surface};
+@define-color surface_variant @{surface_variant};
+@define-color on_surface_variant @{on_surface_variant};
+@define-color outline @{outline};
 @define-color shadow @{shadow};
-@define-color inverseSurface @{inverse_surface.strip};
-@define-color inverseOnSurface @{inverse_on_surface};
-@define-color inversePrimary @{inverse_primary.strip};
+@define-color scrim @{scrim};
+@define-color inverse_surface @{inverse_surface};
+@define-color inverse_on_surface @{inverse_on_surface};
+@define-color inverse_primary @{inverse_primary};
 
 @define-color source_color @{source_color};
 @define-color color_accent_primary @{color_accent_primary};
