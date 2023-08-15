@@ -8,9 +8,9 @@ use crate::Schemes;
 
 use super::arguments::{ColorFormat, Source};
 use super::image::source_color_from_image;
+use color_eyre::{eyre::Result, Report};
 use colorsys::{ColorAlpha, Hsl, Rgb};
 use std::str::FromStr;
-use color_eyre::{eyre::Result, Report};
 
 pub const COLORS: [&str; 30] = [
     "source_color",
@@ -74,26 +74,6 @@ pub const COLORS_ANDROID: [&str; 25] = [
 ];
 
 // TODO Fix this monstrosity
-
-#[derive(Debug)]
-pub struct Color {
-    pub red: u8,
-    pub green: u8,
-    pub blue: u8,
-    pub alpha: u8,
-}
-
-impl Color {
-    pub fn new(colors: [u8; 4]) -> Color {
-        Color {
-            red: colors[1],
-            green: colors[2],
-            blue: colors[3],
-            alpha: colors[0],
-        }
-    }
-}
-
 pub trait SchemeExt {
     fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4];
 }
@@ -143,9 +123,9 @@ impl SchemeAndroidExt for SchemeAndroid {
         match field {
             "source_color" => &source_color,
             "color_accent_primary" => &self.color_accent_primary,
-            "color_accent_primary_variant" =>  &self.color_accent_primary_variant,
+            "color_accent_primary_variant" => &self.color_accent_primary_variant,
             "color_accent_secondary" => &self.color_accent_secondary,
-            "color_accent_secondary_variant" =>  &self.color_accent_secondary_variant,
+            "color_accent_secondary_variant" => &self.color_accent_secondary_variant,
             "color_accent_tertiary" => &self.color_accent_tertiary,
             "color_accent_tertiary_variant" => &self.color_accent_tertiary_variant,
             "text_color_primary" => &self.text_color_primary,
@@ -172,10 +152,71 @@ impl SchemeAndroidExt for SchemeAndroid {
     }
 }
 
-pub fn show_color(
-    schemes: &Schemes,
-    source_color: &[u8; 4],
-) {
+#[derive(Debug)]
+pub struct Color {
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
+    pub alpha: u8,
+}
+
+impl Color {
+    pub fn new(colors: [u8; 4]) -> Color {
+        Color {
+            red: colors[1],
+            green: colors[2],
+            blue: colors[3],
+            alpha: colors[0],
+        }
+    }
+}
+
+pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
+    let mut table: Table = generate_table_format();
+
+    for field in COLORS {
+        let color_light: Color =
+            Color::new(*Scheme::get_value(&schemes.light, field, source_color));
+        let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
+        let color_amoled: Color =
+            Color::new(*Scheme::get_value(&schemes.amoled, field, source_color));
+
+        generate_table_rows(&mut table, &field, color_light, color_dark, color_amoled);
+    }
+
+    let mut table_android: Table = generate_table_format();
+
+    for field in COLORS_ANDROID {
+        let color_light: Color = Color::new(*SchemeAndroid::get_value(
+            &schemes.light_android,
+            field,
+            source_color,
+        ));
+        let color_dark: Color = Color::new(*SchemeAndroid::get_value(
+            &schemes.dark_android,
+            field,
+            source_color,
+        ));
+        let color_amoled: Color = Color::new(*SchemeAndroid::get_value(
+            &schemes.amoled_android,
+            field,
+            source_color,
+        ));
+
+        generate_table_rows(
+            &mut table_android,
+            &field,
+            color_light,
+            color_dark,
+            color_amoled,
+        );
+    }
+
+    table.printstd();
+    table_android.printstd();
+}
+
+fn generate_table_format() -> Table {
     let mut table = Table::new();
     let format = format::FormatBuilder::new()
         .column_separator('│')
@@ -183,7 +224,8 @@ pub fn show_color(
         .separators(
             &[format::LinePosition::Title],
             format::LineSeparator::new('─', '┼', '├', '┤'),
-        )        .separators(
+        )
+        .separators(
             &[format::LinePosition::Top],
             format::LineSeparator::new('─', '┬', '╭', '╮'),
         )
@@ -205,97 +247,73 @@ pub fn show_color(
         Cell::new("AMOLED").style_spec("c"),
         Cell::new("AMOLED").style_spec("c"),
     ]));
+    table
+}
 
-    let mut table_android = table.clone();
-    // table.set_format(*format::consts::FORMAT_CLEAN);
+fn generate_table_rows(
+    table: &mut Table,
+    field: &str,
+    color_light: Color,
+    color_dark: Color,
+    color_amoled: Color,
+) {
+    let formatstr = "  ";
 
-    for field in COLORS {
-        let formatstr = "  ";
-
-        let color_light: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
-        let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
-        let color_amoled: Color = Color::new(*Scheme::get_value(&schemes.amoled, field, source_color));
-
-        table.add_row(Row::new(vec![
-            // Color names
-            Cell::new(field).style_spec(""),
-            // Light scheme
-            Cell::new(
-                format!(
-                    "{}",
-                    format_argb_as_rgb([color_light.alpha, color_light.red, color_light.green, color_light.blue])
-                )
-                .to_uppercase()
-                .as_str(),
-            ).style_spec("c"),
-            Cell::new(format!("{}", formatstr.style(generate_style(&color_light))).as_str()).style_spec("c"),
-            // Dark scheme
-            Cell::new(
-                format!(
-                    "{}",
-                    format_argb_as_rgb([color_dark.alpha, color_dark.red, color_dark.green, color_dark.blue])
-                )
-                .to_uppercase()
-                .as_str(),
-            ).style_spec("c"),
-            Cell::new(format!("{}", formatstr.style(generate_style(&color_dark))).as_str()).style_spec("c"),
-            // Amoled theme 
-            Cell::new(
-                format!(
-                    "{}",
-                    format_argb_as_rgb([color_amoled.alpha, color_amoled.red, color_amoled.green, color_amoled.blue])
-                )
-                .to_uppercase()
-                .as_str(),
-            ).style_spec("c"),
-            Cell::new(format!("{}", formatstr.style(generate_style(&color_amoled))).as_str()).style_spec("c"),
-        ]));
-    }
-
-    for field in COLORS_ANDROID {
-        let formatstr = "  ";
-
-        let color_light: Color = Color::new(*SchemeAndroid::get_value(&schemes.light_android, field, source_color));
-        let color_dark: Color = Color::new(*SchemeAndroid::get_value(&schemes.dark_android, field, source_color));
-        let color_amoled: Color = Color::new(*SchemeAndroid::get_value(&schemes.amoled_android, field, source_color));
-
-        table_android.add_row(Row::new(vec![
-            // Color names
-            Cell::new(field).style_spec(""),
-            // Light scheme
-            Cell::new(
-                format!(
-                    "{}",
-                    format_argb_as_rgb([color_light.alpha, color_light.red, color_light.green, color_light.blue])
-                )
-                .to_uppercase()
-                .as_str(),
-            ).style_spec("c"),
-            Cell::new(format!("{}", formatstr.style(generate_style(&color_light))).as_str()).style_spec("c"),
-            // Dark scheme
-            Cell::new(
-                format!(
-                    "{}",
-                    format_argb_as_rgb([color_dark.alpha, color_dark.red, color_dark.green, color_dark.blue])
-                )
-                .to_uppercase()
-                .as_str(),
-            ).style_spec("c"),
-            Cell::new(format!("{}", formatstr.style(generate_style(&color_dark))).as_str()).style_spec("c"),
-            // Amoled theme 
-            Cell::new(
-                format!(
-                    "{}",
-                    format_argb_as_rgb([color_amoled.alpha, color_amoled.red, color_amoled.green, color_amoled.blue])
-                )
-                .to_uppercase()
-                .as_str(),
-            ).style_spec("c"),
-            Cell::new(format!("{}", formatstr.style(generate_style(&color_amoled))).as_str()).style_spec("c"),
-        ]));
-    }
-    table.printstd();
-    table_android.printstd();
+    table.add_row(Row::new(vec![
+        // Color names
+        Cell::new(field).style_spec(""),
+        // Light scheme
+        Cell::new(
+            format!(
+                "{}",
+                format_argb_as_rgb([
+                    color_light.alpha,
+                    color_light.red,
+                    color_light.green,
+                    color_light.blue
+                ])
+            )
+            .to_uppercase()
+            .as_str(),
+        )
+        .style_spec("c"),
+        Cell::new(format!("{}", formatstr.style(generate_style(&color_light))).as_str())
+            .style_spec("c"),
+        // Dark scheme
+        Cell::new(
+            format!(
+                "{}",
+                format_argb_as_rgb([
+                    color_dark.alpha,
+                    color_dark.red,
+                    color_dark.green,
+                    color_dark.blue
+                ])
+            )
+            .to_uppercase()
+            .as_str(),
+        )
+        .style_spec("c"),
+        Cell::new(format!("{}", formatstr.style(generate_style(&color_dark))).as_str())
+            .style_spec("c"),
+        // Amoled theme
+        Cell::new(
+            format!(
+                "{}",
+                format_argb_as_rgb([
+                    color_amoled.alpha,
+                    color_amoled.red,
+                    color_amoled.green,
+                    color_amoled.blue
+                ])
+            )
+            .to_uppercase()
+            .as_str(),
+        )
+        .style_spec("c"),
+        Cell::new(format!("{}", formatstr.style(generate_style(&color_amoled))).as_str())
+            .style_spec("c"),
+    ]));
 }
 
 fn generate_style(color: &Color) -> Style {
