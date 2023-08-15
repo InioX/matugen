@@ -240,6 +240,33 @@ You can also get the image (if it was provided) by using:
 @define-color inverseSurface @{inverse_surface.strip};
 @define-color inverseOnSurface @{inverse_on_surface};
 @define-color inversePrimary @{inverse_primary.strip};
+
+@define-color source_color @{source_color};
+@define-color color_accent_primary @{color_accent_primary};
+@define-color color_accent_primary_variant @{color_accent_primary_variant};
+@define-color color_accent_secondary @{color_accent_secondary};
+@define-color color_accent_secondary_variant @{color_accent_secondary_variant};
+@define-color color_accent_tertiary @{color_accent_tertiary};
+@define-color color_accent_tertiary_variant @{color_accent_tertiary_variant};
+@define-color text_color_primary @{text_color_primary};
+@define-color text_color_secondary @{text_color_secondary};
+@define-color text_color_tertiary @{text_color_tertiary};
+@define-color text_color_primary_inverse @{text_color_primary_inverse};
+@define-color text_color_secondary_inverse @{text_color_secondary_inverse};
+@define-color text_color_tertiary_inverse @{text_color_tertiary_inverse};
+@define-color color_background @{color_background};
+@define-color color_background_floating @{color_background_floating};
+@define-color color_surface @{color_surface};
+@define-color color_surface_variant @{color_surface_variant};
+@define-color color_surface_highlight @{color_surface_highlight};
+@define-color surface_header @{surface_header};
+@define-color under_surface @{under_surface};
+@define-color off_state @{off_state};
+@define-color accent_surface @{accent_surface};
+@define-color text_primary_on_accent @{text_primary_on_accent};
+@define-color text_secondary_on_accent @{text_secondary_on_accent};
+@define-color volume_background @{volume_background};
+@define-color scrim_android @{scrim_android};
 ```
 
 ## Configuration

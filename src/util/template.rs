@@ -15,10 +15,15 @@ use crate::util::arguments::Source;
 use crate::util::color::SchemeExt;
 use crate::Scheme;
 
+use crate::SchemeAndroid;
+use crate::util::color::SchemeAndroidExt;
+
 use super::arguments::Cli;
 use super::config::ConfigFile;
 use material_color_utilities_rs::util::color::format_argb_as_rgb;
 use resolve_path::PathResolveExt;
+
+use super::color::{COLORS, COLORS_ANDROID};
 
 use crate::{Schemes, SchemesEnum};
 
@@ -60,7 +65,6 @@ use super::color::Color;
 
 impl Template {
     pub fn generate(
-        colors: &[&'static str; 30],
         schemes: &Schemes,
         config: &ConfigFile,
         args: &Cli,
@@ -81,7 +85,7 @@ impl Template {
             Source::Color { .. } => None,
         };
 
-        let regexvec: Patterns = generate_patterns(colors, &schemes, prefix, image, source_color)?;
+        let regexvec: Patterns = generate_patterns(&schemes, prefix, image, source_color)?;
 
         for (name, template) in &config.templates {
 
@@ -196,19 +200,103 @@ fn replace_matches(
 }
 
 fn generate_patterns<'a>(
-    colors: &[&'static str; 30],
     schemes: &Schemes,
     prefix: &'a String,
     image: Option<&'a String>,
     source_color: &[u8; 4],
 ) -> Result<Patterns<'a>, Report> {
     let mut regexvec: Vec<ColorPattern> = vec![];
-    for field in colors {
+    for field in COLORS {
         let color_light: Color =
             Color::new(*Scheme::get_value(&schemes.light, field, source_color));
         let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
         let color_amoled: Color =
             Color::new(*Scheme::get_value(&schemes.amoled, field, source_color));
+
+        regexvec.push(ColorPattern {
+            pattern: Regex::new(
+                &format!(r#"\{prefix}\{{{field}(\.hex|\.rgb|\.rgba|\.strip)?}}"#).to_string(),
+            )?,
+            replacements: ColorReplacements {
+                light: ColorReplacement {
+                    hex: format_argb_as_rgb([
+                        color_light.alpha,
+                        color_light.red,
+                        color_light.green,
+                        color_light.blue,
+                    ]),
+                    hex_stripped: format_argb_as_rgb([
+                        color_light.alpha,
+                        color_light.red,
+                        color_light.green,
+                        color_light.blue,
+                    ])[1..]
+                        .to_string(),
+                    rgb: format!(
+                        "rgb({:?}, {:?}, {:?})",
+                        color_light.red, color_light.green, color_light.blue
+                    ),
+                    rgba: format!(
+                        "rgba({:?}, {:?}, {:?}, {:?})",
+                        color_light.red, color_light.green, color_light.blue, color_light.alpha
+                    ),
+                },
+                dark: ColorReplacement {
+                    hex: format_argb_as_rgb([
+                        color_dark.alpha,
+                        color_dark.red,
+                        color_dark.green,
+                        color_dark.blue,
+                    ]),
+                    hex_stripped: format_argb_as_rgb([
+                        color_dark.alpha,
+                        color_dark.red,
+                        color_dark.green,
+                        color_dark.blue,
+                    ])[1..]
+                        .to_string(),
+                    rgb: format!(
+                        "rgb({:?}, {:?}, {:?})",
+                        color_dark.red, color_dark.green, color_dark.blue
+                    ),
+                    rgba: format!(
+                        "rgba({:?}, {:?}, {:?}, {:?})",
+                        color_dark.red, color_dark.green, color_dark.blue, color_dark.alpha
+                    ),
+                },
+                amoled: ColorReplacement {
+                    hex: format_argb_as_rgb([
+                        color_amoled.alpha,
+                        color_amoled.red,
+                        color_amoled.green,
+                        color_amoled.blue,
+                    ]),
+                    hex_stripped: format_argb_as_rgb([
+                        color_amoled.alpha,
+                        color_amoled.red,
+                        color_amoled.green,
+                        color_amoled.blue,
+                    ])[1..]
+                        .to_string(),
+                    rgb: format!(
+                        "rgb({:?}, {:?}, {:?})",
+                        color_amoled.red, color_amoled.green, color_amoled.blue
+                    ),
+                    rgba: format!(
+                        "rgba({:?}, {:?}, {:?}, {:?})",
+                        color_amoled.red, color_amoled.green, color_amoled.blue, color_amoled.alpha
+                    ),
+                },
+            },
+        });
+    }
+
+    for field in COLORS_ANDROID {
+        let color_light: Color =
+            Color::new(*SchemeAndroid::get_value(&schemes.light_android, field, source_color));
+        let color_dark: Color = Color::new(*SchemeAndroid::get_value(&schemes.dark_android, field, source_color));
+        let color_amoled: Color =
+            Color::new(*SchemeAndroid::get_value(&schemes.amoled_android, field, source_color));
 
         regexvec.push(ColorPattern {
             pattern: Regex::new(
