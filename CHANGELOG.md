@@ -6,6 +6,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0](https://github.com/InioX/matugen/compare/matugen-v0.9.0...matugen-v0.10.0) - 2023-08-15
+
+### Added
+- *(scheme)* add `android_scheme` keywords
+- *(scheme)* add `android_scheme`
+- *(arguments)* add `--show-colors` flag and disable showing colors by default
+- *(show_colors)* show light, dark and amoled at once in a table
+- *(arguments)* remove `lightmode` and `amoled`
+- *(config)* rename `scheme` to `mode` in template config
+- *(arguments)* add `mode` to replace `lightmode` and `amoled`
+- *(template)* add `Light`,`Dark`,`Amoled` options for each template
+- add `--dry-run` flag
+- *(template)* add `source_color`
+- show generated colors inside a table instead
+
+### Fixed
+- *(show_color)* make the dark and amoled colors use right schemes
+- remove debug stuff
+- dark and amoled modes being switched
+- correct blue and green in `get_source_color`
+- show colors AFTER running commands
+
+### Other
+- *(template)* update keyword names
+- *(`scheme_android`)* add TODO note for amoled scheme
+- add DEFAULT_CONFIG const
+- *(get_source_color)* move to color file
+- rename `Commands` struct to `Source`
+- make the colors vec a const
+- add gifs for modes, palettes and `--other-colors`
+- update all tapes
+- *(tapes)* change the output directory
+- remove unnecessary imports
+- fix usage of commands
+- add an explanation for `mode` in template config
+- rename `scheme` to `mode`
+- add `source color` keyword
+- format with `cargo fmt`
+- *(show_color)* use `format_argb_as_rgb`
+- format with `cargo fmt`
+- change repository address
+- remove useless gifs
+
 ## [0.9.0](https://github.com/InioX/Matugen/compare/matugen-v0.8.4...matugen-v0.9.0) - 2023-08-08
 
 ### Added
