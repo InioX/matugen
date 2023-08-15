@@ -1,4 +1,5 @@
-use material_color_utilities_rs::{scheme::Scheme, util::color::format_argb_as_rgb};
+use material_color_utilities_rs::scheme::scheme_android::SchemeAndroid;
+use material_color_utilities_rs::{scheme::scheme::Scheme, util::color::format_argb_as_rgb};
 use owo_colors::{OwoColorize, Style};
 
 use prettytable::{format, Cell, Row, Table};
@@ -10,6 +11,67 @@ use super::image::source_color_from_image;
 use colorsys::{ColorAlpha, Hsl, Rgb};
 use std::str::FromStr;
 use color_eyre::{eyre::Result, Report};
+
+pub const COLORS: [&str; 30] = [
+    "source_color",
+    "primary",
+    "on_primary",
+    "primary_container",
+    "on_primary_container",
+    "secondary",
+    "on_secondary",
+    "secondary_container",
+    "on_secondary_container",
+    "tertiary",
+    "on_tertiary",
+    "tertiary_container",
+    "on_tertiary_container",
+    "error",
+    "on_error",
+    "error_container",
+    "on_error_container",
+    "background",
+    "on_background",
+    "surface",
+    "on_surface",
+    "surface_variant",
+    "on_surface_variant",
+    "outline",
+    "outline_variant",
+    "shadow",
+    "scrim",
+    "inverse_surface",
+    "inverse_on_surface",
+    "inverse_primary",
+];
+
+pub const COLORS_ANDROID: [&str; 25] = [
+    "color_accent_primary",
+    "color_accent_primary_variant",
+    "color_accent_secondary",
+    "color_accent_secondary_variant",
+    "color_accent_tertiary",
+    "color_accent_tertiary_variant",
+    "text_color_primary",
+    "text_color_secondary",
+    "text_color_tertiary",
+    "text_color_primary_inverse",
+    "text_color_secondary_inverse",
+    "text_color_tertiary_inverse",
+    "color_background",
+    "color_background_floating",
+    "color_surface",
+    "color_surface_variant",
+    "color_surface_highlight",
+    "surface_header",
+    "under_surface",
+    "off_state",
+    "accent_surface",
+    "text_primary_on_accent",
+    "text_secondary_on_accent",
+    "volume_background",
+    "scrim_android", // Should just be `scrim`, renamed so its not the same as `scrim` in `COLORS`
+];
 
 // TODO Fix this monstrosity
 
@@ -73,9 +135,45 @@ impl SchemeExt for Scheme {
     }
 }
 
+pub trait SchemeAndroidExt {
+    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4];
+}
+impl SchemeAndroidExt for SchemeAndroid {
+    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4] {
+        match field {
+            "source_color" => &source_color,
+            "color_accent_primary" => &self.color_accent_primary,
+            "color_accent_primary_variant" =>  &self.color_accent_primary_variant,
+            "color_accent_secondary" => &self.color_accent_secondary,
+            "color_accent_secondary_variant" =>  &self.color_accent_secondary_variant,
+            "color_accent_tertiary" => &self.color_accent_tertiary,
+            "color_accent_tertiary_variant" => &self.color_accent_tertiary_variant,
+            "text_color_primary" => &self.text_color_primary,
+            "text_color_secondary" => &self.text_color_secondary,
+            "text_color_tertiary" => &self.text_color_tertiary,
+            "text_color_primary_inverse" => &self.text_color_primary_inverse,
+            "text_color_secondary_inverse" => &self.text_color_secondary_inverse,
+            "text_color_tertiary_inverse" => &self.text_color_tertiary_inverse,
+            "color_background" => &self.color_background,
+            "color_background_floating" => &self.color_background_floating,
+            "color_surface" => &self.color_surface,
+            "color_surface_variant" => &self.color_surface_variant,
+            "color_surface_highlight" => &self.color_surface_highlight,
+            "surface_header" => &self.surface_header,
+            "under_surface" => &self.under_surface,
+            "off_state" => &self.off_state,
+            "accent_surface" => &self.accent_surface,
+            "text_primary_on_accent" => &self.text_primary_on_accent,
+            "text_secondary_on_accent" => &self.text_secondary_on_accent,
+            "volume_background" => &self.volume_background,
+            "scrim_android" => &self.scrim,
+            _ => panic!(),
+        }
+    }
+}
+
 pub fn show_color(
     schemes: &Schemes,
-    colors: &[&'static str; 30],
     source_color: &[u8; 4],
 ) {
     let mut table = Table::new();
@@ -107,9 +205,11 @@ pub fn show_color(
         Cell::new("AMOLED").style_spec("c"),
         Cell::new("AMOLED").style_spec("c"),
     ]));
+
+    let mut table_android = table.clone();
     // table.set_format(*format::consts::FORMAT_CLEAN);
 
-    for field in colors {
+    for field in COLORS {
         let formatstr = "  ";
 
         let color_light: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
@@ -151,7 +251,51 @@ pub fn show_color(
             Cell::new(format!("{}", formatstr.style(generate_style(&color_amoled))).as_str()).style_spec("c"),
         ]));
     }
+
+    for field in COLORS_ANDROID {
+        let formatstr = "  ";
+
+        let color_light: Color = Color::new(*SchemeAndroid::get_value(&schemes.light_android, field, source_color));
+        let color_dark: Color = Color::new(*SchemeAndroid::get_value(&schemes.dark_android, field, source_color));
+        let color_amoled: Color = Color::new(*SchemeAndroid::get_value(&schemes.amoled_android, field, source_color));
+
+        table_android.add_row(Row::new(vec![
+            // Color names
+            Cell::new(field).style_spec(""),
+            // Light scheme
+            Cell::new(
+                format!(
+                    "{}",
+                    format_argb_as_rgb([color_light.alpha, color_light.red, color_light.green, color_light.blue])
+                )
+                .to_uppercase()
+                .as_str(),
+            ).style_spec("c"),
+            Cell::new(format!("{}", formatstr.style(generate_style(&color_light))).as_str()).style_spec("c"),
+            // Dark scheme
+            Cell::new(
+                format!(
+                    "{}",
+                    format_argb_as_rgb([color_dark.alpha, color_dark.red, color_dark.green, color_dark.blue])
+                )
+                .to_uppercase()
+                .as_str(),
+            ).style_spec("c"),
+            Cell::new(format!("{}", formatstr.style(generate_style(&color_dark))).as_str()).style_spec("c"),
+            // Amoled theme 
+            Cell::new(
+                format!(
+                    "{}",
+                    format_argb_as_rgb([color_amoled.alpha, color_amoled.red, color_amoled.green, color_amoled.blue])
+                )
+                .to_uppercase()
+                .as_str(),
+            ).style_spec("c"),
+            Cell::new(format!("{}", formatstr.style(generate_style(&color_amoled))).as_str()).style_spec("c"),
+        ]));
+    }
     table.printstd();
+    table_android.printstd();
 }
 
 fn generate_style(color: &Color) -> Style {

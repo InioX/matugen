@@ -16,7 +16,7 @@ use std::process::Command;
 use color_eyre::{eyre::Result, eyre::WrapErr, Report};
 use material_color_utilities_rs::{
     palettes::core::{ColorPalette, CorePalette},
-    scheme::Scheme,
+    scheme::{scheme::Scheme, scheme_android::SchemeAndroid},
 };
 
 use clap::{Parser, ValueEnum};
@@ -27,6 +27,9 @@ pub struct Schemes {
     pub light: Scheme,
     pub dark: Scheme,
     pub amoled: Scheme,
+    pub light_android: SchemeAndroid,
+    pub dark_android: SchemeAndroid,
+    pub amoled_android: SchemeAndroid,
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -35,67 +38,6 @@ pub enum SchemesEnum {
     Dark,
     Amoled,
 }
-
-const COLORS: [&str; 30] = [
-    "source_color",
-    "primary",
-    "on_primary",
-    "primary_container",
-    "on_primary_container",
-    "secondary",
-    "on_secondary",
-    "secondary_container",
-    "on_secondary_container",
-    "tertiary",
-    "on_tertiary",
-    "tertiary_container",
-    "on_tertiary_container",
-    "error",
-    "on_error",
-    "error_container",
-    "on_error_container",
-    "background",
-    "on_background",
-    "surface",
-    "on_surface",
-    "surface_variant",
-    "on_surface_variant",
-    "outline",
-    "outline_variant",
-    "shadow",
-    "scrim",
-    "inverse_surface",
-    "inverse_on_surface",
-    "inverse_primary",
-];
-
-const COLORS_ANDROID: [&str; 25] = [
-    "color_accent_primary",
-    "color_accent_primary_variant",
-    "color_accent_secondary",
-    "color_accent_secondary_variant",
-    "color_accent_tertiary",
-    "color_accent_tertiary_variant",
-    "text_color_primary",
-    "text_color_secondary",
-    "text_color_tertiary",
-    "text_color_primary_inverse",
-    "text_color_secondary_inverse",
-    "text_color_tertiary_inverse",
-    "color_background",
-    "color_background_floating",
-    "color_surface",
-    "color_surface_variant",
-    "color_surface_highlight",
-    "surface_header",
-    "under_surface",
-    "off_state",
-    "accent_surface",
-    "text_primary_on_accent",
-    "text_secondary_on_accent",
-    "volume_background",
-    "scrim",
-];
 
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
@@ -115,12 +57,14 @@ fn main() -> Result<(), Report> {
         light: Scheme::light_from_core_palette(&mut palette),
         dark: Scheme::dark_from_core_palette(&mut palette),
         amoled: Scheme::pure_dark_from_core_palette(&mut palette),
+        light_android: SchemeAndroid::light_from_core_palette(&mut palette), 
+        dark_android: SchemeAndroid::dark_from_core_palette(&mut palette),
+        amoled_android: SchemeAndroid::pure_dark_from_core_palette(&mut palette),
     };
 
 
     if args.dry_run == Some(false) {
         Template::generate(
-            &COLORS,
             &schemes,
             &config,
             &args,
@@ -140,7 +84,7 @@ fn main() -> Result<(), Report> {
     }
 
     if args.show_colors == Some(true) {
-        show_color(&schemes, &COLORS, &source_color);
+        show_color(&schemes, &source_color);
     }
 
     Ok(())
