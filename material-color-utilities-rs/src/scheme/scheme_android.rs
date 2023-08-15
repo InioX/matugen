@@ -141,6 +141,7 @@ impl SchemeAndroid {
         }
     }
 
+    // TODO: Make this look like amoled mode
     pub fn pure_dark_from_core_palette(core: &mut CorePalette) -> SchemeAndroid {
         SchemeAndroid {
             color_accent_primary: core.a1.tone(90),
