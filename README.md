@@ -36,7 +36,8 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 - Linux
 - MacOS
 - NetBSD
->**Warning** Matugen only supports setting the wallpaper and restarting apps on Linux and NetBSD for now.
+> **Warning**
+> Matugen only supports setting the wallpaper and restarting apps on Linux and NetBSD for now.
      
 ## Roadmap
 
@@ -53,7 +54,8 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
      - [x] Feh
      - [x] Nitrogen
 
->**Note** Want a feature that is not listed above? Simply [open an issue](https://github.com/InioX/Matugen/issues).
+> **Note**
+> Want a feature that is not listed above? Simply [open an issue](https://github.com/InioX/Matugen/issues).
 
 ## Installation
 
@@ -211,7 +213,8 @@ You can also get the image (if it was provided) by using:
 ```css
 @import url("@{image}"); /* Result: /home/ini/Downloads/wallpaper.jpg */
 ```
->**Note** If no image was provided, Matugen will just skip over the image keyword
+> **Note**
+> If no image was provided, Matugen will just skip over the image keyword
 
 #### Example of all the color keywords:
 ```css
@@ -279,7 +282,8 @@ Here is a list of different locations for the configuration file:
 - Linux: `/home/user/.config/matugen/config.toml`
 - MacOS: `/Users/user/Library/Application Support/com.InioX.matugen/config.toml`
 
->**Note** You can also use a custom configuration path by using the `-c` argument
+> **Note**
+> You can also use a custom configuration path by using the `-c` argument
 
 ### Configuration items
 | Name                 | Type          | Default   | Description                                                                                     |
