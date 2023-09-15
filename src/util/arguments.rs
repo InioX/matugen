@@ -34,7 +34,14 @@ pub struct Cli {
     pub quiet: Option<bool>,
 
     /// Which mode to use for the color scheme
-    #[arg(value_enum, short, long, global = true, value_name = "MODE", default_value = "dark")]
+    #[arg(
+        value_enum,
+        short,
+        long,
+        global = true,
+        value_name = "MODE",
+        default_value = "dark"
+    )]
     pub mode: Option<SchemesEnum>,
 
     /// Will not generate templates, reload apps, set wallpaper or run any commands
