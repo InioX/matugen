@@ -31,6 +31,7 @@ log = "0.4.17"
 paris-log = { version = "1.0.2", features = ["icons"] }
 colorsys = "0.6.7"
 prettytable-rs = "0.10.0"
+serde_json = "1.0.107"
 
 [workspace]
 members = ["material-color-utilities-rs"]
