@@ -5,7 +5,7 @@ extern crate paris_log;
 mod util;
 use crate::util::{
     arguments::Cli,
-    color::{show_color, get_source_color},
+    color::{dump_json, get_source_color, show_color},
     config::ConfigFile,
     template::Template,
 };
@@ -42,7 +42,7 @@ pub enum SchemesEnum {
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
     let args = Cli::parse();
-    
+
     setup_logging(&args)?;
 
     let source_color = get_source_color(&args.source)?;
@@ -51,26 +51,21 @@ fn main() -> Result<(), Report> {
 
     let config: ConfigFile = ConfigFile::read(&args)?;
 
-    let default_scheme = args.mode.expect("Something went wrong while parsing the mode");
+    let default_scheme = args
+        .mode
+        .expect("Something went wrong while parsing the mode");
 
     let schemes: Schemes = Schemes {
         light: Scheme::light_from_core_palette(&mut palette),
         dark: Scheme::dark_from_core_palette(&mut palette),
         amoled: Scheme::pure_dark_from_core_palette(&mut palette),
-        light_android: SchemeAndroid::light_from_core_palette(&mut palette), 
+        light_android: SchemeAndroid::light_from_core_palette(&mut palette),
         dark_android: SchemeAndroid::dark_from_core_palette(&mut palette),
         amoled_android: SchemeAndroid::pure_dark_from_core_palette(&mut palette),
     };
 
-
     if args.dry_run == Some(false) {
-        Template::generate(
-            &schemes,
-            &config,
-            &args,
-            &source_color,
-            &default_scheme,
-        )?;
+        Template::generate(&schemes, &config, &args, &source_color, &default_scheme)?;
 
         if config.config.reload_apps == Some(true) {
             reload_apps_linux(&args, &config)?;
@@ -85,6 +80,10 @@ fn main() -> Result<(), Report> {
 
     if args.show_colors == Some(true) {
         show_color(&schemes, &source_color);
+    }
+
+    if let Some(format) = args.json {
+        dump_json(&schemes, &source_color, format);
     }
 
     Ok(())
