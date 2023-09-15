@@ -51,6 +51,17 @@ pub struct Cli {
     /// Whether to show colors or not
     #[arg(long, global = true, action=ArgAction::SetTrue, default_value = "false")]
     pub show_colors: Option<bool>,
+
+    /// Whether to dump json of colors
+    #[arg(
+        value_enum,
+        short,
+        long,
+        global = true,
+        value_name = "JSON",
+        default_value = None,
+    )]
+    pub json: Option<Format>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -67,4 +78,14 @@ pub enum ColorFormat {
     Hex { string: String },
     Rgb { string: String },
     Hsl { string: String },
+}
+
+#[derive(Debug, Clone, clap::ValueEnum)]
+pub enum Format {
+    Hex,
+    Rgb,
+    Rgba,
+    Hsl,
+    Hsla,
+    Strip,
 }

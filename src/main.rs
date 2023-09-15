@@ -5,7 +5,7 @@ extern crate paris_log;
 mod util;
 use crate::util::{
     arguments::Cli,
-    color::{get_source_color, show_color},
+    color::{dump_json, get_source_color, show_color},
     config::ConfigFile,
     template::Template,
 };
@@ -80,6 +80,10 @@ fn main() -> Result<(), Report> {
 
     if args.show_colors == Some(true) {
         show_color(&schemes, &source_color);
+    }
+
+    if let Some(format) = args.json {
+        dump_json(&schemes, &source_color, format);
     }
 
     Ok(())

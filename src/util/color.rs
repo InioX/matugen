@@ -6,10 +6,12 @@ use prettytable::{format, Cell, Row, Table};
 
 use crate::Schemes;
 
-use super::arguments::{ColorFormat, Source};
+use super::arguments::{ColorFormat, Format, Source};
 use super::image::source_color_from_image;
 use color_eyre::{eyre::Result, Report};
 use colorsys::{ColorAlpha, Hsl, Rgb};
+use serde_json::json;
+use std::collections::HashMap;
 use std::str::FromStr;
 
 pub const COLORS: [&str; 30] = [
@@ -214,6 +216,101 @@ pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
 
     table.printstd();
     table_android.printstd();
+}
+
+fn hex(color: Color, prefix: bool) -> String {
+    format!(
+        "{}{:02x}{:02x}{:02x}",
+        if prefix { "#" } else { "" },
+        color.red,
+        color.green,
+        color.blue
+    )
+}
+
+pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: Format) {
+    type F = Format;
+    let fmt = match format {
+        F::Rgb => |c: Color| format!("rgb({:?}, {:?}, {:?})", c.red, c.green, c.blue),
+        F::Rgba => |c: Color| {
+            format!(
+                "rgba({:?}, {:?}, {:?}, {:?})",
+                c.red, c.green, c.blue, c.alpha
+            )
+        },
+        F::Hsl => {
+            |c: Color| Hsl::new(c.red as f64, c.green as f64, c.blue as f64, None).to_css_string()
+        }
+        F::Hsla => |c: Color| {
+            Hsl::new(
+                c.red as f64,
+                c.green as f64,
+                c.blue as f64,
+                Some(c.alpha as f64),
+            )
+            .to_css_string()
+        },
+        F::Hex => |c: Color| hex(c, true),
+        F::Strip => |c: Color| hex(c, false),
+    };
+
+    let mut colors_normal_light: HashMap<&str, String> = HashMap::new();
+    let mut colors_normal_dark: HashMap<&str, String> = HashMap::new();
+    let mut colors_normal_amoled: HashMap<&str, String> = HashMap::new();
+
+    for field in COLORS {
+        let color_light: Color =
+            Color::new(*Scheme::get_value(&schemes.light, field, source_color));
+        let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
+        let color_amoled: Color =
+            Color::new(*Scheme::get_value(&schemes.amoled, field, source_color));
+
+        colors_normal_light.insert(field, fmt(color_light));
+        colors_normal_dark.insert(field, fmt(color_dark));
+        colors_normal_amoled.insert(field, fmt(color_amoled));
+    }
+
+    let mut colors_android_light: HashMap<&str, String> = HashMap::new();
+    let mut colors_android_dark: HashMap<&str, String> = HashMap::new();
+    let mut colors_android_amoled: HashMap<&str, String> = HashMap::new();
+
+    for field in COLORS_ANDROID {
+        let color_light: Color = Color::new(*SchemeAndroid::get_value(
+            &schemes.light_android,
+            field,
+            source_color,
+        ));
+        let color_dark: Color = Color::new(*SchemeAndroid::get_value(
+            &schemes.dark_android,
+            field,
+            source_color,
+        ));
+        let color_amoled: Color = Color::new(*SchemeAndroid::get_value(
+            &schemes.amoled_android,
+            field,
+            source_color,
+        ));
+
+        colors_android_light.insert(field, fmt(color_light));
+        colors_android_dark.insert(field, fmt(color_dark));
+        colors_android_amoled.insert(field, fmt(color_amoled));
+    }
+
+    println!(
+        "{}",
+        json!({
+            "colors": {
+                "light": colors_normal_light,
+                "dark": colors_normal_dark,
+                "amoled": colors_normal_amoled,
+            },
+            "colors_android": {
+                "light": colors_android_light,
+                "dark": colors_android_dark,
+                "amoled": colors_android_amoled,
+            }
+        })
+    );
 }
 
 fn generate_table_format() -> Table {
