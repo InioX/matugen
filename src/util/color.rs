@@ -47,7 +47,8 @@ pub const COLORS: [&str; 30] = [
     "inverse_primary",
 ];
 
-pub const COLORS_ANDROID: [&str; 25] = [
+pub const COLORS_ANDROID: [&str; 26] = [
+    "source_color",
     "color_accent_primary",
     "color_accent_primary_variant",
     "color_accent_secondary",
