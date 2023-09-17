@@ -29,7 +29,7 @@ impl TonalPalette {
             *cached
         } else {
             let color = Hct::from(self.hue, self.chroma, tone as f64).to_int();
-            self.cache.insert(tone, color.clone());
+            self.cache.insert(tone, color);
             color
         }
     }

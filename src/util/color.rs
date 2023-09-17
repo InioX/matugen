@@ -112,7 +112,7 @@ impl SchemeExt for Scheme {
             "inverse_surface" => &self.inverse_surface,
             "inverse_on_surface" => &self.inverse_on_surface,
             "inverse_primary" => &self.inverse_primary,
-            "source_color" => &source_color,
+            "source_color" => source_color,
             _ => panic!(),
         }
     }
@@ -124,7 +124,7 @@ pub trait SchemeAndroidExt {
 impl SchemeAndroidExt for SchemeAndroid {
     fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4] {
         match field {
-            "source_color" => &source_color,
+            "source_color" => source_color,
             "color_accent_primary" => &self.color_accent_primary,
             "color_accent_primary_variant" => &self.color_accent_primary_variant,
             "color_accent_secondary" => &self.color_accent_secondary,
@@ -184,7 +184,7 @@ pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
         let color_amoled: Color =
             Color::new(*Scheme::get_value(&schemes.amoled, field, source_color));
 
-        generate_table_rows(&mut table, &field, color_light, color_dark, color_amoled);
+        generate_table_rows(&mut table, field, color_light, color_dark, color_amoled);
     }
 
     let mut table_android: Table = generate_table_format();
@@ -208,7 +208,7 @@ pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
 
         generate_table_rows(
             &mut table_android,
-            &field,
+            field,
             color_light,
             color_dark,
             color_amoled,
@@ -362,15 +362,12 @@ fn generate_table_rows(
         Cell::new(field).style_spec(""),
         // Light scheme
         Cell::new(
-            format!(
-                "{}",
-                format_argb_as_rgb([
+            format_argb_as_rgb([
                     color_light.alpha,
                     color_light.red,
                     color_light.green,
                     color_light.blue
                 ])
-            )
             .to_uppercase()
             .as_str(),
         )
@@ -379,15 +376,12 @@ fn generate_table_rows(
             .style_spec("c"),
         // Dark scheme
         Cell::new(
-            format!(
-                "{}",
-                format_argb_as_rgb([
+            format_argb_as_rgb([
                     color_dark.alpha,
                     color_dark.red,
                     color_dark.green,
                     color_dark.blue
                 ])
-            )
             .to_uppercase()
             .as_str(),
         )
@@ -396,15 +390,12 @@ fn generate_table_rows(
             .style_spec("c"),
         // Amoled theme
         Cell::new(
-            format!(
-                "{}",
-                format_argb_as_rgb([
+            format_argb_as_rgb([
                     color_amoled.alpha,
                     color_amoled.red,
                     color_amoled.green,
                     color_amoled.blue
                 ])
-            )
             .to_uppercase()
             .as_str(),
         )
