@@ -1,5 +1,6 @@
 use color_eyre::{eyre::Result, Report};
 
+use colorsys::Hsl;
 use regex::Captures;
 use regex::Match;
 use regex::Regex;
@@ -57,6 +58,8 @@ pub struct ColorReplacement {
     hex_stripped: String,
     rgb: String,
     rgba: String,
+    hsl: String,
+    hsla: String,
 }
 
 struct Patterns<'a> {
@@ -196,6 +199,16 @@ fn replace_single_match(pattern: &Regex, data: &mut String, replacement: &ColorR
                     .replace_all(data, &replacement.rgba)
                     .to_string()
             }
+            ".hsl" => {
+                *data = pattern
+                    .replace_all(data, &replacement.hsl)
+                    .to_string()
+            }
+            ".hsla" => {
+                *data = pattern
+                    .replace_all(data, &replacement.hsla)
+                    .to_string()
+            }
             _ => return Err(()),
         }
     } else {
@@ -289,16 +302,16 @@ fn generate_single_pattern<'a>(
     regexvec.push(ColorPattern {
         patterns: RegexPatterns {
             default: Regex::new(
-                &format!(r#"\{prefix}\{{{field}(\.hex|\.rgb|\.rgba|\.strip)?}}"#).to_string(),
+                &format!(r#"\{prefix}\{{{field}(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#).to_string(),
             )?,
             light: Regex::new(
-                &format!(r#"\{prefix}\{{{field}\.light(\.hex|\.rgb|\.rgba|\.strip)?}}"#).to_string(),
+                &format!(r#"\{prefix}\{{{field}\.light(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#).to_string(),
             )?,
             dark: Regex::new(
-                &format!(r#"\{prefix}\{{{field}\.dark(\.hex|\.rgb|\.rgba|\.strip)?}}"#).to_string(),
+                &format!(r#"\{prefix}\{{{field}\.dark(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#).to_string(),
             )?,
             amoled: Regex::new(
-                &format!(r#"\{prefix}\{{{field}\.amoled(\.hex|\.rgb|\.rgba|\.strip)?}}"#).to_string(),
+                &format!(r#"\{prefix}\{{{field}\.amoled(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#).to_string(),
             )?,
         },
         replacements: ColorReplacements {
@@ -324,6 +337,20 @@ fn generate_single_pattern<'a>(
                     "rgba({:?}, {:?}, {:?}, {:?})",
                     color_light.red, color_light.green, color_light.blue, color_light.alpha
                 ),
+                hsl: Hsl::new(
+                    color_light.red as f64,
+                    color_light.green as f64,
+                    color_light.blue as f64,
+                    Some(color_light.alpha as f64),
+                )
+                .to_css_string(),
+                hsla: Hsl::new(
+                    color_light.red as f64,
+                    color_light.green as f64,
+                    color_light.blue as f64,
+                    None,
+                )
+                .to_css_string()
             },
             dark: ColorReplacement {
                 hex: format_argb_as_rgb([
@@ -347,6 +374,20 @@ fn generate_single_pattern<'a>(
                     "rgba({:?}, {:?}, {:?}, {:?})",
                     color_dark.red, color_dark.green, color_dark.blue, color_dark.alpha
                 ),
+                hsl: Hsl::new(
+                    color_dark.red as f64,
+                    color_dark.green as f64,
+                    color_dark.blue as f64,
+                    Some(color_dark.alpha as f64),
+                )
+                .to_css_string(),
+                hsla: Hsl::new(
+                    color_dark.red as f64,
+                    color_dark.green as f64,
+                    color_dark.blue as f64,
+                    None,
+                )
+                .to_css_string()
             },
             amoled: ColorReplacement {
                 hex: format_argb_as_rgb([
@@ -370,6 +411,20 @@ fn generate_single_pattern<'a>(
                     "rgba({:?}, {:?}, {:?}, {:?})",
                     color_amoled.red, color_amoled.green, color_amoled.blue, color_amoled.alpha
                 ),
+                hsl: Hsl::new(
+                    color_amoled.red as f64,
+                    color_amoled.green as f64,
+                    color_amoled.blue as f64,
+                    Some(color_amoled.alpha as f64),
+                )
+                .to_css_string(),
+                hsla: Hsl::new(
+                    color_amoled.red as f64,
+                    color_amoled.green as f64,
+                    color_amoled.blue as f64,
+                    None,
+                )
+                .to_css_string()
             },
         },
     });
