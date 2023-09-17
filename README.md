@@ -134,6 +134,206 @@ make install
   </tr>
 </table>
 
+### Json flag
+Allows for dumping the schemes similarly to `--show-colors`, but in a
+machine-readable format. Can dump hex, rgba, hsl, etc.
+
+<details><summary>Result</summary>
+<p>
+     
+```json
+{
+  "colors": {
+    "amoled": {
+      "background": "#000000",
+      "error": "#ffb4ab",
+      "error_container": "#93000a",
+      "inverse_on_surface": "#323032",
+      "inverse_primary": "#72518b",
+      "inverse_surface": "#e7e1e4",
+      "on_background": "#e7e1e4",
+      "on_error": "#690005",
+      "on_error_container": "#ffb4ab",
+      "on_primary": "#412259",
+      "on_primary_container": "#f2daff",
+      "on_secondary": "#362d3b",
+      "on_secondary_container": "#ecdef1",
+      "on_surface": "#e7e1e4",
+      "on_surface_variant": "#ccc4cc",
+      "on_tertiary": "#47282a",
+      "on_tertiary_container": "#ffdadb",
+      "outline": "#958f96",
+      "outline_variant": "#4a454c",
+      "primary": "#dfb8fa",
+      "primary_container": "#593972",
+      "scrim": "#000000",
+      "secondary": "#cfc2d4",
+      "secondary_container": "#4d4352",
+      "shadow": "#000000",
+      "source_color": "#bb96d6",
+      "surface": "#000000",
+      "surface_variant": "#131015",
+      "tertiary": "#ebbbbd",
+      "tertiary_container": "#603d40"
+    },
+    "dark": {
+      "background": "#1d1b1d",
+      "error": "#ffb4ab",
+      "error_container": "#93000a",
+      "inverse_on_surface": "#323032",
+      "inverse_primary": "#72518b",
+      "inverse_surface": "#e7e1e4",
+      "on_background": "#e7e1e4",
+      "on_error": "#690005",
+      "on_error_container": "#ffb4ab",
+      "on_primary": "#412259",
+      "on_primary_container": "#f2daff",
+      "on_secondary": "#362d3b",
+      "on_secondary_container": "#ecdef1",
+      "on_surface": "#e7e1e4",
+      "on_surface_variant": "#ccc4cc",
+      "on_tertiary": "#47282a",
+      "on_tertiary_container": "#ffdadb",
+      "outline": "#958f96",
+      "outline_variant": "#4a454c",
+      "primary": "#dfb8fa",
+      "primary_container": "#593972",
+      "scrim": "#000000",
+      "secondary": "#cfc2d4",
+      "secondary_container": "#4d4352",
+      "shadow": "#000000",
+      "source_color": "#bb96d6",
+      "surface": "#1d1b1d",
+      "surface_variant": "#4a454c",
+      "tertiary": "#ebbbbd",
+      "tertiary_container": "#603d40"
+    },
+    "light": {
+      "background": "#fffbff",
+      "error": "#ba1a1a",
+      "error_container": "#ffdad6",
+      "inverse_on_surface": "#f5eff2",
+      "inverse_primary": "#dfb8fa",
+      "inverse_surface": "#323032",
+      "on_background": "#1d1b1d",
+      "on_error": "#ffffff",
+      "on_error_container": "#410002",
+      "on_primary": "#ffffff",
+      "on_primary_container": "#2a0a43",
+      "on_secondary": "#ffffff",
+      "on_secondary_container": "#201926",
+      "on_surface": "#1d1b1d",
+      "on_surface_variant": "#4a454c",
+      "on_tertiary": "#ffffff",
+      "on_tertiary_container": "#2e1316",
+      "outline": "#7b757c",
+      "outline_variant": "#ccc4cc",
+      "primary": "#72518b",
+      "primary_container": "#f2daff",
+      "scrim": "#000000",
+      "secondary": "#655b6a",
+      "secondary_container": "#ecdef1",
+      "shadow": "#000000",
+      "source_color": "#bb96d6",
+      "surface": "#fffbff",
+      "surface_variant": "#e9e0e8",
+      "tertiary": "#7a5557",
+      "tertiary_container": "#ffdadb"
+    }
+  },
+  "colors_android": {
+    "amoled": {
+      "accent_surface": "#fbecff",
+      "color_accent_primary": "#f2daff",
+      "color_accent_primary_variant": "#c29ddd",
+      "color_accent_secondary": "#ecdef1",
+      "color_accent_secondary_variant": "#b4a7b9",
+      "color_accent_tertiary": "#ffdadb",
+      "color_accent_tertiary_variant": "#cda0a3",
+      "color_background": "#000000",
+      "color_background_floating": "#000000",
+      "color_surface": "#121013",
+      "color_surface_highlight": "#1d1b1d",
+      "color_surface_variant": "#272528",
+      "off_state": "#323032",
+      "scrim_android": "#cac5c8",
+      "surface_header": "#1d1b1d",
+      "text_color_primary": "#f5eff2",
+      "text_color_primary_inverse": "#1d1b1d",
+      "text_color_secondary": "#ccc4cc",
+      "text_color_secondary_inverse": "#494649",
+      "text_color_tertiary": "#958f96",
+      "text_color_tertiary_inverse": "#7a7679",
+      "text_primary_on_accent": "#1d1b1d",
+      "text_secondary_on_accent": "#4a454c",
+      "under_surface": "#000000",
+      "volume_background": "#000000"
+    },
+    "dark": {
+      "accent_surface": "#fbecff",
+      "color_accent_primary": "#f2daff",
+      "color_accent_primary_variant": "#c29ddd",
+      "color_accent_secondary": "#ecdef1",
+      "color_accent_secondary_variant": "#b4a7b9",
+      "color_accent_tertiary": "#ffdadb",
+      "color_accent_tertiary_variant": "#cda0a3",
+      "color_background": "#1d1b1d",
+      "color_background_floating": "#1d1b1d",
+      "color_surface": "#323032",
+      "color_surface_highlight": "#555154",
+      "color_surface_variant": "#494649",
+      "off_state": "#323032",
+      "scrim_android": "#cac5c8",
+      "surface_header": "#494649",
+      "text_color_primary": "#f5eff2",
+      "text_color_primary_inverse": "#1d1b1d",
+      "text_color_secondary": "#ccc4cc",
+      "text_color_secondary_inverse": "#494649",
+      "text_color_tertiary": "#958f96",
+      "text_color_tertiary_inverse": "#7a7679",
+      "text_primary_on_accent": "#1d1b1d",
+      "text_secondary_on_accent": "#4a454c",
+      "under_surface": "#000000",
+      "volume_background": "#3d3a3d"
+    },
+    "light": {
+      "accent_surface": "#fbecff",
+      "color_accent_primary": "#f2daff",
+      "color_accent_primary_variant": "#72518b",
+      "color_accent_secondary": "#ecdef1",
+      "color_accent_secondary_variant": "#655b6a",
+      "color_accent_tertiary": "#ffdadb",
+      "color_accent_tertiary_variant": "#7a5557",
+      "color_background": "#f5eff2",
+      "color_background_floating": "#fef8fb",
+      "color_surface": "#fef8fb",
+      "color_surface_highlight": "#ffffff",
+      "color_surface_variant": "#e7e1e4",
+      "off_state": "#323032",
+      "scrim_android": "#cac5c8",
+      "surface_header": "#e7e1e4",
+      "text_color_primary": "#1d1b1d",
+      "text_color_primary_inverse": "#f5eff2",
+      "text_color_secondary": "#4a454c",
+      "text_color_secondary_inverse": "#cac5c8",
+      "text_color_tertiary": "#7b757c",
+      "text_color_tertiary_inverse": "#948f93",
+      "text_primary_on_accent": "#1d1b1d",
+      "text_secondary_on_accent": "#4a454c",
+      "under_surface": "#000000",
+      "volume_background": "#3d3a3d"
+    }
+  }
+}
+```
+     
+</p>
+</details>
+
+```sh
+matugen --json <JSON> <other-arguments>
+```
+
 ### Help
 <img src="./assets/images/help.gif" width=450>
 
@@ -195,13 +395,20 @@ matugen color hsl "hsl(216.34, 45.75%, 45.88%)" -m "amoled"
 The basic syntax for using colors is `prefix + {color}` (The default prefix is `@`, so the usage would be `@{color}`).
 
 #### Keywords
+If you want a specific scheme, you can use `@{primary.light.hex}`. All available modes/schemes can be found <a href="#usage">here</a>.
+
 ```css
 @define-color primary @{primary}; /* Result: #ffb783 */
 @define-color primary @{primary.hex}; /* Result: #ffb783 */
 @define-color primary @{primary.rgb}; /* Result: rgb(255, 183, 131) */
 @define-color primary @{primary.rgba}; /* Result: rgba(255, 183, 131, 255) */
 @define-color primary @{primary.strip}; /* Result: ffb783 */
+@define-color primary @{primary.hsl}; /* Result: hsl(25, 100%, 76%) */
+@define-color primary @{primary.hsla}; /* Result: hsla(242.2, 49.4%, 67.45%, 1) */
 
+@define-color primary @{background.light.hex}; /* Result: #fffbff */
+@define-color primary @{background.dark.hex}; /* Result: #1e1b19 */
+@define-color primary @{background.amoled.hex}; /* Result: #000000 */
 ```
 
 You can get the source color (color used for generating colorscheme) by using:
