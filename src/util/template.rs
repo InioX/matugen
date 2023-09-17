@@ -1,5 +1,7 @@
 use color_eyre::{eyre::Result, Report};
 
+use regex::Captures;
+use regex::Match;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -34,8 +36,15 @@ pub struct Template {
 }
 
 struct ColorPattern {
-    pattern: Regex,
+    patterns: RegexPatterns,
     replacements: ColorReplacements,
+}
+
+struct RegexPatterns {
+    light: Regex,
+    dark: Regex,
+    amoled: Regex,
+    default: Regex,
 }
 
 struct ImagePattern<'a> {
@@ -130,15 +139,8 @@ fn replace_matches(
     default_scheme: &SchemesEnum,
 ) {
     for regex in &regexvec.colors {
-        let captures = regex.pattern.captures(data);
 
-        let format = if let Some(caps) = captures {
-            caps.get(1)
-        } else {
-            continue;
-        };
-
-        let replacement = if let Some(scheme) = &scheme {
+        let default_replacement = if let Some(scheme) = &scheme {
             match scheme {
                 SchemesEnum::Light => &regex.replacements.light,
                 SchemesEnum::Dark => &regex.replacements.dark,
@@ -152,43 +154,57 @@ fn replace_matches(
             }
         };
 
-        if format.is_some() {
-            match format.unwrap().as_str() {
-                ".hex" => {
-                    *data = regex
-                        .pattern
-                        .replace_all(data, &replacement.hex)
-                        .to_string()
-                }
-                ".strip" => {
-                    *data = regex
-                        .pattern
-                        .replace_all(data, &replacement.hex_stripped)
-                        .to_string()
-                }
-                ".rgb" => {
-                    *data = regex
-                        .pattern
-                        .replace_all(data, &replacement.rgb)
-                        .to_string()
-                }
-                ".rgba" => {
-                    *data = regex
-                        .pattern
-                        .replace_all(data, &replacement.rgba)
-                        .to_string()
-                }
-                _ => continue,
-            }
-        } else {
-            *data = regex
-                .pattern
-                .replace_all(data, &replacement.hex)
-                .to_string()
+        
+        replace_single_match(&regex.patterns.light, data, &regex.replacements.light);
+        replace_single_match(&regex.patterns.dark, data, &regex.replacements.dark);
+        replace_single_match(&regex.patterns.amoled, data, &regex.replacements.amoled);
+        
+        if let Err(()) = replace_single_match(&regex.patterns.default, data, &default_replacement) {
+            continue;
         }
     }
 
     replace_image_keyword(regexvec, data);
+}
+
+fn replace_single_match(pattern: &Regex, data: &mut String, replacement: &ColorReplacement) -> Result<(), ()> {
+    let captures = pattern.captures(&data);
+    
+    if captures.is_none() { return Err(()) }
+
+    let format = captures.unwrap().get(1);
+
+    if format.is_some() {
+        match format.unwrap().as_str() {
+            ".hex" => {
+                *data = pattern
+                    .replace_all(data, &replacement.hex)
+                    .to_string()
+            }
+            ".strip" => {
+                *data = pattern
+                    .replace_all(data, &replacement.hex_stripped)
+                    .to_string()
+            }
+            ".rgb" => {
+                *data = pattern
+                    .replace_all(data, &replacement.rgb)
+                    .to_string()
+            }
+            ".rgba" => {
+                *data = pattern
+                    .replace_all(data, &replacement.rgba)
+                    .to_string()
+            }
+            _ => return Err(()),
+        }
+    } else {
+        *data = pattern
+            .replace_all(data, &replacement.hex)
+            .to_string()
+    }
+
+    Ok(())
 }
 
 fn replace_image_keyword(regexvec: &Patterns<'_>, data: &mut String) {
@@ -271,9 +287,20 @@ fn generate_single_pattern<'a>(
     color_amoled: Color,
 ) -> Result<&'a mut Vec<ColorPattern>, Report> {
     regexvec.push(ColorPattern {
-        pattern: Regex::new(
-            &format!(r#"\{prefix}\{{{field}(\.hex|\.rgb|\.rgba|\.strip)?}}"#).to_string(),
-        )?,
+        patterns: RegexPatterns {
+            default: Regex::new(
+                &format!(r#"\{prefix}\{{{field}(\.hex|\.rgb|\.rgba|\.strip)?}}"#).to_string(),
+            )?,
+            light: Regex::new(
+                &format!(r#"\{prefix}\{{{field}\.light(\.hex|\.rgb|\.rgba|\.strip)?}}"#).to_string(),
+            )?,
+            dark: Regex::new(
+                &format!(r#"\{prefix}\{{{field}\.dark(\.hex|\.rgb|\.rgba|\.strip)?}}"#).to_string(),
+            )?,
+            amoled: Regex::new(
+                &format!(r#"\{prefix}\{{{field}\.amoled(\.hex|\.rgb|\.rgba|\.strip)?}}"#).to_string(),
+            )?,
+        },
         replacements: ColorReplacements {
             light: ColorReplacement {
                 hex: format_argb_as_rgb([
