@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1](https://github.com/InioX/matugen/compare/ini-material-color-utilities-rs-v0.4.0...ini-material-color-utilities-rs-v0.4.1) - 2023-09-17
+
+### Fixed
+- *(android_scheme)* fix `light` and `pure_dark` colors
+
+### Other
+- remove build warnings (closes [#17](https://github.com/InioX/matugen/pull/17))
+- format with cargofmt
+
 ## [0.4.0](https://github.com/InioX/matugen/compare/ini-material-color-utilities-rs-v0.3.0...ini-material-color-utilities-rs-v0.4.0) - 2023-08-15
 
 ### Added
