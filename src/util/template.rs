@@ -142,7 +142,6 @@ fn replace_matches(
     default_scheme: &SchemesEnum,
 ) {
     for regex in &regexvec.colors {
-
         let default_replacement = if let Some(scheme) = &scheme {
             match scheme {
                 SchemesEnum::Light => &regex.replacements.light,
@@ -157,11 +156,10 @@ fn replace_matches(
             }
         };
 
-        
         replace_single_match(&regex.patterns.light, data, &regex.replacements.light);
         replace_single_match(&regex.patterns.dark, data, &regex.replacements.dark);
         replace_single_match(&regex.patterns.amoled, data, &regex.replacements.amoled);
-        
+
         if let Err(()) = replace_single_match(&regex.patterns.default, data, &default_replacement) {
             continue;
         }
@@ -170,51 +168,35 @@ fn replace_matches(
     replace_image_keyword(regexvec, data);
 }
 
-fn replace_single_match(pattern: &Regex, data: &mut String, replacement: &ColorReplacement) -> Result<(), ()> {
+fn replace_single_match(
+    pattern: &Regex,
+    data: &mut String,
+    replacement: &ColorReplacement,
+) -> Result<(), ()> {
     let captures = pattern.captures(&data);
-    
-    if captures.is_none() { return Err(()) }
+
+    if captures.is_none() {
+        return Err(());
+    }
 
     let format = captures.unwrap().get(1);
 
     if format.is_some() {
         match format.unwrap().as_str() {
-            ".hex" => {
-                *data = pattern
-                    .replace_all(data, &replacement.hex)
-                    .to_string()
-            }
+            ".hex" => *data = pattern.replace_all(data, &replacement.hex).to_string(),
             ".strip" => {
                 *data = pattern
                     .replace_all(data, &replacement.hex_stripped)
                     .to_string()
             }
-            ".rgb" => {
-                *data = pattern
-                    .replace_all(data, &replacement.rgb)
-                    .to_string()
-            }
-            ".rgba" => {
-                *data = pattern
-                    .replace_all(data, &replacement.rgba)
-                    .to_string()
-            }
-            ".hsl" => {
-                *data = pattern
-                    .replace_all(data, &replacement.hsl)
-                    .to_string()
-            }
-            ".hsla" => {
-                *data = pattern
-                    .replace_all(data, &replacement.hsla)
-                    .to_string()
-            }
+            ".rgb" => *data = pattern.replace_all(data, &replacement.rgb).to_string(),
+            ".rgba" => *data = pattern.replace_all(data, &replacement.rgba).to_string(),
+            ".hsl" => *data = pattern.replace_all(data, &replacement.hsl).to_string(),
+            ".hsla" => *data = pattern.replace_all(data, &replacement.hsla).to_string(),
             _ => return Err(()),
         }
     } else {
-        *data = pattern
-            .replace_all(data, &replacement.hex)
-            .to_string()
+        *data = pattern.replace_all(data, &replacement.hex).to_string()
     }
 
     Ok(())
@@ -302,16 +284,26 @@ fn generate_single_pattern<'a>(
     regexvec.push(ColorPattern {
         patterns: RegexPatterns {
             default: Regex::new(
-                &format!(r#"\{prefix}\{{{field}(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#).to_string(),
+                &format!(r#"\{prefix}\{{{field}(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#)
+                    .to_string(),
             )?,
             light: Regex::new(
-                &format!(r#"\{prefix}\{{{field}\.light(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#).to_string(),
+                &format!(
+                    r#"\{prefix}\{{{field}\.light(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
+                )
+                .to_string(),
             )?,
             dark: Regex::new(
-                &format!(r#"\{prefix}\{{{field}\.dark(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#).to_string(),
+                &format!(
+                    r#"\{prefix}\{{{field}\.dark(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
+                )
+                .to_string(),
             )?,
             amoled: Regex::new(
-                &format!(r#"\{prefix}\{{{field}\.amoled(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#).to_string(),
+                &format!(
+                    r#"\{prefix}\{{{field}\.amoled(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
+                )
+                .to_string(),
             )?,
         },
         replacements: ColorReplacements {
@@ -350,7 +342,7 @@ fn generate_single_pattern<'a>(
                     color_light.blue as f64,
                     None,
                 )
-                .to_css_string()
+                .to_css_string(),
             },
             dark: ColorReplacement {
                 hex: format_argb_as_rgb([
@@ -387,7 +379,7 @@ fn generate_single_pattern<'a>(
                     color_dark.blue as f64,
                     None,
                 )
-                .to_css_string()
+                .to_css_string(),
             },
             amoled: ColorReplacement {
                 hex: format_argb_as_rgb([
@@ -424,7 +416,7 @@ fn generate_single_pattern<'a>(
                     color_amoled.blue as f64,
                     None,
                 )
-                .to_css_string()
+                .to_css_string(),
             },
         },
     });
