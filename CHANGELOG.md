@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1](https://github.com/InioX/matugen/compare/matugen-v0.10.0...matugen-v0.10.1) - 2023-09-17
+
+### Added
+- *(COLORS_ANDROID)* add `source_color`
+- *(template)* add `hsl` and `hsla` formats
+- *(template)* add `dark`, `amoled` and `light` schemes to every template
+
+### Fixed
+- *(android_scheme)* fix `light` and `pure_dark` colors
+
+### Other
+- remove build warnings (closes [#17](https://github.com/InioX/matugen/pull/17))
+- add `--json` docs
+- format with cargofmt
+- add --json flag
+- run formatter
+- update note markdown
+- *(nixos)* add specific version for flake
+- move some stuff into their own functions
+
 ## [0.10.0](https://github.com/InioX/matugen/compare/matugen-v0.9.0...matugen-v0.10.0) - 2023-08-15
 
 ### Added
