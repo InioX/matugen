@@ -66,7 +66,7 @@ impl QuantizerWsmeans {
         }
 
         let mut cluster_count = max_colors.min(point_count);
-        if starting_clusters.len() > 0 {
+        if !starting_clusters.is_empty() {
             cluster_count = cluster_count.min(starting_clusters.len())
         }
 
@@ -77,7 +77,7 @@ impl QuantizerWsmeans {
         );
 
         let additional_clusters_needed = cluster_count - clusters.len();
-        if starting_clusters.len() == 0 && additional_clusters_needed > 0 {
+        if starting_clusters.is_empty() && additional_clusters_needed > 0 {
             for _ in 0..additional_clusters_needed {
                 let l = rand::random::<f64>() * 100.0;
                 let a = rand::random::<f64>() * (100.0 - (-100.0) + 1.0) + -100.0;

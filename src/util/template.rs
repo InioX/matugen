@@ -1,8 +1,6 @@
 use color_eyre::{eyre::Result, Report};
 
 use colorsys::Hsl;
-use regex::Captures;
-use regex::Match;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -96,7 +94,7 @@ impl Template {
             Source::Color { .. } => None,
         };
 
-        let regexvec: Patterns = generate_patterns(&schemes, prefix, image, source_color)?;
+        let regexvec: Patterns = generate_patterns(schemes, prefix, image, source_color)?;
 
         for (name, template) in &config.templates {
             let input_path_absolute = template.input_path.try_resolve()?;
@@ -113,8 +111,8 @@ impl Template {
                 &regexvec,
                 &mut data,
                 &template.mode,
-                &schemes,
-                &default_scheme,
+                schemes,
+                default_scheme,
             );
 
             let mut output_file = OpenOptions::new()
@@ -156,11 +154,11 @@ fn replace_matches(
             }
         };
 
-        replace_single_match(&regex.patterns.light, data, &regex.replacements.light);
-        replace_single_match(&regex.patterns.dark, data, &regex.replacements.dark);
-        replace_single_match(&regex.patterns.amoled, data, &regex.replacements.amoled);
+        let _ = replace_single_match(&regex.patterns.light, data, &regex.replacements.light);
+        let _ = replace_single_match(&regex.patterns.dark, data, &regex.replacements.dark);
+        let _ = replace_single_match(&regex.patterns.amoled, data, &regex.replacements.amoled);
 
-        if let Err(()) = replace_single_match(&regex.patterns.default, data, &default_replacement) {
+        if let Err(()) = replace_single_match(&regex.patterns.default, data, default_replacement) {
             continue;
         }
     }
@@ -173,7 +171,7 @@ fn replace_single_match(
     data: &mut String,
     replacement: &ColorReplacement,
 ) -> Result<(), ()> {
-    let captures = pattern.captures(&data);
+    let captures = pattern.captures(data);
 
     if captures.is_none() {
         return Err(());
@@ -230,7 +228,7 @@ fn generate_patterns<'a>(
         generate_single_pattern(
             &mut regexvec,
             prefix,
-            &field,
+            field,
             color_light,
             color_dark,
             color_amoled,
@@ -257,7 +255,7 @@ fn generate_patterns<'a>(
         generate_single_pattern(
             &mut regexvec,
             prefix,
-            &field,
+            field,
             color_light,
             color_dark,
             color_amoled,
@@ -285,25 +283,25 @@ fn generate_single_pattern<'a>(
         patterns: RegexPatterns {
             default: Regex::new(
                 &format!(r#"\{prefix}\{{{field}(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#)
-                    .to_string(),
+                    ,
             )?,
             light: Regex::new(
                 &format!(
                     r#"\{prefix}\{{{field}\.light(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
                 )
-                .to_string(),
+                ,
             )?,
             dark: Regex::new(
                 &format!(
                     r#"\{prefix}\{{{field}\.dark(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
                 )
-                .to_string(),
+                ,
             )?,
             amoled: Regex::new(
                 &format!(
                     r#"\{prefix}\{{{field}\.amoled(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
                 )
-                .to_string(),
+                ,
             )?,
         },
         replacements: ColorReplacements {

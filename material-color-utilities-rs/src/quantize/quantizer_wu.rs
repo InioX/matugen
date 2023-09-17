@@ -75,7 +75,7 @@ where
     T: AsPrimitive<usize>,
 {
     fn inner(r: usize, g: usize, b: usize) -> usize {
-        ((r << (INDEX_BITS * 2)) + (r << (INDEX_BITS + 1)) + r + (g << INDEX_BITS) + g + b).into()
+        (r << (INDEX_BITS * 2)) + (r << (INDEX_BITS + 1)) + r + (g << INDEX_BITS) + g + b
     }
     inner(r.as_(), g.as_(), b.as_())
 }
@@ -122,7 +122,7 @@ impl QuantizerWu {
                 (blue >> BITS_TO_REMOVE) + 1,
             );
 
-            let (red, green, blue, count) = (red as u32, green as u32, blue as u32, count as u32);
+            let (red, green, blue, count) = (red as u32, green as u32, blue as u32, count);
 
             self.weights[index] += count;
             self.moments_r[index] += count * red;
@@ -230,15 +230,15 @@ impl QuantizerWu {
     fn create_result(&self, color_count: usize) -> Vec<ARGB> {
         Vec::from_iter((0..color_count).filter_map(|i| {
             let cube = &self.cubes[i];
-            let weight = self.volume(&cube, &self.weights);
+            let weight = self.volume(cube, &self.weights);
 
             if weight == 0 {
                 return None;
             }
 
-            let r = self.volume(&cube, &self.moments_r) / weight;
-            let g = self.volume(&cube, &self.moments_g) / weight;
-            let b = self.volume(&cube, &self.moments_b) / weight;
+            let r = self.volume(cube, &self.moments_r) / weight;
+            let g = self.volume(cube, &self.moments_g) / weight;
+            let b = self.volume(cube, &self.moments_b) / weight;
 
             Some([0xff, r as u8, g as u8, b as u8])
         }))
@@ -316,7 +316,7 @@ impl QuantizerWu {
             }
         };
 
-        two.pixels.1 = one.pixels.1.clone();
+        two.pixels.1 = one.pixels.1;
 
         match direction {
             Direction::Red => {

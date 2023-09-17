@@ -70,8 +70,8 @@ impl ConfigFile {
         };
 
         match toml::from_str(&content) {
-            Ok(res) => return Ok(res),
-            Err(e) => return Err(Report::new(e).suggestion(ERROR_TEXT)),
+            Ok(res) => Ok(res),
+            Err(e) => Err(Report::new(e).suggestion(ERROR_TEXT)),
         }
     }
 
@@ -86,8 +86,8 @@ impl ConfigFile {
 
             let content: String = fs::read_to_string(config_file).unwrap();
             match toml::from_str(&content) {
-                Ok(res) => return Ok(res),
-                Err(e) => return Err(Report::new(e).suggestion(ERROR_TEXT)),
+                Ok(res) => Ok(res),
+                Err(e) => Err(Report::new(e).suggestion(ERROR_TEXT)),
             }
         } else {
             Ok(Self::read_from_fallback_path()?)
@@ -95,6 +95,6 @@ impl ConfigFile {
     }
 
     fn read_from_fallback_path() -> Result<ConfigFile, Report> {
-        Ok(toml::from_str(&DEFAULT_CONFIG)?)
+        Ok(toml::from_str(DEFAULT_CONFIG)?)
     }
 }
