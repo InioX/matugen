@@ -19,8 +19,15 @@
 <div align="center">
   <sub>A cross-platform material you color generation tool
 </div>
-     
-## Description
+   
+<h2>
+     <sub>
+          <img  src="https://github.com/InioX/matugen/assets/81521595/da0dfc26-e8c0-46c1-ad13-bfaac394109b"
+           height="25"
+           width="25">
+     </sub>
+     Description
+</h2>
 
 Matugen is a cross-platform tool that generates a colorscheme either from an image or a color, and exports it to a file from a template. It can also set the wallpaper if one was provided.
 
@@ -30,16 +37,32 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 
 ### Other projects
 - [Mitsugen](https://github.com/DimitrisMilonopoulos/mitsugen) - For gnome-shell, based on the [old](https://github.com/InioX/matugen/tree/python) and deprecated python version of Matugen
-     
-## Supported platforms
+
+<h2>
+     <sub>
+          <img  src="https://github.com/InioX/matugen/assets/81521595/3c01525a-c8b1-499e-9f28-a17e81edfb5b"
+           height="25"
+           width="25">
+     </sub>
+     Supported platforms
+</h2>
+
 - Windows
 - Linux
 - MacOS
 - NetBSD
 > **Warning**
 > Matugen only supports setting the wallpaper and restarting apps on Linux and NetBSD for now.
-     
-## Roadmap
+
+
+<h2>
+     <sub>
+          <img  src="https://cdn.discordapp.com/attachments/1107367450909081662/1156867978340606002/outline_checklist_white_24dp.png?ex=651688c3&is=65153743&hm=64edeb20edebe3dcaf752638fed5d7d218de4033973aef1e728441b05ad9a486&"
+           height="25"
+           width="25">
+     </sub>
+     Roadmap
+</h2>
 
 - [ ] Add GTK4 UI
 - [x] Add a light/dark/amoled option for each template
@@ -57,7 +80,14 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 > **Note**
 > Want a feature that is not listed above? Simply [open an issue](https://github.com/InioX/Matugen/issues).
 
-## Installation
+<h2>
+     <sub>
+          <img  src="https://github.com/InioX/matugen/assets/81521595/223f698f-9e72-430b-9a75-c9892fcea94e"
+           height="25"
+           width="25">
+     </sub>
+     Installation
+</h2>
 
 ### Cargo
 
@@ -561,5 +591,13 @@ mode = "Light" # First letter MUST be upper-case
 test2 = { input_path = '~/.config/example/template2.css', output_path = '~/.config/example2' }
 ```
 
-## Acknowledgment
+<h2>
+     <sub>
+          <img  src="https://github.com/InioX/matugen/assets/81521595/bafdef83-4122-4bfd-9a30-98a5e0d7e488"
+           height="25"
+           width="25">
+     </sub>
+     Acknowledgements
+</h2>
+
 - [material-color-utilities-rs](https://github.com/alphaqu/material-color-utilities-rs)
