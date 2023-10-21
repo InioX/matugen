@@ -1,4 +1,6 @@
 use color_eyre::{eyre::Result, Report};
+use color_eyre::eyre::ContextCompat;
+use color_eyre::eyre::WrapErr;
 
 use colorsys::Hsl;
 use regex::Regex;
@@ -8,6 +10,7 @@ use std::str;
 
 use std::fs::read_to_string;
 use std::fs::OpenOptions;
+use std::fs::create_dir_all;
 use std::io::Write;
 use std::path::PathBuf;
 
@@ -105,8 +108,9 @@ impl Template {
                 continue;
             }
 
+            
             let mut data = read_to_string(&input_path_absolute)?;
-
+            
             replace_matches(
                 &regexvec,
                 &mut data,
@@ -115,11 +119,24 @@ impl Template {
                 default_scheme,
             );
 
+            debug!("Trying to write the {} template to {}", name, output_path_absolute.display());
+            
+            if !output_path_absolute.exists() {
+                error!("The <b><red>{}</> folder doesnt exist, trying to create...", &output_path_absolute.display());
+                let parent_folder = &output_path_absolute.parent().wrap_err("Could not get the parent of the output path.")?;
+                println!("{}", parent_folder.display());
+                create_dir_all(&parent_folder).wrap_err(format!("Failed to create the {} folders.", &output_path_absolute.display()));
+            }
+
             let mut output_file = OpenOptions::new()
-                .create(true)
-                .truncate(true)
-                .write(true)
-                .open(&output_path_absolute)?;
+            .create(true)
+            .truncate(true)
+            .write(true)
+            .open(&output_path_absolute)?;
+
+            if output_file.metadata()?.permissions().readonly() {
+                error!("The <b><red>{}</> file is Read-Only", &output_path_absolute.display());
+            }
 
             output_file.write_all(data.as_bytes())?;
             success!(
