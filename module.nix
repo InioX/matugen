@@ -114,9 +114,12 @@ in {
       type = lib.types.package;
       readOnly = true;
       default =
-        if cfg.templates != osCfg.templates
-        then themePackage
-        else osCfg.theme.files;
+        if builtins.hasAttr "templates" osCfg
+        then
+          if cfg.templates != osCfg.templates
+          then themePackage
+          else osCfg.theme.files
+        else themePackage;
       description = "Generated theme files. Including only the variant chosen.";
     };
 
