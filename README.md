@@ -131,6 +131,22 @@ in {
 }
 ```
 
+This flake also provides a NixOS/Home Manager module, which can be imported by
+adding this in your configuration:
+```nix
+{pkgs, inputs, ...}: {
+  imports = [
+    inputs.matugen.nixosModules.default
+  ];
+
+  # ...
+}
+```
+
+Option details can be found by reading the [module](./module.nix). A
+[search.nixos.org](https://search.nixos.org/options)-like option viewer is
+planned.
+
 </p>
 </details>
 
