@@ -21,7 +21,7 @@ matugen: {
   sanitizedTemplates =
     builtins.mapAttrs (_: v: {
       mode = capitalize cfg.variant;
-      input_path = builtins.toString (builtins.unsafeDiscardStringContext v.input_path);
+      input_path = builtins.toString v.input_path;
       output_path = builtins.replaceStrings ["$HOME"] ["~"] v.output_path;
     })
     cfg.templates;
