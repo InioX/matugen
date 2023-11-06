@@ -363,11 +363,11 @@ fn generate_table_rows(
         // Light scheme
         Cell::new(
             format_argb_as_rgb([
-                    color_light.alpha,
-                    color_light.red,
-                    color_light.green,
-                    color_light.blue
-                ])
+                color_light.alpha,
+                color_light.red,
+                color_light.green,
+                color_light.blue,
+            ])
             .to_uppercase()
             .as_str(),
         )
@@ -377,11 +377,11 @@ fn generate_table_rows(
         // Dark scheme
         Cell::new(
             format_argb_as_rgb([
-                    color_dark.alpha,
-                    color_dark.red,
-                    color_dark.green,
-                    color_dark.blue
-                ])
+                color_dark.alpha,
+                color_dark.red,
+                color_dark.green,
+                color_dark.blue,
+            ])
             .to_uppercase()
             .as_str(),
         )
@@ -391,11 +391,11 @@ fn generate_table_rows(
         // Amoled theme
         Cell::new(
             format_argb_as_rgb([
-                    color_amoled.alpha,
-                    color_amoled.red,
-                    color_amoled.green,
-                    color_amoled.blue
-                ])
+                color_amoled.alpha,
+                color_amoled.red,
+                color_amoled.green,
+                color_amoled.blue,
+            ])
             .to_uppercase()
             .as_str(),
         )

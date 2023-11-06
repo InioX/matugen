@@ -1,6 +1,6 @@
-use color_eyre::{eyre::Result, Report};
 use color_eyre::eyre::ContextCompat;
 use color_eyre::eyre::WrapErr;
+use color_eyre::{eyre::Result, Report};
 
 use colorsys::Hsl;
 use regex::Regex;
@@ -8,9 +8,9 @@ use serde::{Deserialize, Serialize};
 
 use std::str;
 
+use std::fs::create_dir_all;
 use std::fs::read_to_string;
 use std::fs::OpenOptions;
-use std::fs::create_dir_all;
 use std::io::Write;
 use std::path::PathBuf;
 
@@ -108,9 +108,8 @@ impl Template {
                 continue;
             }
 
-            
             let mut data = read_to_string(&input_path_absolute)?;
-            
+
             replace_matches(
                 &regexvec,
                 &mut data,
@@ -119,23 +118,38 @@ impl Template {
                 default_scheme,
             );
 
-            debug!("Trying to write the {} template to {}", name, output_path_absolute.display());
-            
+            debug!(
+                "Trying to write the {} template to {}",
+                name,
+                output_path_absolute.display()
+            );
+
             if !output_path_absolute.exists() {
-                error!("The <b><yellow>{}</> folder doesnt exist, trying to create...", &output_path_absolute.display());
-                let parent_folder = &output_path_absolute.parent().wrap_err("Could not get the parent of the output path.")?;
+                error!(
+                    "The <b><yellow>{}</> folder doesnt exist, trying to create...",
+                    &output_path_absolute.display()
+                );
+                let parent_folder = &output_path_absolute
+                    .parent()
+                    .wrap_err("Could not get the parent of the output path.")?;
                 debug!("{}", parent_folder.display());
-                create_dir_all(&parent_folder).wrap_err(format!("Failed to create the {} folders.", &output_path_absolute.display()));
+                create_dir_all(&parent_folder).wrap_err(format!(
+                    "Failed to create the {} folders.",
+                    &output_path_absolute.display()
+                ));
             }
 
             let mut output_file = OpenOptions::new()
-            .create(true)
-            .truncate(true)
-            .write(true)
-            .open(&output_path_absolute)?;
+                .create(true)
+                .truncate(true)
+                .write(true)
+                .open(&output_path_absolute)?;
 
             if output_file.metadata()?.permissions().readonly() {
-                error!("The <b><red>{}</> file is Read-Only", &output_path_absolute.display());
+                error!(
+                    "The <b><red>{}</> file is Read-Only",
+                    &output_path_absolute.display()
+                );
             }
 
             output_file.write_all(data.as_bytes())?;
@@ -298,28 +312,18 @@ fn generate_single_pattern<'a>(
 ) -> Result<&'a mut Vec<ColorPattern>, Report> {
     regexvec.push(ColorPattern {
         patterns: RegexPatterns {
-            default: Regex::new(
-                &format!(r#"\{prefix}\{{{field}(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#)
-                    ,
-            )?,
-            light: Regex::new(
-                &format!(
-                    r#"\{prefix}\{{{field}\.light(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
-                )
-                ,
-            )?,
-            dark: Regex::new(
-                &format!(
-                    r#"\{prefix}\{{{field}\.dark(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
-                )
-                ,
-            )?,
-            amoled: Regex::new(
-                &format!(
-                    r#"\{prefix}\{{{field}\.amoled(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
-                )
-                ,
-            )?,
+            default: Regex::new(&format!(
+                r#"\{prefix}\{{{field}(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
+            ))?,
+            light: Regex::new(&format!(
+                r#"\{prefix}\{{{field}\.light(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
+            ))?,
+            dark: Regex::new(&format!(
+                r#"\{prefix}\{{{field}\.dark(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
+            ))?,
+            amoled: Regex::new(&format!(
+                r#"\{prefix}\{{{field}\.amoled(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
+            ))?,
         },
         replacements: ColorReplacements {
             light: ColorReplacement {
