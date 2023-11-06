@@ -37,7 +37,7 @@ impl Cam16 {
         let d_a = self.astar() - other.astar();
         let d_b = self.bstar() - other.bstar();
         let d_eprime = (d_j * d_j + d_a * d_a + d_b * d_b).sqrt();
-        
+
         1.41 * d_eprime.powf(0.63)
     }
 
