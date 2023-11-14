@@ -34,7 +34,7 @@ impl CorePalette {
                     a1: TonalPalette::from_hue_and_chroma(hue, chroma),
                     a2: TonalPalette::from_hue_and_chroma(hue, chroma / 3.),
                     a3: TonalPalette::from_hue_and_chroma(hue + 60., chroma / 2.),
-                    n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0)),
+                    n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(6.0)),
                     n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
                     error,
                 },
@@ -44,7 +44,7 @@ impl CorePalette {
                         a1: TonalPalette::from_hue_and_chroma(hue, chroma),
                         a2: TonalPalette::from_hue_and_chroma(hue + angle, chroma / 3.),
                         a3: TonalPalette::from_hue_and_chroma(hue - angle, chroma / 2.),
-                        n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0)),
+                        n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(6.0)),
                         n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
                         error,
                     }
@@ -55,7 +55,7 @@ impl CorePalette {
                         a1: TonalPalette::from_hue_and_chroma(hue, chroma),
                         a2: TonalPalette::from_hue_and_chroma(hue + angle, chroma / 3.),
                         a3: TonalPalette::from_hue_and_chroma(hue - angle, chroma / 2.),
-                        n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(4.0)),
+                        n1: TonalPalette::from_hue_and_chroma(hue, (chroma / 12.).min(6.0)),
                         n2: TonalPalette::from_hue_and_chroma(hue, (chroma / 6.).min(8.0)),
                         error,
                     }
@@ -66,7 +66,7 @@ impl CorePalette {
                 a1: TonalPalette::from_hue_and_chroma(hue, 48.0f64.max(chroma)),
                 a2: TonalPalette::from_hue_and_chroma(hue, 16.),
                 a3: TonalPalette::from_hue_and_chroma(hue + 60., 24.),
-                n1: TonalPalette::from_hue_and_chroma(hue, 4.),
+                n1: TonalPalette::from_hue_and_chroma(hue, 6.),
                 n2: TonalPalette::from_hue_and_chroma(hue, 8.),
                 error,
             }
