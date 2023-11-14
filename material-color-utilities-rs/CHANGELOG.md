@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/InioX/matugen/compare/ini-material-color-utilities-rs-v0.4.1...ini-material-color-utilities-rs-v0.5.0) - 2023-11-14
+
+### Other
+- Added new surfaces, fixed colors, removed deprecated colors, changed chroma for neutral palette
+- cargo fmt
+
 ## [0.4.1](https://github.com/InioX/matugen/compare/ini-material-color-utilities-rs-v0.4.0...ini-material-color-utilities-rs-v0.4.1) - 2023-09-17
 
 ### Fixed
