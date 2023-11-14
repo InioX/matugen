@@ -56,10 +56,9 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 > **Warning**
 > Matugen only supports setting the wallpaper and restarting apps on Linux and NetBSD for now.
 
-
 <h2>
      <sub>
-          <img  src="https://cdn.discordapp.com/attachments/1107367450909081662/1156867978340606002/outline_checklist_white_24dp.png?ex=651688c3&is=65153743&hm=64edeb20edebe3dcaf752638fed5d7d218de4033973aef1e728441b05ad9a486&"
+          <img  src="https://github.com/InioX/matugen/assets/81521595/1ff9c777-94d9-4e24-85ec-725a6aa10612"
            height="25"
            width="25">
      </sub>
