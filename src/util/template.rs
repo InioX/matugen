@@ -133,7 +133,7 @@ impl Template {
                     .parent()
                     .wrap_err("Could not get the parent of the output path.")?;
                 debug!("{}", parent_folder.display());
-                create_dir_all(&parent_folder).wrap_err(format!(
+                let _ = create_dir_all(&parent_folder).wrap_err(format!(
                     "Failed to create the {} folders.",
                     &output_path_absolute.display()
                 ));
