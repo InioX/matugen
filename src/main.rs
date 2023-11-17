@@ -69,14 +69,14 @@ fn main() -> Result<(), Report> {
     if args.dry_run == Some(false) {
         Template::generate(&schemes, &config, &args, &source_color, &default_scheme)?;
 
-        if !cfg!(any(target_os = "macos", target_os = "windows")) {            
-            if config.config.reload_apps == Some(true) {
-                reload_apps_linux(&args, &config)?;
-            }
+        #[cfg(any(target_os = "linux", target_os = "netbsd"))]
+        if config.config.reload_apps == Some(true) {
+            reload_apps_linux(&args, &config)?;
+        }
 
-            if config.config.set_wallpaper == Some(true) {
-                set_wallaper(&config, &args)?;
-            }
+        #[cfg(any(target_os = "linux", target_os = "netbsd"))]
+        if config.config.set_wallpaper == Some(true) {
+            set_wallaper(&config, &args)?;
         }
 
         run_after(&config)?;
