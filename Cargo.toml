@@ -1,6 +1,6 @@
 [package]
 name = "matugen"
-version = "0.11.0"
+version = "0.11.1"
 description = "A material you color generation tool with templates"
 repository = "https://github.com/InioX/matugen"
 categories = ["command-line-utilities"]
