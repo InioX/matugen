@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1](https://github.com/InioX/matugen/compare/matugen-v0.11.0...matugen-v0.11.1) - 2023-11-17
+
+### Fixed
+- remove unused result warning
+- *(macos)* update specific functions to only run on linux and macos ([#25](https://github.com/InioX/matugen/pull/25))
+- *(macos)* use conditional import for unsupported modules ([#25](https://github.com/InioX/matugen/pull/25))
+
+### Other
+- update note syntax
+- update roadmap icon
+
 ## [0.10.1](https://github.com/InioX/matugen/compare/matugen-v0.10.0...matugen-v0.10.1) - 2023-09-17
 
 ### Added
