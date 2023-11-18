@@ -90,7 +90,7 @@ impl Template {
             None => &default_prefix,
         };
 
-        info!("Loaded {} templates.", &config.templates.len());
+        info!("Loaded <b><cyan>{}</> templates.", &config.templates.len());
 
         let image = match &args.source {
             Source::Image { path } => Some(path),
@@ -99,7 +99,7 @@ impl Template {
 
         let regexvec: Patterns = generate_patterns(schemes, prefix, image, source_color)?;
 
-        for (name, template) in &config.templates {
+        for (i, (name, template)) in config.templates.iter().enumerate() {
             let input_path_absolute = template.input_path.try_resolve()?;
             let output_path_absolute = template.output_path.try_resolve()?;
 
@@ -154,7 +154,9 @@ impl Template {
 
             output_file.write_all(data.as_bytes())?;
             success!(
-                "Exported the <b><green>{}</> template to <d><u>{}</>",
+                "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
+                i+1,
+                &config.templates.len(),
                 name,
                 output_path_absolute.display()
             );

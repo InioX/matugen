@@ -6,7 +6,7 @@ use material_color_utilities_rs::{quantize::quantizer_celebi::QuantizerCelebi, s
 use super::color::Color;
 
 pub fn source_color_from_image(image: &String) -> Result<Vec<[u8; 4]>, Report> {
-    info!("Opening image {}", image);
+    info!("Opening image in <d><u>{}</>", image);
     let img = match image::open(image) {
         Ok(img) => img,
         Err(ImageError::Unsupported(e)) => {
@@ -31,7 +31,7 @@ pub fn source_color_from_image(image: &String) -> Result<Vec<[u8; 4]>, Report> {
     let (new_width, new_height) = (width / 64, height / 64);
 
     info!(
-        "Resizing image from {}x{} to {}x{}",
+        "Resizing image from <b><cyan>{}x{}</> to <b><cyan>{}x{}</>",
         width, height, new_height, new_width
     );
     let resized_img: DynamicImage = img.resize(new_height, new_width, FilterType::Lanczos3);
