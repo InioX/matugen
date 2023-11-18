@@ -22,6 +22,8 @@ use material_color_utilities_rs::{
 use clap::{Parser, ValueEnum};
 use serde::{Deserialize, Serialize};
 
+use std::io::Write;
+
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
 use util::{reload::reload_apps_linux, wallpaper::set_wallaper};
 
@@ -125,6 +127,7 @@ fn setup_logging(args: &Cli) -> Result<(), Report> {
         .format_module_path(false)
         .format_timestamp(None)
         .filter_level(log_level)
+        .format(|buf, record| writeln!(buf, "{}", record.args()))
         .try_init()?;
     Ok(())
 }
