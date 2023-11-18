@@ -49,18 +49,17 @@ fn main() -> Result<(), Report> {
     color_eyre::install()?;
     let args = Cli::parse();
 
-    setup_logging(&args)?;
+    let log_level: LevelFilter = if args.verbose == Some(true) {
+        LevelFilter::Info
+    } else if args.quiet == Some(true) {
+        LevelFilter::Error
+    } else {
+        LevelFilter::Warn
+    };
 
-    let name = env!("CARGO_PKG_NAME");
-    let current_version = env!("CARGO_PKG_VERSION");
-    let informer = update_informer::new(registry::Crates, name, current_version);
+    setup_logging(log_level)?;
 
-    if let Some(version) = informer.check_version().ok().flatten() {
-        warn!(
-            "New version is available: <b><red>{}</> -> <b><green>{}</>",
-            current_version, version
-        );
-    }
+    check_version();
 
     let source_color = get_source_color(&args.source)?;
 
@@ -94,7 +93,9 @@ fn main() -> Result<(), Report> {
             set_wallaper(&config, &args)?;
         }
 
-        run_after(&config)?;
+        if let Some(commands) = config.config.run_after {
+            run_after(commands)?;
+        }
     }
 
     if args.show_colors == Some(true) {
@@ -108,39 +109,38 @@ fn main() -> Result<(), Report> {
     Ok(())
 }
 
-fn run_after(config: &ConfigFile) -> Result<(), Report> {
-    if let Some(commands) = &config.config.run_after {
-        for (i, command) in commands.iter().enumerate() {
-            if command.is_empty() {
-                continue;
-            }
+fn check_version() {
+    let name = env!("CARGO_PKG_NAME");
+    let current_version = env!("CARGO_PKG_VERSION");
+    let informer = update_informer::new(registry::Crates, name, current_version);
 
-            info!(
-                "[{}/{}] Running: {:?}",
-                i + 1,
-                &config.templates.len(),
-                command
-            );
+    if let Some(version) = informer.check_version().ok().flatten() {
+        warn!(
+            "New version is available: <b><red>{}</> -> <b><green>{}</>",
+            current_version, version
+        );
+    }
+}
 
-            let mut cmd = Command::new(&command[0]);
-            for arg in command.iter().skip(1) {
-                cmd.arg(arg);
-            }
-            cmd.spawn()
-                .wrap_err(format!("Error when runnning command: {:?}", cmd))?;
+fn run_after(commands: Vec<Vec<String>>) -> Result<(), Report> {
+    for (i, command) in commands.iter().enumerate() {
+        if command.is_empty() {
+            continue;
         }
-    };
+
+        info!("[{}/{}] Running: {:?}", i + 1, &commands.len(), command);
+
+        let mut cmd = Command::new(&command[0]);
+        for arg in command.iter().skip(1) {
+            cmd.arg(arg);
+        }
+        cmd.spawn()
+            .wrap_err(format!("Error when runnning command: {:?}", cmd))?;
+    }
     Ok(())
 }
 
-fn setup_logging(args: &Cli) -> Result<(), Report> {
-    let log_level: LevelFilter = if args.verbose == Some(true) {
-        LevelFilter::Info
-    } else if args.quiet == Some(true) {
-        LevelFilter::Error
-    } else {
-        LevelFilter::Warn
-    };
+fn setup_logging(log_level: LevelFilter) -> Result<(), Report> {
     pretty_env_logger::env_logger::builder()
         .format_module_path(false)
         .format_timestamp(None)
