@@ -24,6 +24,8 @@ use serde::{Deserialize, Serialize};
 
 use std::io::Write;
 
+use update_informer::{registry, Check};
+
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
 use util::{reload::reload_apps_linux, wallpaper::set_wallaper};
 
@@ -48,6 +50,14 @@ fn main() -> Result<(), Report> {
     let args = Cli::parse();
 
     setup_logging(&args)?;
+
+    let name = env!("CARGO_PKG_NAME");
+    let current_version = env!("CARGO_PKG_VERSION");
+    let informer = update_informer::new(registry::Crates, name, current_version);
+
+    if let Some(version) = informer.check_version().ok().flatten()  {
+        warn!("New version is available: <b><red>{}</> -> <b><green>{}</>", current_version, version);
+    }
 
     let source_color = get_source_color(&args.source)?;
 
