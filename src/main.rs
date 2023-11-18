@@ -97,12 +97,12 @@ fn main() -> Result<(), Report> {
 
 fn run_after(config: &ConfigFile) -> Result<(), Report> {
     if let Some(commands) = &config.config.run_after {
-        for command in commands {
+        for (i, command) in commands.iter().enumerate() {
             if command.is_empty() {
                 continue;
             }
 
-            info!("Running: {:?}", command);
+            info!("[{}/{}] Running: {:?}", i+1, &config.templates.len(), command);
 
             let mut cmd = Command::new(&command[0]);
             for arg in command.iter().skip(1) {
