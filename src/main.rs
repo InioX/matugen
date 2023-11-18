@@ -55,8 +55,11 @@ fn main() -> Result<(), Report> {
     let current_version = env!("CARGO_PKG_VERSION");
     let informer = update_informer::new(registry::Crates, name, current_version);
 
-    if let Some(version) = informer.check_version().ok().flatten()  {
-        warn!("New version is available: <b><red>{}</> -> <b><green>{}</>", current_version, version);
+    if let Some(version) = informer.check_version().ok().flatten() {
+        warn!(
+            "New version is available: <b><red>{}</> -> <b><green>{}</>",
+            current_version, version
+        );
     }
 
     let source_color = get_source_color(&args.source)?;
@@ -112,7 +115,12 @@ fn run_after(config: &ConfigFile) -> Result<(), Report> {
                 continue;
             }
 
-            info!("[{}/{}] Running: {:?}", i+1, &config.templates.len(), command);
+            info!(
+                "[{}/{}] Running: {:?}",
+                i + 1,
+                &config.templates.len(),
+                command
+            );
 
             let mut cmd = Command::new(&command[0]);
             for arg in command.iter().skip(1) {

@@ -155,7 +155,7 @@ impl Template {
             output_file.write_all(data.as_bytes())?;
             success!(
                 "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
-                i+1,
+                i + 1,
                 &config.templates.len(),
                 name,
                 output_path_absolute.display()
