@@ -10,18 +10,12 @@ pub fn source_color_from_image(image: &String) -> Result<Vec<[u8; 4]>, Report> {
     let img = match image::open(image) {
         Ok(img) => img,
         Err(ImageError::Unsupported(e)) => {
-            return Err(Report::new(e)
-                .note("This might have failed due to the image format not being supported.")
-                .suggestion(
-                    "Try using another image that is valid (for example `wallpaper.png`).",
-                ))
+            return Err(Report::new(e).suggestion("Try using another image that is valid."))
         }
         Err(ImageError::IoError(e)) => {
-            return Err(Report::new(e)
-                .note("This might have failed due to the image not being found.")
-                .suggestion(
-                    "Try using an image that exists or make sure the path provided is valid.",
-                ))
+            return Err(Report::new(e).suggestion(
+                "Try using an image that exists or make sure the path provided is valid.",
+            ))
         }
         Err(e) => return Err(Report::new(e)),
     };
