@@ -91,18 +91,22 @@ fn main() -> Result<(), Report> {
                 Source::Color { .. } => return Ok(()),
             };
 
+            let wallpaper_tool = match &config.config.wallpaper_tool {
+                Some(wallpaper_tool) => wallpaper_tool,
+                None => {
+                    if cfg!(windows) {
+                        return Ok(());
+                    }
+                    return Ok(warn!(
+                        "<d>Wallpaper tool not set, not setting wallpaper...</>"
+                    ));
+                }
+            };
+
             #[cfg(target_os = "windows")]
             wallpaper::windows::set(&path)?;
 
             #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-            let wallpaper_tool = match &config.config.wallpaper_tool {
-                Some(wallpaper_tool) => wallpaper_tool,
-                None => {
-                    return Ok(warn!(
-                        "<d>Wallpaper tool not set, not setting wallpaper...</>"
-                    ))
-                }
-            };
             wallpaper::unix::set(
                 path,
                 wallpaper_tool,
