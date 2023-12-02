@@ -145,7 +145,7 @@ fn run_after(commands: &Vec<Vec<String>>) -> Result<(), Report> {
             cmd.arg(arg);
         }
         cmd.spawn()
-            .wrap_err(format!("Error when runnning command: {:?}", cmd))?;
+            .wrap_err(format!("Error when running command: {:?}", cmd))?;
     }
     Ok(())
 }
