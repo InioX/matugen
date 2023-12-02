@@ -956,6 +956,7 @@ dependencies = [
  "serde_json",
  "toml",
  "update-informer",
+ "winapi",
 ]
 
 [[package]]

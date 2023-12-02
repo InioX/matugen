@@ -15,6 +15,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["winuser"] }
+
 [dependencies]
 material-color-utilities-rs = { version = "0.5.0",package = "ini-material-color-utilities-rs", path = "material-color-utilities-rs", features = ["serde", "clap"] }
 image = "0.24.6"

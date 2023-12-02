@@ -26,8 +26,13 @@ use std::io::Write;
 
 use update_informer::{registry, Check};
 
+use crate::util::arguments::Source;
+
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
 use util::{reload::reload_apps_linux, wallpaper::set_wallaper};
+
+#[cfg(target_os = "windows")]
+use util::wallpaper::set_wallaper_windows;
 
 pub struct Schemes {
     pub light: Scheme,
@@ -83,17 +88,25 @@ fn main() -> Result<(), Report> {
     if args.dry_run == Some(false) {
         Template::generate(&schemes, &config, &args, &source_color, &default_scheme)?;
 
-        #[cfg(any(target_os = "linux", target_os = "netbsd"))]
         if config.config.reload_apps == Some(true) {
+            #[cfg(any(target_os = "linux", target_os = "netbsd"))]
             reload_apps_linux(&args, &config)?;
         }
 
-        #[cfg(any(target_os = "linux", target_os = "netbsd"))]
         if config.config.set_wallpaper == Some(true) {
-            set_wallaper(&config, &args)?;
+            let path = match &args.source {
+                Source::Image { path } => path,
+                Source::Color { .. } => return Ok(()),
+            };
+
+            #[cfg(target_os = "windows")]
+            set_wallaper_windows(&path)?;
+
+            #[cfg(any(target_os = "linux", target_os = "netbsd"))]
+            set_wallaper(&config, &path)?;
         }
 
-        if let Some(commands) = config.config.run_after {
+        if let Some(commands) = &config.config.run_after {
             run_after(commands)?;
         }
     }
@@ -122,7 +135,7 @@ fn check_version() {
     }
 }
 
-fn run_after(commands: Vec<Vec<String>>) -> Result<(), Report> {
+fn run_after(commands: &Vec<Vec<String>>) -> Result<(), Report> {
     for (i, command) in commands.iter().enumerate() {
         if command.is_empty() {
             continue;
