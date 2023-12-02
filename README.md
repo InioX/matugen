@@ -175,3 +175,4 @@ make install
 </h2>
 
 - [material-color-utilities-rs](https://github.com/alphaqu/material-color-utilities-rs)
+- [wallpaper.rs](https://github.com/reujab/wallpaper.rs)
