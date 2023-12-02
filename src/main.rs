@@ -2,34 +2,29 @@ extern crate pretty_env_logger;
 #[macro_use]
 extern crate paris_log;
 
-mod wallpaper;
 mod reload;
-
 mod util;
+mod wallpaper;
+
 use crate::util::{
-    arguments::Cli,
+    arguments::{Cli, Source},
     color::{dump_json, get_source_color, show_color},
     config::ConfigFile,
     template::Template,
 };
 
-use log::LevelFilter;
-use std::process::Command;
-
-use color_eyre::{eyre::Result, eyre::WrapErr, Report};
 use material_color_utilities_rs::{
     palettes::core::{ColorPalette, CorePalette},
     scheme::{scheme::Scheme, scheme_android::SchemeAndroid},
 };
 
 use clap::{Parser, ValueEnum};
+use color_eyre::{eyre::Result, eyre::WrapErr, Report};
+use log::LevelFilter;
 use serde::{Deserialize, Serialize};
-
 use std::io::Write;
-
+use std::process::Command;
 use update_informer::{registry, Check};
-
-use crate::util::arguments::Source;
 
 pub struct Schemes {
     pub light: Scheme,
@@ -100,7 +95,20 @@ fn main() -> Result<(), Report> {
             wallpaper::windows::set(&path)?;
 
             #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-            wallpaper::unix::set(&config, &path)?;
+            let wallpaper_tool = match &config.config.wallpaper_tool {
+                Some(wallpaper_tool) => wallpaper_tool,
+                None => {
+                    return Ok(warn!(
+                        "<d>Wallpaper tool not set, not setting wallpaper...</>"
+                    ))
+                }
+            };
+            wallpaper::unix::set(
+                path,
+                wallpaper_tool,
+                &config.config.swww_options,
+                &config.config.feh_options,
+            )?;
         }
 
         if let Some(commands) = &config.config.run_after {
