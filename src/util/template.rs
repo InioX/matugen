@@ -133,7 +133,7 @@ impl Template {
                     .parent()
                     .wrap_err("Could not get the parent of the output path.")?;
                 debug!("{}", parent_folder.display());
-                let _ = create_dir_all(&parent_folder).wrap_err(format!(
+                let _ = create_dir_all(parent_folder).wrap_err(format!(
                     "Failed to create the {} folders.",
                     &output_path_absolute.display()
                 ));
@@ -212,8 +212,8 @@ fn replace_single_match(
 
     let format = captures.unwrap().get(1);
 
-    if format.is_some() {
-        match format.unwrap().as_str() {
+    if let Some(format) = format {
+        match format.as_str() {
             ".hex" => *data = pattern.replace_all(data, &replacement.hex).to_string(),
             ".strip" => {
                 *data = pattern

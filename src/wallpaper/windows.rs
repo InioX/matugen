@@ -13,7 +13,7 @@ use winapi::um::winuser::SPIF_UPDATEINIFILE;
 use winapi::um::winuser::SPI_SETDESKWALLPAPER;
 
 #[cfg(target_os = "windows")]
-pub fn set(path: &String) -> Result<(), Report> {    
+pub fn set(path: &String) -> Result<(), Report> {
     unsafe {
         let path = OsStr::new(path)
             .encode_wide()

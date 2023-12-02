@@ -453,21 +453,19 @@ pub fn get_source_color(source: &Source) -> Result<[u8; 4], Report> {
     let source_color: [u8; 4] = match &source {
         Source::Image { path } => source_color_from_image(path)?[0],
         Source::Color(color) => {
-            let src: Rgb;
-
-            match color {
+            let src: Rgb = match color {
                 ColorFormat::Hex { string } => {
-                    src = Rgb::from_hex_str(string).expect("Invalid hex color string provided")
+                    Rgb::from_hex_str(string).expect("Invalid hex color string provided")
                 }
                 ColorFormat::Rgb { string } => {
-                    src = string.parse().expect("Invalid rgb color string provided")
+                    string.parse().expect("Invalid rgb color string provided")
                 }
                 ColorFormat::Hsl { string } => {
-                    src = Hsl::from_str(string)
+                    Hsl::from_str(string)
                         .expect("Invalid hsl color string provided")
                         .into()
                 }
-            }
+            };
             [
                 src.alpha() as u8,
                 src.red() as u8,
