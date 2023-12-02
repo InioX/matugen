@@ -4,7 +4,6 @@ use color_eyre::Report;
 use std::ffi::OsStr;
 use std::io;
 use std::iter;
-use std::mem;
 use std::os::windows::ffi::OsStrExt;
 use winapi::ctypes::c_void;
 use winapi::um::winuser::SystemParametersInfoW;
