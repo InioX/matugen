@@ -460,11 +460,9 @@ pub fn get_source_color(source: &Source) -> Result<[u8; 4], Report> {
                 ColorFormat::Rgb { string } => {
                     string.parse().expect("Invalid rgb color string provided")
                 }
-                ColorFormat::Hsl { string } => {
-                    Hsl::from_str(string)
-                        .expect("Invalid hsl color string provided")
-                        .into()
-                }
+                ColorFormat::Hsl { string } => Hsl::from_str(string)
+                    .expect("Invalid hsl color string provided")
+                    .into(),
             };
             [
                 src.alpha() as u8,
