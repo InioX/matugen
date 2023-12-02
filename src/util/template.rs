@@ -1,5 +1,6 @@
 use color_eyre::eyre::ContextCompat;
 use color_eyre::eyre::WrapErr;
+use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
 use colorsys::Hsl;
@@ -108,7 +109,9 @@ impl Template {
                 continue;
             }
 
-            let mut data = read_to_string(&input_path_absolute)?;
+            let mut data = read_to_string(&input_path_absolute)
+                .wrap_err(format!("Could not read the {} template.", name))
+                .suggestion("Try converting the file to use UTF-8 encoding.")?;
 
             replace_matches(
                 &regexvec,
