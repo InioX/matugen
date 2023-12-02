@@ -2,6 +2,9 @@ extern crate pretty_env_logger;
 #[macro_use]
 extern crate paris_log;
 
+mod wallpaper;
+mod reload;
+
 mod util;
 use crate::util::{
     arguments::Cli,
@@ -27,12 +30,6 @@ use std::io::Write;
 use update_informer::{registry, Check};
 
 use crate::util::arguments::Source;
-
-#[cfg(any(target_os = "linux", target_os = "netbsd"))]
-use util::{reload::reload_apps_linux, wallpaper::set_wallaper};
-
-#[cfg(target_os = "windows")]
-use util::wallpaper::set_wallaper_windows;
 
 pub struct Schemes {
     pub light: Scheme,
@@ -90,7 +87,7 @@ fn main() -> Result<(), Report> {
 
         if config.config.reload_apps == Some(true) {
             #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-            reload_apps_linux(&args, &config)?;
+            reload::unix::reload(&args, &config)?;
         }
 
         if config.config.set_wallpaper == Some(true) {
@@ -100,10 +97,10 @@ fn main() -> Result<(), Report> {
             };
 
             #[cfg(target_os = "windows")]
-            set_wallaper_windows(&path)?;
+            wallpaper::windows::set(&path)?;
 
             #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-            set_wallaper(&config, &path)?;
+            wallpaper::unix::set(&config, &path)?;
         }
 
         if let Some(commands) = &config.config.run_after {
