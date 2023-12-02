@@ -91,6 +91,7 @@ fn main() -> Result<(), Report> {
                 Source::Color { .. } => return Ok(()),
             };
 
+            #[cfg(any(target_os = "linux", target_os = "netbsd"))]
             let wallpaper_tool = match &config.config.wallpaper_tool {
                 Some(wallpaper_tool) => wallpaper_tool,
                 None => {
@@ -152,10 +153,19 @@ fn run_after(commands: &Vec<Vec<String>>) -> Result<(), Report> {
 
         info!("[{}/{}] Running: {:?}", i + 1, &commands.len(), command);
 
-        let mut cmd = Command::new(&command[0]);
-        for arg in command.iter().skip(1) {
+        let shell_args = if cfg!(target_os = "windows") {
+            ["cmd", "/C"]
+        } else {
+            ["sh", "-c"]
+        };
+
+        let mut cmd = Command::new(shell_args[0]);
+        cmd.arg(shell_args[1]);
+
+        for arg in command.iter() {
             cmd.arg(arg);
         }
+
         cmd.spawn()
             .wrap_err(format!("Error when running command: {:?}", cmd))?;
     }
