@@ -49,6 +49,8 @@ fn main() -> Result<(), Report> {
         LevelFilter::Info
     } else if args.quiet == Some(true) {
         LevelFilter::Off
+    } else if args.debug == Some(true) {
+        LevelFilter::Debug
     } else {
         LevelFilter::Warn
     };
