@@ -29,7 +29,7 @@ pub struct Cli {
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub verbose: Option<bool>,
 
-    /// Whether to only show errors.
+    /// Whether to show no output.
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub quiet: Option<bool>,
 
