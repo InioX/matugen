@@ -19,11 +19,10 @@ use material_color_utilities_rs::{
 };
 
 use clap::{Parser, ValueEnum};
-use color_eyre::{eyre::Result, eyre::WrapErr, Report};
+use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
 use serde::{Deserialize, Serialize};
 use std::io::Write;
-use std::process::Command;
 use update_informer::{registry, Check};
 
 pub struct Schemes {
@@ -118,10 +117,6 @@ fn main() -> Result<(), Report> {
                 &config.config.feh_options,
             )?;
         }
-
-        if let Some(commands) = &config.config.run_after {
-            run_after(commands)?;
-        }
     }
 
     if args.show_colors == Some(true) {
@@ -146,33 +141,6 @@ fn check_version() {
             current_version, version
         );
     }
-}
-
-fn run_after(commands: &Vec<Vec<String>>) -> Result<(), Report> {
-    for (i, command) in commands.iter().enumerate() {
-        if command.is_empty() {
-            continue;
-        }
-
-        info!("[{}/{}] Running: {:?}", i + 1, &commands.len(), command);
-
-        let shell_args = if cfg!(target_os = "windows") {
-            ["cmd", "/C"]
-        } else {
-            ["sh", "-c"]
-        };
-
-        let mut cmd = Command::new(shell_args[0]);
-        cmd.arg(shell_args[1]);
-
-        for arg in command.iter() {
-            cmd.arg(arg);
-        }
-
-        cmd.spawn()
-            .wrap_err(format!("Error when running command: {:?}", cmd))?;
-    }
-    Ok(())
 }
 
 fn setup_logging(log_level: LevelFilter) -> Result<(), Report> {
