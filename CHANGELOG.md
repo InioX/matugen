@@ -6,6 +6,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.2](https://github.com/InioX/matugen/compare/matugen-v0.11.1...matugen-v0.11.2) - 2023-12-03
+
+### Added
+- update example config and template file
+- add `--debug` flag
+- remove `run_after`
+- *(macos)* implement wallpaper setting
+- *(template)* show error if file is not in UTF-8
+- *(wallpaper)* add error is the program to set wallpaper is not in PATH
+- *(windows)* implement setting wallpaper
+- add `update-informer`
+- *(logging)* add number indicator to logs for templates and run_after
+- *(logging)* update the message format
+
+### Fixed
+- *(template)* fix "parent folder does not exist" warning
+- `--quiet` flag still showing output
+- make `enquote` dependency only for macos target
+- `run_after` not working on windows
+- fix typo in `run_after` function
+
+### Other
+- clean up `Template::generate` function arguments
+- run `cargo update`
+- remove unneeded imports
+- update roadmap and wallpaper alert
+- format with `cargo fmt`
+- changed function arguments to not use `config` or `args` directly
+- move some files into os specific folders
+- move update_informer into a function
+- format with cargofmt
+
 ## [0.11.1](https://github.com/InioX/matugen/compare/matugen-v0.11.0...matugen-v0.11.1) - 2023-11-17
 
 ### Fixed
