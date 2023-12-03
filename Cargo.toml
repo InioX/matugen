@@ -18,6 +18,9 @@ edition = "2021"
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winuser"] }
 
+[target.'cfg(macos)'.dependencies]
+enquote = "1.1.0"
+
 [dependencies]
 material-color-utilities-rs = { version = "0.5.0",package = "ini-material-color-utilities-rs", path = "material-color-utilities-rs", features = ["serde", "clap"] }
 image = "0.24.6"
@@ -36,7 +39,6 @@ colorsys = "0.6.7"
 prettytable-rs = "0.10.0"
 serde_json = "1.0.107"
 update-informer = "1.1.0"
-enquote = "1.1.0"
 
 [workspace]
 members = ["material-color-utilities-rs"]
