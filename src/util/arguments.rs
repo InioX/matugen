@@ -33,6 +33,10 @@ pub struct Cli {
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub quiet: Option<bool>,
 
+    /// Whether to show debug output.
+    #[arg(short, long, global = true, action=ArgAction::SetTrue)]
+    pub debug: Option<bool>,
+
     /// Which mode to use for the color scheme
     #[arg(
         value_enum,
