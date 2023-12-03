@@ -48,7 +48,7 @@ fn main() -> Result<(), Report> {
     let log_level: LevelFilter = if args.verbose == Some(true) {
         LevelFilter::Info
     } else if args.quiet == Some(true) {
-        LevelFilter::Error
+        LevelFilter::Off
     } else {
         LevelFilter::Warn
     };
