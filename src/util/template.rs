@@ -14,6 +14,7 @@ use std::fs::read_to_string;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
+use std::collections::HashMap;
 
 use crate::util::arguments::Source;
 use crate::util::color::SchemeExt;
@@ -22,8 +23,6 @@ use crate::Scheme;
 use crate::util::color::SchemeAndroidExt;
 use crate::SchemeAndroid;
 
-use super::arguments::Cli;
-use super::config::ConfigFile;
 use material_color_utilities_rs::util::color::format_argb_as_rgb;
 use resolve_path::PathResolveExt;
 
@@ -79,28 +78,29 @@ use super::color::Color;
 impl Template {
     pub fn generate(
         schemes: &Schemes,
-        config: &ConfigFile,
-        args: &Cli,
+        templates: &HashMap<String, Template>,
+        source: &Source,
+        prefix: &Option<String>,
         source_color: &[u8; 4],
         default_scheme: &SchemesEnum,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
-        let prefix: &String = match &config.config.prefix {
+        let prefix: &String = match &prefix {
             Some(prefix) => prefix,
             None => &default_prefix,
         };
 
-        info!("Loaded <b><cyan>{}</> templates.", &config.templates.len());
+        info!("Loaded <b><cyan>{}</> templates.", &templates.len());
 
-        let image = match &args.source {
+        let image = match &source {
             Source::Image { path } => Some(path),
             Source::Color { .. } => None,
         };
 
         let regexvec: Patterns = generate_patterns(schemes, prefix, image, source_color)?;
 
-        for (i, (name, template)) in config.templates.iter().enumerate() {
+        for (i, (name, template)) in templates.iter().enumerate() {
             let input_path_absolute = template.input_path.try_resolve()?;
             let output_path_absolute = template.output_path.try_resolve()?;
 
@@ -159,7 +159,7 @@ impl Template {
             success!(
                 "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
                 i + 1,
-                &config.templates.len(),
+                &templates.len(),
                 name,
                 output_path_absolute.display()
             );

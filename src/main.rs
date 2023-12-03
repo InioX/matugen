@@ -78,7 +78,7 @@ fn main() -> Result<(), Report> {
     };
 
     if args.dry_run == Some(false) {
-        Template::generate(&schemes, &config, &args, &source_color, &default_scheme)?;
+        Template::generate(&schemes, &config.templates, &args.source, &config.config.prefix, &source_color, &default_scheme)?;
 
         if config.config.reload_apps == Some(true) {
             #[cfg(any(target_os = "linux", target_os = "netbsd"))]
