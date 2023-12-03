@@ -107,6 +107,9 @@ fn main() -> Result<(), Report> {
             #[cfg(target_os = "windows")]
             wallpaper::windows::set(&path)?;
 
+            #[cfg(target_os = "macos")]
+            wallpaper::macos::set(&path)?;
+
             #[cfg(any(target_os = "linux", target_os = "netbsd"))]
             wallpaper::unix::set(
                 path,
