@@ -1,6 +1,4 @@
 [config]
-reload_apps = true
-reload_gtk_theme = false
 set_wallpaper = true
 wallpaper_tool = 'Swww'
 prefix = '@'
@@ -8,10 +6,7 @@ swww_options = [
     "--transition-type",
     "center",
 ]
-run_after = [
-  [ "echo", "'hello'" ]
-]
 
 [templates.name1]
-input_path = "~/colors.css"
-output_path = "~/.config/colors.css"
+input_path = "~/dev/matugen/example/colors.css"
+output_path = "~/dev/matugen/example/a/colors-generated.css"
