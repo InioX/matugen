@@ -126,15 +126,16 @@ impl Template {
                 name,
                 output_path_absolute.display()
             );
+   
+            let parent_folder = &output_path_absolute
+                .parent()
+                .wrap_err("Could not get the parent of the output path.")?;
 
-            if !output_path_absolute.exists() {
+            if !parent_folder.exists() {
                 error!(
                     "The <b><yellow>{}</> folder doesnt exist, trying to create...",
-                    &output_path_absolute.display()
+                    &parent_folder.display()
                 );
-                let parent_folder = &output_path_absolute
-                    .parent()
-                    .wrap_err("Could not get the parent of the output path.")?;
                 debug!("{}", parent_folder.display());
                 let _ = create_dir_all(parent_folder).wrap_err(format!(
                     "Failed to create the {} folders.",
