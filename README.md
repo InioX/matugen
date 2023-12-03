@@ -53,8 +53,6 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 - Linux
 - MacOS
 - NetBSD
-> [!WARNING]
-> Matugen does not support setting the wallpaper on MacOS for now.
 
 <h2>
      <sub>
