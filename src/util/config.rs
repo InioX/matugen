@@ -27,7 +27,6 @@ pub struct Config {
     // TODO: Add a `Command` struct
     pub swww_options: Option<Vec<String>>,
     pub feh_options: Option<Vec<String>>,
-    pub run_after: Option<Vec<Vec<String>>>,
     pub prefix: Option<String>,
 }
 
