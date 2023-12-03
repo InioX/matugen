@@ -69,8 +69,8 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
     - [x] Rgba
     - [x] Rgb
     - [x] Hsl
-- [ ] Suport changing the wallpaper on different platforms
-     - [ ] MacOS
+- [x] Suport changing the wallpaper on different platforms
+     - [x] MacOS
      - [x] Windows
 - [x] Support changing the wallpaper on X11
      - [x] Feh
