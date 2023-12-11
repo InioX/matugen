@@ -347,153 +347,49 @@ fn generate_single_color(
     };
 
     Ok ( ColorVariants {
-        default: Colora {
-            hex: format_argb_as_rgb([
-                color_default.alpha,
-                color_default.red,
-                color_default.green,
-                color_default.blue,
-            ]),
-            hex_stripped: format_argb_as_rgb([
-                color_default.alpha,
-                color_default.red,
-                color_default.green,
-                color_default.blue,
-            ])[1..]
-                .to_string(),
-            rgb: format!(
-                "rgb({:?}, {:?}, {:?})",
-                color_default.red, color_default.green, color_default.blue
-            ),
-            rgba: format!(
-                "rgba({:?}, {:?}, {:?}, {:?})",
-                color_default.red, color_default.green, color_default.blue, color_default.alpha
-            ),
-            hsl: Hsl::new(
-                color_default.red as f64,
-                color_default.green as f64,
-                color_default.blue as f64,
-                Some(color_default.alpha as f64),
-            )
-            .to_css_string(),
-            hsla: Hsl::new(
-                color_default.red as f64,
-                color_default.green as f64,
-                color_default.blue as f64,
-                None,
-            )
-            .to_css_string(),
-        },
-        light: Colora {
-            hex: format_argb_as_rgb([
-                color_light.alpha,
-                color_light.red,
-                color_light.green,
-                color_light.blue,
-            ]),
-            hex_stripped: format_argb_as_rgb([
-                color_light.alpha,
-                color_light.red,
-                color_light.green,
-                color_light.blue,
-            ])[1..]
-                .to_string(),
-            rgb: format!(
-                "rgb({:?}, {:?}, {:?})",
-                color_light.red, color_light.green, color_light.blue
-            ),
-            rgba: format!(
-                "rgba({:?}, {:?}, {:?}, {:?})",
-                color_light.red, color_light.green, color_light.blue, color_light.alpha
-            ),
-            hsl: Hsl::new(
-                color_light.red as f64,
-                color_light.green as f64,
-                color_light.blue as f64,
-                Some(color_light.alpha as f64),
-            )
-            .to_css_string(),
-            hsla: Hsl::new(
-                color_light.red as f64,
-                color_light.green as f64,
-                color_light.blue as f64,
-                None,
-            )
-            .to_css_string(),
-        },
-        dark: Colora {
-            hex: format_argb_as_rgb([
-                color_dark.alpha,
-                color_dark.red,
-                color_dark.green,
-                color_dark.blue,
-            ]),
-            hex_stripped: format_argb_as_rgb([
-                color_dark.alpha,
-                color_dark.red,
-                color_dark.green,
-                color_dark.blue,
-            ])[1..]
-                .to_string(),
-            rgb: format!(
-                "rgb({:?}, {:?}, {:?})",
-                color_dark.red, color_dark.green, color_dark.blue
-            ),
-            rgba: format!(
-                "rgba({:?}, {:?}, {:?}, {:?})",
-                color_dark.red, color_dark.green, color_dark.blue, color_dark.alpha
-            ),
-            hsl: Hsl::new(
-                color_dark.red as f64,
-                color_dark.green as f64,
-                color_dark.blue as f64,
-                Some(color_dark.alpha as f64),
-            )
-            .to_css_string(),
-            hsla: Hsl::new(
-                color_dark.red as f64,
-                color_dark.green as f64,
-                color_dark.blue as f64,
-                None,
-            )
-            .to_css_string(),
-        },
-        amoled: Colora {
-            hex: format_argb_as_rgb([
-                color_amoled.alpha,
-                color_amoled.red,
-                color_amoled.green,
-                color_amoled.blue,
-            ]),
-            hex_stripped: format_argb_as_rgb([
-                color_amoled.alpha,
-                color_amoled.red,
-                color_amoled.green,
-                color_amoled.blue,
-            ])[1..]
-                .to_string(),
-            rgb: format!(
-                "rgb({:?}, {:?}, {:?})",
-                color_amoled.red, color_amoled.green, color_amoled.blue
-            ),
-            rgba: format!(
-                "rgba({:?}, {:?}, {:?}, {:?})",
-                color_amoled.red, color_amoled.green, color_amoled.blue, color_amoled.alpha
-            ),
-            hsl: Hsl::new(
-                color_amoled.red as f64,
-                color_amoled.green as f64,
-                color_amoled.blue as f64,
-                Some(color_amoled.alpha as f64),
-            )
-            .to_css_string(),
-            hsla: Hsl::new(
-                color_amoled.red as f64,
-                color_amoled.green as f64,
-                color_amoled.blue as f64,
-                None,
-            )
-            .to_css_string(),
-        },
+        default: generate_color_strings(color_default),
+        light: generate_color_strings(color_light),
+        dark: generate_color_strings(color_dark),
+        amoled: generate_color_strings(color_amoled),
     })
+}
+
+fn generate_color_strings(color: Color) -> Colora {
+    Colora {
+        hex: format_argb_as_rgb([
+            color.alpha,
+            color.red,
+            color.green,
+            color.blue,
+        ]),
+        hex_stripped: format_argb_as_rgb([
+            color.alpha,
+            color.red,
+            color.green,
+            color.blue,
+        ])[1..]
+            .to_string(),
+        rgb: format!(
+            "rgb({:?}, {:?}, {:?})",
+            color.red, color.green, color.blue
+        ),
+        rgba: format!(
+            "rgba({:?}, {:?}, {:?}, {:?})",
+            color.red, color.green, color.blue, color.alpha
+        ),
+        hsl: Hsl::new(
+            color.red as f64,
+            color.green as f64,
+            color.blue as f64,
+            Some(color.alpha as f64),
+        )
+        .to_css_string(),
+        hsla: Hsl::new(
+            color.red as f64,
+            color.green as f64,
+            color.blue as f64,
+            None,
+        )
+        .to_css_string(),
+    }
 }
