@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.3](https://github.com/InioX/matugen/compare/matugen-v0.11.2...matugen-v0.11.3) - 2023-12-11
+
+### Added
+- add new formats for keywords
+- replace regex with `upon`
+
+### Other
+- clean up `generate_color_strings`
+- update roadmap
+
 ## [0.11.2](https://github.com/InioX/matugen/compare/matugen-v0.11.1...matugen-v0.11.2) - 2023-12-03
 
 ### Added
