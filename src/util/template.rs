@@ -44,6 +44,13 @@ struct Colora {
     rgba: String,
     hsl: String,
     hsla: String,
+    red: String,
+    green: String,
+    blue: String,
+    alpha: String,
+    hue: String,
+    saturation: String,
+    lightness: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -391,5 +398,48 @@ fn generate_color_strings(color: Color) -> Colora {
             None,
         )
         .to_css_string(),
+        red: format!(
+            "{:?}",
+            color.blue
+        ),
+        green: format!(
+            "{:?}",
+            color.green
+        ),
+        blue: format!(
+            "{:?}",
+            color.blue
+        ),
+        alpha: format!(
+            "{:?}",
+            color.alpha
+        ),
+        hue: format!(
+            "{:?}",
+            Hsl::new(
+                color.red as f64,
+                color.green as f64,
+                color.blue as f64,
+                Some(color.alpha as f64),
+            ).hue()
+        ),
+        lightness: format!(
+            "{:?}",
+            Hsl::new(
+                color.red as f64,
+                color.green as f64,
+                color.blue as f64,
+                Some(color.alpha as f64),
+            ).lightness()
+        ),
+        saturation: format!(
+            "{:?}",
+            Hsl::new(
+                color.red as f64,
+                color.green as f64,
+                color.blue as f64,
+                Some(color.alpha as f64),
+            ).saturation()
+        ),
     }
 }
