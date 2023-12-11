@@ -911,12 +911,12 @@ dependencies = [
  "paris-log",
  "pretty_env_logger",
  "prettytable-rs",
- "regex",
  "resolve-path",
  "serde",
  "serde_json",
  "toml",
  "update-informer",
+ "upon",
  "winapi",
 ]
 
@@ -1787,6 +1787,17 @@ dependencies = [
  "serde",
  "serde_json",
  "ureq",
+]
+
+[[package]]
+name = "upon"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6539a8975f097abc4500a33d542ac5f2e11b8912d48c980ce585161eed1ec59a"
+dependencies = [
+ "serde",
+ "unicode-ident",
+ "unicode-width",
 ]
 
 [[package]]

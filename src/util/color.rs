@@ -145,7 +145,7 @@ impl SchemeExt for Scheme {
             "surface_container_high" => &self.surface_container_high,
             "surface_container_highest" => &self.surface_container_highest,
             "source_color" => source_color,
-            _ => panic!(),
+            _ => panic!("{}", field),
         }
     }
 }
@@ -182,7 +182,7 @@ impl SchemeAndroidExt for SchemeAndroid {
             "text_secondary_on_accent" => &self.text_secondary_on_accent,
             "volume_background" => &self.volume_background,
             "scrim_android" => &self.scrim,
-            _ => panic!(),
+            _ => panic!("{}", field),
         }
     }
 }

@@ -4,7 +4,6 @@ use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
 use colorsys::Hsl;
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use std::str;
@@ -26,9 +25,9 @@ use crate::SchemeAndroid;
 use material_color_utilities_rs::util::color::format_argb_as_rgb;
 use resolve_path::PathResolveExt;
 
-use super::color::{COLORS, COLORS_ANDROID};
-
 use crate::{Schemes, SchemesEnum};
+
+use upon::{Engine, Syntax};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Template {
@@ -37,24 +36,8 @@ pub struct Template {
     pub mode: Option<SchemesEnum>,
 }
 
-struct ColorPattern {
-    patterns: RegexPatterns,
-    replacements: ColorReplacements,
-}
-
-struct RegexPatterns {
-    light: Regex,
-    dark: Regex,
-    amoled: Regex,
-    default: Regex,
-}
-
-struct ImagePattern<'a> {
-    pattern: Regex,
-    replacement: Option<&'a String>,
-}
-
-pub struct ColorReplacement {
+#[derive(Serialize, Deserialize, Debug)]
+struct Colora {
     hex: String,
     hex_stripped: String,
     rgb: String,
@@ -63,14 +46,85 @@ pub struct ColorReplacement {
     hsla: String,
 }
 
-struct Patterns<'a> {
-    colors: Vec<ColorPattern>,
-    image: ImagePattern<'a>,
+#[derive(Serialize, Deserialize, Debug)]
+struct ColorVariants {
+    pub light: Colora,
+    pub dark: Colora,
+    pub amoled: Colora,
+    pub default: Colora, 
 }
-pub struct ColorReplacements {
-    pub light: ColorReplacement,
-    pub dark: ColorReplacement,
-    pub amoled: ColorReplacement,
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Colors {
+    primary: ColorVariants,
+    primary_fixed: ColorVariants,
+    primary_fixed_dim: ColorVariants,
+    on_primary: ColorVariants,
+    on_primary_fixed: ColorVariants,
+    on_primary_fixed_variant: ColorVariants,
+    primary_container: ColorVariants,
+    on_primary_container: ColorVariants,
+    secondary: ColorVariants,
+    secondary_fixed: ColorVariants,
+    secondary_fixed_dim: ColorVariants,
+    on_secondary: ColorVariants,
+    on_secondary_fixed: ColorVariants,
+    on_secondary_fixed_variant: ColorVariants,
+    secondary_container: ColorVariants,
+    on_secondary_container: ColorVariants,
+    tertiary: ColorVariants,
+    tertiary_fixed: ColorVariants,
+    tertiary_fixed_dim: ColorVariants,
+    on_tertiary: ColorVariants,
+    on_tertiary_fixed: ColorVariants,
+    on_tertiary_fixed_variant: ColorVariants,
+    tertiary_container: ColorVariants,
+    on_tertiary_container: ColorVariants,
+    error: ColorVariants,
+    on_error: ColorVariants,
+    error_container: ColorVariants,
+    on_error_container: ColorVariants,
+    surface: ColorVariants,
+    on_surface: ColorVariants,
+    on_surface_variant: ColorVariants,
+    outline: ColorVariants,
+    outline_variant: ColorVariants,
+    shadow: ColorVariants,
+    scrim: ColorVariants,
+    inverse_surface: ColorVariants,
+    inverse_on_surface: ColorVariants,
+    inverse_primary: ColorVariants,
+    surface_dim: ColorVariants,
+    surface_bright: ColorVariants,
+    surface_container_lowest: ColorVariants,
+    surface_container_low: ColorVariants,
+    surface_container: ColorVariants,
+    surface_container_high: ColorVariants,
+    surface_container_highest: ColorVariants,
+    color_accent_primary: ColorVariants,
+    color_accent_primary_variant: ColorVariants,
+    color_accent_secondary: ColorVariants,
+    color_accent_secondary_variant: ColorVariants,
+    color_accent_tertiary: ColorVariants,
+    color_accent_tertiary_variant: ColorVariants,
+    text_color_primary: ColorVariants,
+    text_color_secondary: ColorVariants,
+    text_color_tertiary: ColorVariants,
+    text_color_primary_inverse: ColorVariants,
+    text_color_secondary_inverse: ColorVariants,
+    text_color_tertiary_inverse: ColorVariants,
+    color_background: ColorVariants,
+    color_background_floating: ColorVariants,
+    color_surface: ColorVariants,
+    color_surface_variant: ColorVariants,
+    color_surface_highlight: ColorVariants,
+    surface_header: ColorVariants,
+    under_surface: ColorVariants,
+    off_state: ColorVariants,
+    accent_surface: ColorVariants,
+    text_primary_on_accent: ColorVariants,
+    text_secondary_on_accent: ColorVariants,
+    volume_background: ColorVariants,
 }
 
 use super::color::Color;
@@ -93,12 +147,15 @@ impl Template {
 
         info!("Loaded <b><cyan>{}</> templates.", &templates.len());
 
+        let syntax = Syntax::builder().expr("{{", "}}").block("<[", "]>").build();
+        let mut engine = Engine::with_syntax(syntax);
+
         let image = match &source {
             Source::Image { path } => Some(path),
             Source::Color { .. } => None,
         };
 
-        let regexvec: Patterns = generate_patterns(schemes, prefix, image, source_color)?;
+        let colors: Colors = generate_colors(schemes, source_color, default_scheme)?;
 
         for (i, (name, template)) in templates.iter().enumerate() {
             let input_path_absolute = template.input_path.try_resolve()?;
@@ -113,13 +170,7 @@ impl Template {
                 .wrap_err(format!("Could not read the {} template.", name))
                 .suggestion("Try converting the file to use UTF-8 encoding.")?;
 
-            replace_matches(
-                &regexvec,
-                &mut data,
-                &template.mode,
-                schemes,
-                default_scheme,
-            );
+            engine.add_template(name, data)?;
 
             debug!(
                 "Trying to write the {} template to {}",
@@ -156,6 +207,10 @@ impl Template {
                 );
             }
 
+            data = engine.template(name)
+            .render(upon::value!{ colors: &colors, image: image })
+            .to_string()?;
+
             output_file.write_all(data.as_bytes())?;
             success!(
                 "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
@@ -169,281 +224,276 @@ impl Template {
     }
 }
 
-fn replace_matches(
-    regexvec: &Patterns,
-    data: &mut String,
-    scheme: &Option<SchemesEnum>,
-    _schemes: &Schemes,
-    default_scheme: &SchemesEnum,
-) {
-    for regex in &regexvec.colors {
-        let default_replacement = if let Some(scheme) = &scheme {
-            match scheme {
-                SchemesEnum::Light => &regex.replacements.light,
-                SchemesEnum::Dark => &regex.replacements.dark,
-                SchemesEnum::Amoled => &regex.replacements.amoled,
-            }
-        } else {
-            match default_scheme {
-                SchemesEnum::Light => &regex.replacements.light,
-                SchemesEnum::Dark => &regex.replacements.dark,
-                SchemesEnum::Amoled => &regex.replacements.amoled,
-            }
-        };
-
-        let _ = replace_single_match(&regex.patterns.light, data, &regex.replacements.light);
-        let _ = replace_single_match(&regex.patterns.dark, data, &regex.replacements.dark);
-        let _ = replace_single_match(&regex.patterns.amoled, data, &regex.replacements.amoled);
-
-        if let Err(()) = replace_single_match(&regex.patterns.default, data, default_replacement) {
-            continue;
-        }
-    }
-
-    replace_image_keyword(regexvec, data);
-}
-
-fn replace_single_match(
-    pattern: &Regex,
-    data: &mut String,
-    replacement: &ColorReplacement,
-) -> Result<(), ()> {
-    let captures = pattern.captures(data);
-
-    if captures.is_none() {
-        return Err(());
-    }
-
-    let format = captures.unwrap().get(1);
-
-    if let Some(format) = format {
-        match format.as_str() {
-            ".hex" => *data = pattern.replace_all(data, &replacement.hex).to_string(),
-            ".strip" => {
-                *data = pattern
-                    .replace_all(data, &replacement.hex_stripped)
-                    .to_string()
-            }
-            ".rgb" => *data = pattern.replace_all(data, &replacement.rgb).to_string(),
-            ".rgba" => *data = pattern.replace_all(data, &replacement.rgba).to_string(),
-            ".hsl" => *data = pattern.replace_all(data, &replacement.hsl).to_string(),
-            ".hsla" => *data = pattern.replace_all(data, &replacement.hsla).to_string(),
-            _ => return Err(()),
-        }
-    } else {
-        *data = pattern.replace_all(data, &replacement.hex).to_string()
-    }
-
-    Ok(())
-}
-
-fn replace_image_keyword(regexvec: &Patterns<'_>, data: &mut String) {
-    if let Some(image) = regexvec.image.replacement {
-        *data = regexvec
-            .image
-            .pattern
-            .replace_all(&*data, image)
-            .to_string();
-    }
-}
-
-fn generate_patterns<'a>(
+fn generate_colors(
     schemes: &Schemes,
-    prefix: &'a String,
-    image: Option<&'a String>,
     source_color: &[u8; 4],
-) -> Result<Patterns<'a>, Report> {
-    let mut regexvec: Vec<ColorPattern> = vec![];
+    default_scheme:  &SchemesEnum,
+) -> Result<Colors, Report> {
+    Ok(Colors {
+        primary: generate_single_color("primary", &schemes, source_color, default_scheme, false)?,
+        primary_fixed: generate_single_color("primary_fixed", &schemes, source_color, default_scheme, false)?,
+        primary_fixed_dim: generate_single_color("primary_fixed_dim", &schemes, source_color, default_scheme, false)?,
+        on_primary: generate_single_color("on_primary", &schemes, source_color, default_scheme, false)?,
+        on_primary_fixed: generate_single_color("on_primary_fixed", &schemes, source_color, default_scheme, false)?,
+        on_primary_fixed_variant: generate_single_color("on_primary_fixed_variant", &schemes, source_color, default_scheme, false)?,
+        primary_container: generate_single_color("primary_container", &schemes, source_color, default_scheme, false)?,
+        on_primary_container: generate_single_color("on_primary_container", &schemes, source_color, default_scheme, false)?,
+        secondary: generate_single_color("secondary", &schemes, source_color, default_scheme, false)?,
+        secondary_fixed: generate_single_color("secondary_fixed", &schemes, source_color, default_scheme, false)?,
+        secondary_fixed_dim: generate_single_color("secondary_fixed_dim", &schemes, source_color, default_scheme, false)?,
+        on_secondary: generate_single_color("on_secondary", &schemes, source_color, default_scheme, false)?,
+        on_secondary_fixed: generate_single_color("on_secondary_fixed", &schemes, source_color, default_scheme, false)?,
+        on_secondary_fixed_variant: generate_single_color("on_secondary_fixed_variant", &schemes, source_color, default_scheme, false)?,
+        secondary_container: generate_single_color("secondary_container", &schemes, source_color, default_scheme, false)?,
+        on_secondary_container: generate_single_color("on_secondary_container", &schemes, source_color, default_scheme, false)?,
+        tertiary: generate_single_color("tertiary", &schemes, source_color, default_scheme, false)?,
+        tertiary_fixed: generate_single_color("tertiary_fixed", &schemes, source_color, default_scheme, false)?,
+        tertiary_fixed_dim: generate_single_color("tertiary_fixed_dim", &schemes, source_color, default_scheme, false)?,
+        on_tertiary: generate_single_color("on_tertiary", &schemes, source_color, default_scheme, false)?,
+        on_tertiary_fixed: generate_single_color("on_tertiary_fixed", &schemes, source_color, default_scheme, false)?,
+        on_tertiary_fixed_variant: generate_single_color("on_tertiary_fixed_variant", &schemes, source_color, default_scheme, false)?,
+        tertiary_container: generate_single_color("tertiary_container", &schemes, source_color, default_scheme, false)?,
+        on_tertiary_container: generate_single_color("on_tertiary_container", &schemes, source_color, default_scheme, false)?,
+        error: generate_single_color("error", &schemes, source_color, default_scheme, false)?,
+        on_error: generate_single_color("on_error", &schemes, source_color, default_scheme, false)?,
+        error_container: generate_single_color("error_container", &schemes, source_color, default_scheme, false)?,
+        on_error_container: generate_single_color("on_error_container", &schemes, source_color, default_scheme, false)?,
+        surface: generate_single_color("surface", &schemes, source_color, default_scheme, false)?,
+        on_surface: generate_single_color("on_surface", &schemes, source_color, default_scheme, false)?,
+        on_surface_variant: generate_single_color("on_surface_variant", &schemes, source_color, default_scheme, false)?,
+        outline: generate_single_color("outline", &schemes, source_color, default_scheme, false)?,
+        outline_variant: generate_single_color("outline_variant", &schemes, source_color, default_scheme, false)?,
+        shadow: generate_single_color("shadow", &schemes, source_color, default_scheme, false)?,
+        scrim: generate_single_color("scrim", &schemes, source_color, default_scheme, false)?,
+        inverse_surface: generate_single_color("inverse_surface", &schemes, source_color, default_scheme, false)?,
+        inverse_on_surface: generate_single_color("inverse_on_surface", &schemes, source_color, default_scheme, false)?,
+        inverse_primary: generate_single_color("inverse_primary", &schemes, source_color, default_scheme, false)?,
+        surface_dim: generate_single_color("surface_dim", &schemes, source_color, default_scheme, false)?,
+        surface_bright: generate_single_color("surface_bright", &schemes, source_color, default_scheme, false)?,
+        surface_container_lowest: generate_single_color("surface_container_lowest", &schemes, source_color, default_scheme, false)?,
+        surface_container_low: generate_single_color("surface_container_low", &schemes, source_color, default_scheme, false)?,
+        surface_container: generate_single_color("surface_container", &schemes, source_color, default_scheme, false)?,
+        surface_container_high: generate_single_color("surface_container_high", &schemes, source_color, default_scheme, false)?,
+        surface_container_highest: generate_single_color("surface_container_highest", &schemes, source_color, default_scheme, false)?,
+        
+        color_accent_primary: generate_single_color("color_accent_primary", &schemes, source_color, default_scheme, true)?,
+        color_accent_primary_variant: generate_single_color("color_accent_primary_variant", &schemes, source_color, default_scheme, true)?,
+        color_accent_secondary: generate_single_color("color_accent_secondary", &schemes, source_color, default_scheme, true)?,
+        color_accent_secondary_variant: generate_single_color("color_accent_secondary_variant", &schemes, source_color, default_scheme, true)?,
+        color_accent_tertiary: generate_single_color("color_accent_tertiary", &schemes, source_color, default_scheme, true)?,
+        color_accent_tertiary_variant: generate_single_color("color_accent_tertiary_variant", &schemes, source_color, default_scheme, true)?,
+        text_color_primary: generate_single_color("text_color_primary", &schemes, source_color, default_scheme, true)?,
+        text_color_secondary: generate_single_color("text_color_secondary", &schemes, source_color, default_scheme, true)?,
+        text_color_tertiary: generate_single_color("text_color_tertiary", &schemes, source_color, default_scheme, true)?,
+        text_color_primary_inverse: generate_single_color("text_color_primary_inverse", &schemes, source_color, default_scheme, true)?,
+        text_color_secondary_inverse: generate_single_color("text_color_secondary_inverse", &schemes, source_color, default_scheme, true)?,
+        text_color_tertiary_inverse: generate_single_color("text_color_tertiary_inverse", &schemes, source_color, default_scheme, true)?,
+        color_background: generate_single_color("color_background", &schemes, source_color, default_scheme, true)?,
+        color_background_floating: generate_single_color("color_background_floating", &schemes, source_color, default_scheme, true)?,
+        color_surface: generate_single_color("color_surface", &schemes, source_color, default_scheme, true)?,
+        color_surface_variant: generate_single_color("color_surface_variant", &schemes, source_color, default_scheme, true)?,
+        color_surface_highlight: generate_single_color("color_surface_highlight", &schemes, source_color, default_scheme, true)?,
+        surface_header: generate_single_color("surface_header", &schemes, source_color, default_scheme, true)?,
+        under_surface: generate_single_color("under_surface", &schemes, source_color, default_scheme, true)?,
+        off_state: generate_single_color("off_state", &schemes, source_color, default_scheme, true)?,
+        accent_surface: generate_single_color("accent_surface", &schemes, source_color, default_scheme, true)?,
+        text_primary_on_accent: generate_single_color("text_primary_on_accent", &schemes, source_color, default_scheme, true)?,
+        text_secondary_on_accent: generate_single_color("text_secondary_on_accent", &schemes, source_color, default_scheme, true)?,
+        volume_background: generate_single_color("volume_background", &schemes, source_color, default_scheme, true)?,
+    })  
+}
 
-    for field in COLORS {
-        let color_light: Color =
-            Color::new(*Scheme::get_value(&schemes.light, field, source_color));
-        let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
-        let color_amoled: Color =
-            Color::new(*Scheme::get_value(&schemes.amoled, field, source_color));
+fn generate_single_color(
+    field: &str,
+    schemes: &Schemes,
+    source_color: &[u8; 4],
+    default_scheme:  &SchemesEnum,
+    is_android: bool,
+) -> Result<ColorVariants, Report> {
 
-        generate_single_pattern(
-            &mut regexvec,
-            prefix,
-            field,
-            color_light,
-            color_dark,
-            color_amoled,
-        )?;
-    }
 
-    for field in COLORS_ANDROID {
-        let color_light: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.light_android,
-            field,
-            source_color,
-        ));
-        let color_dark: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.dark_android,
-            field,
-            source_color,
-        ));
-        let color_amoled: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.amoled_android,
-            field,
-            source_color,
-        ));
+    let color_default: Color = match is_android {
+        true => {
+            let scheme = match default_scheme {
+                SchemesEnum::Light => &schemes.light_android,
+                SchemesEnum::Dark => &schemes.dark_android,
+                SchemesEnum::Amoled => &schemes.amoled_android,
+            };
+            Color::new(*SchemeAndroid::get_value(scheme, field, source_color))
+        },
+        false => {
+            let scheme = match default_scheme {
+                SchemesEnum::Light => &schemes.light,
+                SchemesEnum::Dark => &schemes.dark,
+                SchemesEnum::Amoled => &schemes.amoled,
+            };
+            Color::new(*Scheme::get_value(scheme, field, source_color))
+        },
+    };
 
-        generate_single_pattern(
-            &mut regexvec,
-            prefix,
-            field,
-            color_light,
-            color_dark,
-            color_amoled,
-        )?;
-    }
+    let color_light: Color = match is_android {
+        true => Color::new(*SchemeAndroid::get_value(&schemes.light_android, field, source_color)),
+        false => Color::new(*Scheme::get_value(&schemes.light, field, source_color)),
+    };
 
-    Ok(Patterns {
-        colors: regexvec,
-        image: ImagePattern {
-            pattern: Regex::new(&format!(r#"\{prefix}\{{image}}"#))?,
-            replacement: image,
+    let color_dark: Color = match is_android {
+        true => Color::new(*SchemeAndroid::get_value(&schemes.dark_android, field, source_color)),
+        false => Color::new(*Scheme::get_value(&schemes.light, field, source_color)),
+    };
+
+    let color_amoled: Color = match is_android {
+        true => Color::new(*SchemeAndroid::get_value(&schemes.amoled_android, field, source_color)),
+        false => Color::new(*Scheme::get_value(&schemes.light, field, source_color)),
+    };
+
+    Ok ( ColorVariants {
+        default: Colora {
+            hex: format_argb_as_rgb([
+                color_default.alpha,
+                color_default.red,
+                color_default.green,
+                color_default.blue,
+            ]),
+            hex_stripped: format_argb_as_rgb([
+                color_default.alpha,
+                color_default.red,
+                color_default.green,
+                color_default.blue,
+            ])[1..]
+                .to_string(),
+            rgb: format!(
+                "rgb({:?}, {:?}, {:?})",
+                color_default.red, color_default.green, color_default.blue
+            ),
+            rgba: format!(
+                "rgba({:?}, {:?}, {:?}, {:?})",
+                color_default.red, color_default.green, color_default.blue, color_default.alpha
+            ),
+            hsl: Hsl::new(
+                color_default.red as f64,
+                color_default.green as f64,
+                color_default.blue as f64,
+                Some(color_default.alpha as f64),
+            )
+            .to_css_string(),
+            hsla: Hsl::new(
+                color_default.red as f64,
+                color_default.green as f64,
+                color_default.blue as f64,
+                None,
+            )
+            .to_css_string(),
+        },
+        light: Colora {
+            hex: format_argb_as_rgb([
+                color_light.alpha,
+                color_light.red,
+                color_light.green,
+                color_light.blue,
+            ]),
+            hex_stripped: format_argb_as_rgb([
+                color_light.alpha,
+                color_light.red,
+                color_light.green,
+                color_light.blue,
+            ])[1..]
+                .to_string(),
+            rgb: format!(
+                "rgb({:?}, {:?}, {:?})",
+                color_light.red, color_light.green, color_light.blue
+            ),
+            rgba: format!(
+                "rgba({:?}, {:?}, {:?}, {:?})",
+                color_light.red, color_light.green, color_light.blue, color_light.alpha
+            ),
+            hsl: Hsl::new(
+                color_light.red as f64,
+                color_light.green as f64,
+                color_light.blue as f64,
+                Some(color_light.alpha as f64),
+            )
+            .to_css_string(),
+            hsla: Hsl::new(
+                color_light.red as f64,
+                color_light.green as f64,
+                color_light.blue as f64,
+                None,
+            )
+            .to_css_string(),
+        },
+        dark: Colora {
+            hex: format_argb_as_rgb([
+                color_dark.alpha,
+                color_dark.red,
+                color_dark.green,
+                color_dark.blue,
+            ]),
+            hex_stripped: format_argb_as_rgb([
+                color_dark.alpha,
+                color_dark.red,
+                color_dark.green,
+                color_dark.blue,
+            ])[1..]
+                .to_string(),
+            rgb: format!(
+                "rgb({:?}, {:?}, {:?})",
+                color_dark.red, color_dark.green, color_dark.blue
+            ),
+            rgba: format!(
+                "rgba({:?}, {:?}, {:?}, {:?})",
+                color_dark.red, color_dark.green, color_dark.blue, color_dark.alpha
+            ),
+            hsl: Hsl::new(
+                color_dark.red as f64,
+                color_dark.green as f64,
+                color_dark.blue as f64,
+                Some(color_dark.alpha as f64),
+            )
+            .to_css_string(),
+            hsla: Hsl::new(
+                color_dark.red as f64,
+                color_dark.green as f64,
+                color_dark.blue as f64,
+                None,
+            )
+            .to_css_string(),
+        },
+        amoled: Colora {
+            hex: format_argb_as_rgb([
+                color_amoled.alpha,
+                color_amoled.red,
+                color_amoled.green,
+                color_amoled.blue,
+            ]),
+            hex_stripped: format_argb_as_rgb([
+                color_amoled.alpha,
+                color_amoled.red,
+                color_amoled.green,
+                color_amoled.blue,
+            ])[1..]
+                .to_string(),
+            rgb: format!(
+                "rgb({:?}, {:?}, {:?})",
+                color_amoled.red, color_amoled.green, color_amoled.blue
+            ),
+            rgba: format!(
+                "rgba({:?}, {:?}, {:?}, {:?})",
+                color_amoled.red, color_amoled.green, color_amoled.blue, color_amoled.alpha
+            ),
+            hsl: Hsl::new(
+                color_amoled.red as f64,
+                color_amoled.green as f64,
+                color_amoled.blue as f64,
+                Some(color_amoled.alpha as f64),
+            )
+            .to_css_string(),
+            hsla: Hsl::new(
+                color_amoled.red as f64,
+                color_amoled.green as f64,
+                color_amoled.blue as f64,
+                None,
+            )
+            .to_css_string(),
         },
     })
-}
-
-fn generate_single_pattern<'a>(
-    regexvec: &'a mut Vec<ColorPattern>,
-    prefix: &'a str,
-    field: &'a str,
-    color_light: Color,
-    color_dark: Color,
-    color_amoled: Color,
-) -> Result<&'a mut Vec<ColorPattern>, Report> {
-    regexvec.push(ColorPattern {
-        patterns: RegexPatterns {
-            default: Regex::new(&format!(
-                r#"\{prefix}\{{{field}(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
-            ))?,
-            light: Regex::new(&format!(
-                r#"\{prefix}\{{{field}\.light(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
-            ))?,
-            dark: Regex::new(&format!(
-                r#"\{prefix}\{{{field}\.dark(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
-            ))?,
-            amoled: Regex::new(&format!(
-                r#"\{prefix}\{{{field}\.amoled(\.hex|\.rgb|\.rgba|\.strip|\.hsla|\.hsl)?}}"#
-            ))?,
-        },
-        replacements: ColorReplacements {
-            light: ColorReplacement {
-                hex: format_argb_as_rgb([
-                    color_light.alpha,
-                    color_light.red,
-                    color_light.green,
-                    color_light.blue,
-                ]),
-                hex_stripped: format_argb_as_rgb([
-                    color_light.alpha,
-                    color_light.red,
-                    color_light.green,
-                    color_light.blue,
-                ])[1..]
-                    .to_string(),
-                rgb: format!(
-                    "rgb({:?}, {:?}, {:?})",
-                    color_light.red, color_light.green, color_light.blue
-                ),
-                rgba: format!(
-                    "rgba({:?}, {:?}, {:?}, {:?})",
-                    color_light.red, color_light.green, color_light.blue, color_light.alpha
-                ),
-                hsl: Hsl::new(
-                    color_light.red as f64,
-                    color_light.green as f64,
-                    color_light.blue as f64,
-                    Some(color_light.alpha as f64),
-                )
-                .to_css_string(),
-                hsla: Hsl::new(
-                    color_light.red as f64,
-                    color_light.green as f64,
-                    color_light.blue as f64,
-                    None,
-                )
-                .to_css_string(),
-            },
-            dark: ColorReplacement {
-                hex: format_argb_as_rgb([
-                    color_dark.alpha,
-                    color_dark.red,
-                    color_dark.green,
-                    color_dark.blue,
-                ]),
-                hex_stripped: format_argb_as_rgb([
-                    color_dark.alpha,
-                    color_dark.red,
-                    color_dark.green,
-                    color_dark.blue,
-                ])[1..]
-                    .to_string(),
-                rgb: format!(
-                    "rgb({:?}, {:?}, {:?})",
-                    color_dark.red, color_dark.green, color_dark.blue
-                ),
-                rgba: format!(
-                    "rgba({:?}, {:?}, {:?}, {:?})",
-                    color_dark.red, color_dark.green, color_dark.blue, color_dark.alpha
-                ),
-                hsl: Hsl::new(
-                    color_dark.red as f64,
-                    color_dark.green as f64,
-                    color_dark.blue as f64,
-                    Some(color_dark.alpha as f64),
-                )
-                .to_css_string(),
-                hsla: Hsl::new(
-                    color_dark.red as f64,
-                    color_dark.green as f64,
-                    color_dark.blue as f64,
-                    None,
-                )
-                .to_css_string(),
-            },
-            amoled: ColorReplacement {
-                hex: format_argb_as_rgb([
-                    color_amoled.alpha,
-                    color_amoled.red,
-                    color_amoled.green,
-                    color_amoled.blue,
-                ]),
-                hex_stripped: format_argb_as_rgb([
-                    color_amoled.alpha,
-                    color_amoled.red,
-                    color_amoled.green,
-                    color_amoled.blue,
-                ])[1..]
-                    .to_string(),
-                rgb: format!(
-                    "rgb({:?}, {:?}, {:?})",
-                    color_amoled.red, color_amoled.green, color_amoled.blue
-                ),
-                rgba: format!(
-                    "rgba({:?}, {:?}, {:?}, {:?})",
-                    color_amoled.red, color_amoled.green, color_amoled.blue, color_amoled.alpha
-                ),
-                hsl: Hsl::new(
-                    color_amoled.red as f64,
-                    color_amoled.green as f64,
-                    color_amoled.blue as f64,
-                    Some(color_amoled.alpha as f64),
-                )
-                .to_css_string(),
-                hsla: Hsl::new(
-                    color_amoled.red as f64,
-                    color_amoled.green as f64,
-                    color_amoled.blue as f64,
-                    None,
-                )
-                .to_css_string(),
-            },
-        },
-    });
-    Ok(regexvec)
 }
