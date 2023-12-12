@@ -2,6 +2,7 @@ use color_eyre::eyre::ContextCompat;
 use color_eyre::eyre::WrapErr;
 use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
+use color_eyre::SectionExt;
 
 use colorsys::Hsl;
 use serde::{Deserialize, Serialize};
@@ -211,10 +212,11 @@ impl Template {
                 ));
             }
 
-            data = engine.template(name)
-            .render(upon::value!{ colors: &colors, image: image, custom: &custom, })
-            .to_string()?;
-
+            let data = engine.template(name).render(upon::value!{ colors: &colors, image: image, custom: &custom, }).to_string().map_err(|error| {
+                let message = format!("{:#}", error);
+                Report::new(error).wrap_err(message)
+            })?;
+            
             let mut output_file = OpenOptions::new()
                 .create(true)
                 .truncate(true)
