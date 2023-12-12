@@ -211,6 +211,10 @@ impl Template {
                 ));
             }
 
+            data = engine.template(name)
+            .render(upon::value!{ colors: &colors, image: image, custom: &custom, })
+            .to_string()?;
+
             let mut output_file = OpenOptions::new()
                 .create(true)
                 .truncate(true)
@@ -223,10 +227,6 @@ impl Template {
                     &output_path_absolute.display()
                 );
             }
-
-            data = engine.template(name)
-            .render(upon::value!{ colors: &colors, image: image, custom: &custom, })
-            .to_string()?;
 
             output_file.write_all(data.as_bytes())?;
             success!(
