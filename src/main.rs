@@ -18,6 +18,8 @@ use material_color_utilities_rs::{
     scheme::{scheme::Scheme, scheme_android::SchemeAndroid},
 };
 
+use std::collections::HashMap;
+
 use clap::{Parser, ValueEnum};
 use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
@@ -54,17 +56,17 @@ fn main() -> Result<(), Report> {
     } else {
         LevelFilter::Warn
     };
-
+    
     setup_logging(log_level)?;
-
+    
     check_version();
-
+    
     let source_color = get_source_color(&args.source)?;
-
+    
     let mut palette: CorePalette = generate_palette(&args.palette.unwrap(), source_color)?;
-
+    
     let config: ConfigFile = ConfigFile::read(&args)?;
-
+    
     let default_scheme = args
         .mode
         .expect("Something went wrong while parsing the mode");
@@ -79,7 +81,7 @@ fn main() -> Result<(), Report> {
     };
 
     if args.dry_run == Some(false) {
-        Template::generate(&schemes, &config.templates, &args.source, &config.config.prefix, &source_color, &default_scheme)?;
+        Template::generate(&schemes, &config.templates, &args.source, &config.config.prefix, &source_color, &default_scheme, config.config.custom_keywords)?;
 
         if config.config.reload_apps == Some(true) {
             #[cfg(any(target_os = "linux", target_os = "netbsd"))]

@@ -18,6 +18,7 @@ use std::collections::HashMap;
 use crate::util::arguments::Source;
 use crate::util::color::SchemeExt;
 use crate::Scheme;
+use crate::util::config::CustomKeyword;
 
 use crate::util::color::SchemeAndroidExt;
 use crate::SchemeAndroid;
@@ -144,6 +145,7 @@ impl Template {
         prefix: &Option<String>,
         source_color: &[u8; 4],
         default_scheme: &SchemesEnum,
+        custom_keywords: Option<HashMap<String, CustomKeyword>>,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -163,6 +165,14 @@ impl Template {
         };
 
         let colors: Colors = generate_colors(schemes, source_color, default_scheme)?;
+
+        let mut custom: HashMap<String, String> = Default::default();
+
+        for entry in custom_keywords.iter() {
+            for (_name, values) in entry {
+                custom.insert(values.find.to_string(), values.replace.to_string());
+            }
+        }
 
         for (i, (name, template)) in templates.iter().enumerate() {
             let input_path_absolute = template.input_path.try_resolve()?;
@@ -215,7 +225,7 @@ impl Template {
             }
 
             data = engine.template(name)
-            .render(upon::value!{ colors: &colors, image: image })
+            .render(upon::value!{ colors: &colors, image: image, custom: &custom, })
             .to_string()?;
 
             output_file.write_all(data.as_bytes())?;
