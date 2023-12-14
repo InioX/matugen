@@ -146,7 +146,7 @@ impl Template {
         prefix: &Option<String>,
         source_color: &[u8; 4],
         default_scheme: &SchemesEnum,
-        custom_keywords: Option<HashMap<String, CustomKeyword>>,
+        custom_keywords: &Option<HashMap<String, CustomKeyword>>,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 

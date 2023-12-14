@@ -261,7 +261,7 @@ fn hex(color: Color, prefix: bool) -> String {
     )
 }
 
-pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: Format) {
+pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
     type F = Format;
     let fmt = match format {
         F::Rgb => |c: Color| format!("rgb({:?}, {:?}, {:?})", c.red, c.green, c.blue),
