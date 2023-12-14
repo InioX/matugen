@@ -29,7 +29,7 @@
      Description
 </h2>
 
-Matugen is a cross-platform tool that generates a colorscheme either from an image or a color, and exports it to a file from a template. It can also set the wallpaper if one was provided.
+Matugen is a cross-platform tool that generates a colorscheme either from an image or a color, and replaces keywords inside provided templates. It can also set the wallpaper if one was provided, and allows you to define your own keywords.
 
 
 #### About Material Design 3
