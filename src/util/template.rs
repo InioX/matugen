@@ -4,7 +4,7 @@ use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 use color_eyre::SectionExt;
 
-use colorsys::Hsl;
+use colorsys::{Hsl,Rgb,ColorAlpha};
 use serde::{Deserialize, Serialize};
 
 use std::str;
@@ -374,6 +374,8 @@ fn generate_single_color(
 }
 
 fn generate_color_strings(color: Color) -> Colora {
+    let base_color = Rgb::from((color.red as f64, color.green as f64, color.blue as f64,color.alpha as f64));
+    let hsl_color = Hsl::from(&base_color);
     Colora {
         hex: format_argb_as_rgb([
             color.alpha,
@@ -396,20 +398,11 @@ fn generate_color_strings(color: Color) -> Colora {
             "rgba({:?}, {:?}, {:?}, {:?})",
             color.red, color.green, color.blue, color.alpha
         ),
-        hsl: Hsl::new(
-            color.red as f64,
-            color.green as f64,
-            color.blue as f64,
-            Some(color.alpha as f64),
-        )
-        .to_css_string(),
-        hsla: Hsl::new(
-            color.red as f64,
-            color.green as f64,
-            color.blue as f64,
-            None,
-        )
-        .to_css_string(),
+        hsl: format!(
+            "hsl({:?}, {:?}, {:?})",
+            hsl_color.hue(), hsl_color.saturation(), hsl_color.lightness(),
+        ),
+        hsla: hsl_color.to_css_string(),
         red: format!(
             "{:?}",
             color.blue
@@ -428,30 +421,15 @@ fn generate_color_strings(color: Color) -> Colora {
         ),
         hue: format!(
             "{:?}",
-            Hsl::new(
-                color.red as f64,
-                color.green as f64,
-                color.blue as f64,
-                Some(color.alpha as f64),
-            ).hue()
+            &hsl_color.hue()
         ),
         lightness: format!(
             "{:?}",
-            Hsl::new(
-                color.red as f64,
-                color.green as f64,
-                color.blue as f64,
-                Some(color.alpha as f64),
-            ).lightness()
+            &hsl_color.lightness()
         ),
         saturation: format!(
             "{:?}",
-            Hsl::new(
-                color.red as f64,
-                color.green as f64,
-                color.blue as f64,
-                Some(color.alpha as f64),
-            ).saturation()
+            &hsl_color.saturation()
         ),
     }
 }
