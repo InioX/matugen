@@ -2,9 +2,9 @@ use color_eyre::eyre::ContextCompat;
 use color_eyre::eyre::WrapErr;
 use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
-use color_eyre::SectionExt;
 
-use colorsys::{Hsl,Rgb,ColorAlpha};
+
+use colorsys::{Hsl,Rgb};
 use serde::{Deserialize, Serialize};
 
 use std::str;
@@ -150,7 +150,7 @@ impl Template {
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
-        let prefix: &String = match &prefix {
+        let _prefix: &String = match &prefix {
             Some(prefix) => prefix,
             None => &default_prefix,
         };
@@ -184,7 +184,7 @@ impl Template {
                 continue;
             }
 
-            let mut data = read_to_string(&input_path_absolute)
+            let data = read_to_string(&input_path_absolute)
                 .wrap_err(format!("Could not read the {} template.", name))
                 .suggestion("Try converting the file to use UTF-8 encoding.")?;
 
