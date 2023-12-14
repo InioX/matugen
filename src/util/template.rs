@@ -405,7 +405,7 @@ fn generate_color_strings(color: Color) -> Colora {
         hsla: hsl_color.to_css_string(),
         red: format!(
             "{:?}",
-            color.blue
+            color.red
         ),
         green: format!(
             "{:?}",
