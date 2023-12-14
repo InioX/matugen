@@ -80,6 +80,14 @@ fn main() -> Result<(), Report> {
         amoled_android: SchemeAndroid::pure_dark_from_core_palette(&mut palette),
     };
 
+    if args.show_colors == Some(true) {
+        show_color(&schemes, &source_color);
+    }
+
+    if let Some(format) = args.json {
+        dump_json(&schemes, &source_color, format);
+    }
+
     if args.dry_run == Some(false) {
         Template::generate(&schemes, &config.templates, &args.source, &config.config.prefix, &source_color, &default_scheme, config.config.custom_keywords)?;
 
@@ -121,14 +129,6 @@ fn main() -> Result<(), Report> {
                 &config.config.feh_options,
             )?;
         }
-    }
-
-    if args.show_colors == Some(true) {
-        show_color(&schemes, &source_color);
-    }
-
-    if let Some(format) = args.json {
-        dump_json(&schemes, &source_color, format);
     }
 
     Ok(())
