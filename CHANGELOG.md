@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0](https://github.com/InioX/matugen/compare/matugen-v1.0.0...matugen-v1.1.0) - 2023-12-14
+
+### Added
+- add span of file in template render error
+- add custom keywords
+
+### Fixed
+- `--show-colors`, `--json` not showing without an image
+- wrong hsl color in generated file
+- do not open file before rendering template
+
+### Other
+- Merge branch 'main' of https://github.com/InioX/matugen
+
 ## [0.11.2](https://github.com/InioX/matugen/compare/matugen-v0.11.1...matugen-v0.11.2) - 2023-12-03
 
 ### Added
