@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1](https://github.com/InioX/matugen/compare/matugen-v1.1.0...matugen-v1.1.1) - 2023-12-14
+
+### Fixed
+- red color being blue in generated file
+
 ## [1.1.0](https://github.com/InioX/matugen/compare/matugen-v1.0.0...matugen-v1.1.0) - 2023-12-14
 
 ### Added
