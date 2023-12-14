@@ -84,12 +84,12 @@ fn main() -> Result<(), Report> {
         show_color(&schemes, &source_color);
     }
 
-    if let Some(format) = args.json {
+    if let Some(ref format) = args.json {
         dump_json(&schemes, &source_color, format);
     }
 
     if args.dry_run == Some(false) {
-        Template::generate(&schemes, &config.templates, &args.source, &config.config.prefix, &source_color, &default_scheme, config.config.custom_keywords)?;
+        Template::generate(&schemes, &config.templates, &args.source, &config.config.prefix, &source_color, &default_scheme, &config.config.custom_keywords)?;
 
         if config.config.reload_apps == Some(true) {
             #[cfg(any(target_os = "linux", target_os = "netbsd"))]
