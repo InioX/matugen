@@ -214,7 +214,7 @@ impl Template {
             }
 
             let data = engine.template(name).render(upon::value!{ colors: &colors, image: image, custom: &custom, }).to_string().map_err(|error| {
-                let message = format!("{:#}", error);
+                let message = format!("[{} - {}]\n{:#}", name, input_path_absolute.display(), error);
                 Report::new(error).wrap_err(message)
             })?;
             
