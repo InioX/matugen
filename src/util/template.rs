@@ -134,6 +134,7 @@ struct Colors {
     text_primary_on_accent: ColorVariants,
     text_secondary_on_accent: ColorVariants,
     volume_background: ColorVariants,
+    source_color: ColorVariants,
 }
 
 use super::color::Color;
@@ -319,6 +320,7 @@ fn generate_colors(
         text_primary_on_accent: generate_single_color("text_primary_on_accent", &schemes, source_color, default_scheme, true)?,
         text_secondary_on_accent: generate_single_color("text_secondary_on_accent", &schemes, source_color, default_scheme, true)?,
         volume_background: generate_single_color("volume_background", &schemes, source_color, default_scheme, true)?,
+        source_color: generate_single_color("source_color", &schemes, source_color, default_scheme, false)?,
     })  
 }
 
