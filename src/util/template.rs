@@ -158,7 +158,7 @@ impl Template {
 
         info!("Loaded <b><cyan>{}</> templates.", &templates.len());
 
-        let syntax = Syntax::builder().expr("{{", "}}").block("<[", "]>").build();
+        let syntax = Syntax::builder().expr("{{", "}}").block("<*", "*>").build();
         let mut engine = Engine::with_syntax(syntax);
 
         let image = match &source {
@@ -189,7 +189,10 @@ impl Template {
                 .wrap_err(format!("Could not read the {} template.", name))
                 .suggestion("Try converting the file to use UTF-8 encoding.")?;
 
-            engine.add_template(name, data)?;
+            engine.add_template(name, data).map_err(|error| {
+                let message = format!("[{} - {}]\n{:#}", name, input_path_absolute.display(), error);
+                Report::new(error).wrap_err(message).suggestion("Make sure you closed the {{ opening  properly.")
+            })?;
 
             debug!(
                 "Trying to write the {} template to {}",
