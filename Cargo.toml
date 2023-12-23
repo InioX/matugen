@@ -39,7 +39,7 @@ prettytable-rs = "0.10.0"
 serde_json = "1.0.107"
 update-informer = "1.1.0"
 upon = "0.8.0"
-reqwest = { version = "0.11.23", features = ["blocking"] }
+reqwest = { version = "0.11.23", default_features=false, features = ["blocking", "rustls-tls"] }
 
 [workspace]
 members = ["material-color-utilities-rs"]
