@@ -18,8 +18,6 @@ use material_color_utilities_rs::{
     scheme::{scheme::Scheme, scheme_android::SchemeAndroid},
 };
 
-
-
 use clap::{Parser, ValueEnum};
 use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
@@ -56,17 +54,17 @@ fn main() -> Result<(), Report> {
     } else {
         LevelFilter::Warn
     };
-    
+
     setup_logging(log_level)?;
-    
+
     check_version();
-    
+
     let source_color = get_source_color(&args.source)?;
-    
+
     let mut palette: CorePalette = generate_palette(&args.palette.unwrap(), source_color)?;
-    
+
     let config: ConfigFile = ConfigFile::read(&args)?;
-    
+
     let default_scheme = args
         .mode
         .expect("Something went wrong while parsing the mode");
@@ -89,7 +87,15 @@ fn main() -> Result<(), Report> {
     }
 
     if args.dry_run == Some(false) {
-        Template::generate(&schemes, &config.templates, &args.source, &config.config.prefix, &source_color, &default_scheme, &config.config.custom_keywords)?;
+        Template::generate(
+            &schemes,
+            &config.templates,
+            &args.source,
+            &config.config.prefix,
+            &source_color,
+            &default_scheme,
+            &config.config.custom_keywords,
+        )?;
 
         if config.config.reload_apps == Some(true) {
             #[cfg(any(target_os = "linux", target_os = "netbsd"))]
@@ -100,6 +106,7 @@ fn main() -> Result<(), Report> {
             let path = match &args.source {
                 Source::Image { path } => path,
                 Source::Color { .. } => return Ok(()),
+                Source::WebImage { .. } => return Ok(()),
             };
 
             #[cfg(any(target_os = "linux", target_os = "netbsd"))]

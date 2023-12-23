@@ -72,6 +72,8 @@ pub struct Cli {
 pub enum Source {
     /// The image to use for generating a color scheme
     Image { path: String },
+    /// The image to fetch from web and use for generating a color scheme
+    WebImage { url: String },
     /// The source color to use for generating a color scheme
     #[clap(subcommand)]
     Color(ColorFormat),
