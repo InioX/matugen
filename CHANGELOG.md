@@ -6,21 +6,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.2.0](https://github.com/InioX/matugen/compare/matugen-v1.1.1...matugen-v1.2.0) - 2023-12-23
-
-### Added
-- add image fetched from web
-- show template path and name in error
-- add template name and path in error
-- update syntax
-
-### Fixed
-- update quantizer arguments [#39](https://github.com/InioX/matugen/pull/39)
-- add back `source_color`
-
-### Other
-- update gitignore
-
 ## [1.1.1](https://github.com/InioX/matugen/compare/matugen-v1.1.0...matugen-v1.1.1) - 2023-12-14
 
 ### Fixed
