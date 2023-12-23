@@ -6,6 +6,11 @@ use prettytable::{format, Cell, Row, Table};
 
 use crate::Schemes;
 
+use crate::util::image::fetch_image;
+
+use color_eyre::Help;
+use image::ImageError;
+
 use super::arguments::{ColorFormat, Format, Source};
 use super::image::source_color_from_image;
 use color_eyre::{eyre::Result, Report};
@@ -451,7 +456,30 @@ fn generate_style(color: &Color) -> Style {
 
 pub fn get_source_color(source: &Source) -> Result<[u8; 4], Report> {
     let source_color: [u8; 4] = match &source {
-        Source::Image { path } => source_color_from_image(path)?[0],
+        Source::Image { path } => {
+            // test
+            info!("Opening image in <d><u>{}</>", path);
+            let img = match image::open(path) {
+                Ok(img) => img,
+                Err(ImageError::Unsupported(e)) => {
+                    return Err(Report::new(e).suggestion("Try using another image that is valid."))
+                }
+                Err(ImageError::IoError(e)) => {
+                    return Err(Report::new(e).suggestion(
+                        "Try using an image that exists or make sure the path provided is valid.",
+                    ))
+                }
+                Err(e) => return Err(Report::new(e)),
+            };
+            source_color_from_image(img)?[0]
+        }
+        Source::WebImage { url } => {
+            // test
+            info!("Fetching image from <d><u>{}</>", url);
+
+            let img = fetch_image(url)?;
+            source_color_from_image(img)?[0]
+        }
         Source::Color(color) => {
             let src: Rgb = match color {
                 ColorFormat::Hex { string } => {

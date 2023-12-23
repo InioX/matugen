@@ -1,25 +1,15 @@
 use color_eyre::{Help, Report};
-use image::ImageError;
 use image::{imageops::FilterType, DynamicImage, GenericImageView};
 use material_color_utilities_rs::{quantize::quantizer_celebi::QuantizerCelebi, score::score};
 
 use super::color::Color;
 
-pub fn source_color_from_image(image: &String) -> Result<Vec<[u8; 4]>, Report> {
-    info!("Opening image in <d><u>{}</>", image);
-    let img = match image::open(image) {
-        Ok(img) => img,
-        Err(ImageError::Unsupported(e)) => {
-            return Err(Report::new(e).suggestion("Try using another image that is valid."))
-        }
-        Err(ImageError::IoError(e)) => {
-            return Err(Report::new(e).suggestion(
-                "Try using an image that exists or make sure the path provided is valid.",
-            ))
-        }
-        Err(e) => return Err(Report::new(e)),
-    };
+pub fn fetch_image(url: &str) -> Result<DynamicImage, Report> {
+    let bytes = reqwest::blocking::get(url)?.bytes()?;
+    Ok(image::load_from_memory(&bytes)?)
+}
 
+pub fn source_color_from_image(img: DynamicImage) -> Result<Vec<[u8; 4]>, Report> {
     let (width, height) = img.dimensions();
 
     let (new_width, new_height) = (width / 64, height / 64);
