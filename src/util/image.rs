@@ -32,7 +32,7 @@ pub fn source_color_from_image(image: &String) -> Result<Vec<[u8; 4]>, Report> {
 
     let pixels: Vec<[u8; 4]> = generate_pixels(&resized_img);
 
-    let theme = QuantizerCelebi::quantize(&mut QuantizerCelebi, &pixels, 1);
+    let theme = QuantizerCelebi::quantize(&mut QuantizerCelebi, &pixels, 128);
 
     let score = score(&theme);
 
