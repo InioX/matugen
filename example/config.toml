@@ -8,5 +8,5 @@ swww_options = [
 ]
 
 [templates.name1]
-input_path = "~/dev/matugen/example/colors.css"
-output_path = "~/dev/matugen/example/a/colors-generated.css"
+input_path = "example/colors.css"
+output_path = "example/a/colors-generated.css"
