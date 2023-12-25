@@ -24,14 +24,14 @@ enquote = "1.1.0"
 [dependencies]
 material-color-utilities-rs = { version = "0.5.0",package = "ini-material-color-utilities-rs", path = "material-color-utilities-rs", features = ["serde", "clap"] }
 image = "0.24.6"
-owo-colors = "3.5.0"
+owo-colors = "4.0.0"
 clap = { version = "4.2.4", features = ["derive"] }
 color-eyre = { version = "0.6.2", default-features = false }
 serde = { version = "1.0.160", features = ["derive"] }
-toml = "0.7.3"
+toml = "0.8.8"
 directories = "5.0"
 resolve-path = "0.1.0"
-pretty_env_logger = "0.4.0"
+pretty_env_logger = "0.5.0"
 log = "0.4.17"
 paris-log = { version = "1.0.2", features = ["icons"] }
 colorsys = "0.6.7"
