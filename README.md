@@ -1,13 +1,13 @@
 <div align="center">
-     <img src="https://user-images.githubusercontent.com/81521595/226138807-db504bdf-4eb5-4fe9-9ee5-a1a1395d70dc.png" width=140>
-      <h1>Matugen</h1>
- </div>
-    
-<div align="center">
-     <img src="https://user-images.githubusercontent.com/81521595/236634805-15e68f9b-44a5-4efc-b275-0eb1f6a28bd9.gif" width="330" height="190"/>
+     <img src="https://user-images.githubusercontent.com/81521595/236634805-15e68f9b-44a5-4efc-b275-0eb1f6a28bd9.gif" width=45% height=45%>
+     <br><br>
+     <img src="https://github.com/InioX/matugen/assets/81521595/ec3a165d-442d-4494-9aec-24254d11ae61" width=50% height=50%>
+     <br><br>
+     <img alt="license" src="https://custom-icon-badges.demolab.com/crates/l/matugen?color=3D3838&logo=law&style=for-the-badge&logoColor=370D10&labelColor=FEB3B3">
+     <img alt="version" src="https://custom-icon-badges.demolab.com/crates/v/matugen?color=3D3838&logo=package&style=for-the-badge&logoColor=370D10&labelColor=FEB3B3">
      <br>
-     <img alt="Crates.io" src="https://img.shields.io/crates/l/matugen?color=white&logo=license&style=for-the-badge">
-     <img alt="Crates.io" src="https://img.shields.io/crates/v/matugen?color=white&logo=rust&style=for-the-badge">
+     <img alt="downloads" src="https://custom-icon-badges.demolab.com/crates/d/matugen?color=3D3838&logo=download&style=for-the-badge&logoColor=370D10&labelColor=FEB3B3">
+     <img alt="stars" src="https://custom-icon-badges.demolab.com/github/stars/InioX/matugen?color=3D3838&logo=star&style=for-the-badge&logoColor=370D10&labelColor=FEB3B3">
      <br> 
      <a href="#-------------------------description">Description</a>
     ·
@@ -19,7 +19,11 @@
 <div align="center">
   <sub>A cross-platform material you color generation tool
 </div>
-   
+
+<div align="center">
+  <img src="https://github.com/InioX/matugen/assets/81521595/9008d8d9-0157-4b38-9500-597986a2cb9f">
+</div>
+
 <h2 class="description">
      <sub>
           <img  src="https://github.com/InioX/matugen/assets/81521595/da0dfc26-e8c0-46c1-ad13-bfaac394109b"
