@@ -1,5 +1,6 @@
-use std::process::Command;
 use color_eyre::Report;
+use enquote;
+use std::process::Command;
 
 #[cfg(target_os = "macos")]
 pub fn set(path: &str) -> Result<(), Report> {
