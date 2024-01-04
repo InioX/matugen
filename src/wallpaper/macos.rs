@@ -1,5 +1,5 @@
 use color_eyre::Report;
-use enquote;
+extern crate enquote;
 use std::process::Command;
 
 #[cfg(target_os = "macos")]
