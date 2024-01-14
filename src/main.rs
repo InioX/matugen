@@ -13,7 +13,7 @@ use crate::util::{
     template::Template,
 };
 
-use material_colors::{scheme::tonal_spot::SchemeTonalSpot, Hct, Scheme};
+use material_colors::{Hct, Scheme};
 use std::collections::HashMap;
 
 use clap::{Parser, ValueEnum};
@@ -22,6 +22,13 @@ use log::LevelFilter;
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 use update_informer::{registry, Check};
+
+use util::arguments::SchemeTypes;
+
+use material_colors::{
+    SchemeContent, SchemeExpressive, SchemeFidelity, SchemeFruitSalad, SchemeMonochrome,
+    SchemeNeutral, SchemeRainbow, SchemeTonalSpot,
+};
 
 pub struct Schemes {
     pub light: HashMap<String, [u8; 4], ahash::random_state::RandomState>,
@@ -37,6 +44,8 @@ pub enum SchemesEnum {
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
     let args = Cli::parse();
+
+    println!("{:?}", args.r#type);
 
     let log_level: LevelFilter = if args.verbose == Some(true) {
         LevelFilter::Info
@@ -54,8 +63,8 @@ fn main() -> Result<(), Report> {
 
     let source_color = get_source_color(&args.source)?;
 
-    let scheme1 = Scheme::from(SchemeTonalSpot::new(Hct::new(source_color), false, None).scheme);
-    let scheme2 = Scheme::from(SchemeTonalSpot::new(Hct::new(source_color), true, None).scheme);
+    let scheme_dark = generate_scheme(&args.r#type, source_color, true);
+    let scheme_light = generate_scheme(&args.r#type, source_color, false);
 
     let config: ConfigFile = ConfigFile::read(&args)?;
 
@@ -64,8 +73,8 @@ fn main() -> Result<(), Report> {
         .expect("Something went wrong while parsing the mode");
 
     let schemes: Schemes = Schemes {
-        light: HashMap::from(scheme1),
-        dark: HashMap::from(scheme2),
+        light: HashMap::from(scheme_dark),
+        dark: HashMap::from(scheme_light),
     };
 
     if args.show_colors == Some(true) {
@@ -152,4 +161,43 @@ fn setup_logging(log_level: LevelFilter) -> Result<(), Report> {
         .format(|buf, record| writeln!(buf, "{}", record.args()))
         .try_init()?;
     Ok(())
+}
+
+fn generate_scheme(
+    scheme_type: &Option<SchemeTypes>,
+    source_color: [u8; 4],
+    is_dark: bool,
+) -> Scheme {
+    match scheme_type.unwrap() {
+        SchemeTypes::SchemeContent => {
+            return Scheme::from(SchemeContent::new(Hct::new(source_color), is_dark, None).scheme)
+        }
+        SchemeTypes::SchemeExpressive => {
+            return Scheme::from(
+                SchemeExpressive::new(Hct::new(source_color), is_dark, None).scheme,
+            )
+        }
+        SchemeTypes::SchemeFidelity => {
+            return Scheme::from(SchemeFidelity::new(Hct::new(source_color), is_dark, None).scheme)
+        }
+        SchemeTypes::SchemeFruitSalad => {
+            return Scheme::from(
+                SchemeFruitSalad::new(Hct::new(source_color), is_dark, None).scheme,
+            )
+        }
+        SchemeTypes::SchemeMonochrome => {
+            return Scheme::from(
+                SchemeMonochrome::new(Hct::new(source_color), is_dark, None).scheme,
+            )
+        }
+        SchemeTypes::SchemeNeutral => {
+            return Scheme::from(SchemeNeutral::new(Hct::new(source_color), is_dark, None).scheme)
+        }
+        SchemeTypes::SchemeRainbow => {
+            return Scheme::from(SchemeRainbow::new(Hct::new(source_color), is_dark, None).scheme)
+        }
+        SchemeTypes::SchemeTonalSpot => {
+            return Scheme::from(SchemeTonalSpot::new(Hct::new(source_color), is_dark, None).scheme)
+        }
+    }
 }
