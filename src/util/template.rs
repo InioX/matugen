@@ -55,7 +55,6 @@ struct Colora {
 struct ColorVariants {
     pub light: Colora,
     pub dark: Colora,
-    pub amoled: Colora,
     pub default: Colora,
 }
 
@@ -492,7 +491,6 @@ fn generate_single_color(
     let scheme = match default_scheme {
         SchemesEnum::Light => &schemes.light,
         SchemesEnum::Dark => &schemes.dark,
-        SchemesEnum::Amoled => &schemes.amoled,
     };
 
     let color_default: Color = Color::new(*Scheme::get_value(scheme, field, source_color));
@@ -507,7 +505,6 @@ fn generate_single_color(
         default: generate_color_strings(color_default),
         light: generate_color_strings(color_light),
         dark: generate_color_strings(color_dark),
-        amoled: generate_color_strings(color_amoled),
     })
 }
 
