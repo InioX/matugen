@@ -1,6 +1,17 @@
 use clap::{arg, ArgAction, Parser, Subcommand};
-use material_color_utilities_rs::palettes::core::ColorPalette;
 use std::path::PathBuf;
+
+#[derive(Clone, clap::ValueEnum, Debug, Copy)]
+pub enum SchemeTypes {
+    SchemeContent,
+    SchemeExpressive,
+    SchemeFidelity,
+    SchemeFruitSalad,
+    SchemeMonochrome,
+    SchemeNeutral,
+    SchemeRainbow,
+    SchemeTonalSpot,
+}
 
 use crate::SchemesEnum;
 
@@ -12,15 +23,15 @@ pub struct Cli {
     #[command(subcommand)]
     pub source: Source,
 
-    /// Sets a custom color palette
+    /// Sets a custom color scheme type
     #[arg(
         short,
         long,
-        value_name = "PALETTE",
+        value_name = "TYPE",
         global = true,
-        default_value = "default"
+        default_value = "scheme-tonal-spot"
     )]
-    pub palette: Option<ColorPalette>,
+    pub r#type: Option<SchemeTypes>,
 
     /// Sets a custom config file
     #[arg(short, long, value_name = "FILE", global = true)]
