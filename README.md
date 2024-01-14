@@ -92,7 +92,14 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
      Installation
 </h2>
 
-#### Cargo
+<h4>
+     <sub>
+          <img  src="https://cdn.simpleicons.org/rust/white"
+           height="20"
+           width="20">
+     </sub>
+     Cargo
+</h4>
 
 <details><summary>Click to expand</summary>
 
@@ -103,7 +110,15 @@ cargo install matugen
 </p>
 </details>
 
-#### NixOS
+
+<h4>
+     <sub>
+          <img  src="https://cdn.simpleicons.org/nixos/white"
+           height="20"
+           width="20">
+     </sub>
+     NixOS
+</h4>
 
 <details><summary>Click to expand</summary>
 <p>
@@ -153,7 +168,14 @@ planned.
 </p>
 </details>
 
-#### NetBSD
+<h4>
+     <sub>
+          <img  src="https://cdn.simpleicons.org/netbsd/white"
+           height="20"
+           width="20">
+     </sub>
+     NetBSD
+</h4>
 
 <details><summary>Click to expand</summary>
 
