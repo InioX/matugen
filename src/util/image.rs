@@ -39,6 +39,10 @@ fn generate_pixels(image: &DynamicImage) -> Vec<[u8; 4]> {
             alpha: pixel.2[3],
         };
 
+        if color.alpha < 255 {
+            continue;
+        }
+
         let argb: [u8; 4] = [color.alpha, color.red, color.green, color.blue];
 
         pixels.push(argb);
