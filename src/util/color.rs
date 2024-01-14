@@ -135,10 +135,10 @@ fn generate_table_format() -> Table {
 
     table.set_titles(Row::new(vec![
         Cell::new("NAME").style_spec("c"),
-        Cell::new("LIGHT").style_spec("c"),
-        Cell::new("LIGHT").style_spec("c"),
         Cell::new("DARK").style_spec("c"),
         Cell::new("DARK").style_spec("c"),
+        Cell::new("LIGHT").style_spec("c"),
+        Cell::new("LIGHT").style_spec("c"),
     ]));
     table
 }
