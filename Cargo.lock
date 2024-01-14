@@ -871,6 +871,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 
 [[package]]
+name = "material-colors"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5548a0ce2a9398db79cce2297ee66d7fb49d6efa14619bd13cf91a2c7869a7fd"
+dependencies = [
+ "ahash",
+ "rand",
+]
+
+[[package]]
 name = "matugen"
 version = "1.2.1"
 dependencies = [
@@ -882,6 +892,7 @@ dependencies = [
  "image",
  "ini-material-color-utilities-rs",
  "log",
+ "material-colors",
  "owo-colors 4.0.0",
  "paris-log",
  "pretty_env_logger",

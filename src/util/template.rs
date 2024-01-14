@@ -20,9 +20,6 @@ use crate::util::color::SchemeExt;
 use crate::util::config::CustomKeyword;
 use crate::Scheme;
 
-use crate::util::color::SchemeAndroidExt;
-use crate::SchemeAndroid;
-
 use material_color_utilities_rs::util::color::format_argb_as_rgb;
 use resolve_path::PathResolveExt;
 
@@ -109,30 +106,6 @@ struct Colors {
     surface_container: ColorVariants,
     surface_container_high: ColorVariants,
     surface_container_highest: ColorVariants,
-    color_accent_primary: ColorVariants,
-    color_accent_primary_variant: ColorVariants,
-    color_accent_secondary: ColorVariants,
-    color_accent_secondary_variant: ColorVariants,
-    color_accent_tertiary: ColorVariants,
-    color_accent_tertiary_variant: ColorVariants,
-    text_color_primary: ColorVariants,
-    text_color_secondary: ColorVariants,
-    text_color_tertiary: ColorVariants,
-    text_color_primary_inverse: ColorVariants,
-    text_color_secondary_inverse: ColorVariants,
-    text_color_tertiary_inverse: ColorVariants,
-    color_background: ColorVariants,
-    color_background_floating: ColorVariants,
-    color_surface: ColorVariants,
-    color_surface_variant: ColorVariants,
-    color_surface_highlight: ColorVariants,
-    surface_header: ColorVariants,
-    under_surface: ColorVariants,
-    off_state: ColorVariants,
-    accent_surface: ColorVariants,
-    text_primary_on_accent: ColorVariants,
-    text_secondary_on_accent: ColorVariants,
-    volume_background: ColorVariants,
     source_color: ColorVariants,
 }
 
@@ -234,7 +207,34 @@ impl Template {
                         input_path_absolute.display(),
                         error
                     );
-                    Report::new(error).wrap_err(message)
+                    Report::new(error).wrap_err(message).note(
+                        r#"The following colors have been removed:
+    - color_accent_primary
+    - color_accent_primary_variant
+    - color_accent_secondary
+    - color_accent_secondary_variant
+    - color_accent_tertiary
+    - color_accent_tertiary_variant
+    - text_color_primary
+    - text_color_secondary:
+    - text_color_tertiary
+    - text_color_primary_inverse
+    - text_color_secondary_inverse
+    - text_color_tertiary_inverse
+    - color_background
+    - color_background_floating
+    - color_surface
+    - color_surface_variant
+    - color_surface_highlight
+    - surface_header
+    - under_surface
+    - off_state
+    - accent_surface
+    - text_primary_on_accent
+    - text_secondary_on_accent
+    - volume_background
+                    "#,
+                    )
                 })?;
 
             let mut output_file = OpenOptions::new()
@@ -269,448 +269,216 @@ fn generate_colors(
     default_scheme: &SchemesEnum,
 ) -> Result<Colors, Report> {
     Ok(Colors {
-        primary: generate_single_color("primary", &schemes, source_color, default_scheme, false)?,
+        primary: generate_single_color("primary", &schemes, source_color, default_scheme)?,
         primary_fixed: generate_single_color(
             "primary_fixed",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         primary_fixed_dim: generate_single_color(
             "primary_fixed_dim",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
-        on_primary: generate_single_color(
-            "on_primary",
-            &schemes,
-            source_color,
-            default_scheme,
-            false,
-        )?,
+        on_primary: generate_single_color("on_primary", &schemes, source_color, default_scheme)?,
         on_primary_fixed: generate_single_color(
             "on_primary_fixed",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         on_primary_fixed_variant: generate_single_color(
             "on_primary_fixed_variant",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         primary_container: generate_single_color(
             "primary_container",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         on_primary_container: generate_single_color(
             "on_primary_container",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
-        secondary: generate_single_color(
-            "secondary",
-            &schemes,
-            source_color,
-            default_scheme,
-            false,
-        )?,
+        secondary: generate_single_color("secondary", &schemes, source_color, default_scheme)?,
         secondary_fixed: generate_single_color(
             "secondary_fixed",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         secondary_fixed_dim: generate_single_color(
             "secondary_fixed_dim",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         on_secondary: generate_single_color(
             "on_secondary",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         on_secondary_fixed: generate_single_color(
             "on_secondary_fixed",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         on_secondary_fixed_variant: generate_single_color(
             "on_secondary_fixed_variant",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         secondary_container: generate_single_color(
             "secondary_container",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         on_secondary_container: generate_single_color(
             "on_secondary_container",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
-        tertiary: generate_single_color("tertiary", &schemes, source_color, default_scheme, false)?,
+        tertiary: generate_single_color("tertiary", &schemes, source_color, default_scheme)?,
         tertiary_fixed: generate_single_color(
             "tertiary_fixed",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         tertiary_fixed_dim: generate_single_color(
             "tertiary_fixed_dim",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
-        on_tertiary: generate_single_color(
-            "on_tertiary",
-            &schemes,
-            source_color,
-            default_scheme,
-            false,
-        )?,
+        on_tertiary: generate_single_color("on_tertiary", &schemes, source_color, default_scheme)?,
         on_tertiary_fixed: generate_single_color(
             "on_tertiary_fixed",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         on_tertiary_fixed_variant: generate_single_color(
             "on_tertiary_fixed_variant",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         tertiary_container: generate_single_color(
             "tertiary_container",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         on_tertiary_container: generate_single_color(
             "on_tertiary_container",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
-        error: generate_single_color("error", &schemes, source_color, default_scheme, false)?,
-        on_error: generate_single_color("on_error", &schemes, source_color, default_scheme, false)?,
+        error: generate_single_color("error", &schemes, source_color, default_scheme)?,
+        on_error: generate_single_color("on_error", &schemes, source_color, default_scheme)?,
         error_container: generate_single_color(
             "error_container",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         on_error_container: generate_single_color(
             "on_error_container",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
-        surface: generate_single_color("surface", &schemes, source_color, default_scheme, false)?,
-        on_surface: generate_single_color(
-            "on_surface",
-            &schemes,
-            source_color,
-            default_scheme,
-            false,
-        )?,
+        surface: generate_single_color("surface", &schemes, source_color, default_scheme)?,
+        on_surface: generate_single_color("on_surface", &schemes, source_color, default_scheme)?,
         on_surface_variant: generate_single_color(
             "on_surface_variant",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
-        outline: generate_single_color("outline", &schemes, source_color, default_scheme, false)?,
+        outline: generate_single_color("outline", &schemes, source_color, default_scheme)?,
         outline_variant: generate_single_color(
             "outline_variant",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
-        shadow: generate_single_color("shadow", &schemes, source_color, default_scheme, false)?,
-        scrim: generate_single_color("scrim", &schemes, source_color, default_scheme, false)?,
+        shadow: generate_single_color("shadow", &schemes, source_color, default_scheme)?,
+        scrim: generate_single_color("scrim", &schemes, source_color, default_scheme)?,
         inverse_surface: generate_single_color(
             "inverse_surface",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         inverse_on_surface: generate_single_color(
             "inverse_on_surface",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         inverse_primary: generate_single_color(
             "inverse_primary",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
-        surface_dim: generate_single_color(
-            "surface_dim",
-            &schemes,
-            source_color,
-            default_scheme,
-            false,
-        )?,
+        surface_dim: generate_single_color("surface_dim", &schemes, source_color, default_scheme)?,
         surface_bright: generate_single_color(
             "surface_bright",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         surface_container_lowest: generate_single_color(
             "surface_container_lowest",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         surface_container_low: generate_single_color(
             "surface_container_low",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         surface_container: generate_single_color(
             "surface_container",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         surface_container_high: generate_single_color(
             "surface_container_high",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
         surface_container_highest: generate_single_color(
             "surface_container_highest",
             &schemes,
             source_color,
             default_scheme,
-            false,
-        )?,
-
-        color_accent_primary: generate_single_color(
-            "color_accent_primary",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        color_accent_primary_variant: generate_single_color(
-            "color_accent_primary_variant",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        color_accent_secondary: generate_single_color(
-            "color_accent_secondary",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        color_accent_secondary_variant: generate_single_color(
-            "color_accent_secondary_variant",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        color_accent_tertiary: generate_single_color(
-            "color_accent_tertiary",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        color_accent_tertiary_variant: generate_single_color(
-            "color_accent_tertiary_variant",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        text_color_primary: generate_single_color(
-            "text_color_primary",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        text_color_secondary: generate_single_color(
-            "text_color_secondary",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        text_color_tertiary: generate_single_color(
-            "text_color_tertiary",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        text_color_primary_inverse: generate_single_color(
-            "text_color_primary_inverse",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        text_color_secondary_inverse: generate_single_color(
-            "text_color_secondary_inverse",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        text_color_tertiary_inverse: generate_single_color(
-            "text_color_tertiary_inverse",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        color_background: generate_single_color(
-            "color_background",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        color_background_floating: generate_single_color(
-            "color_background_floating",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        color_surface: generate_single_color(
-            "color_surface",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        color_surface_variant: generate_single_color(
-            "color_surface_variant",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        color_surface_highlight: generate_single_color(
-            "color_surface_highlight",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        surface_header: generate_single_color(
-            "surface_header",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        under_surface: generate_single_color(
-            "under_surface",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        off_state: generate_single_color(
-            "off_state",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        accent_surface: generate_single_color(
-            "accent_surface",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        text_primary_on_accent: generate_single_color(
-            "text_primary_on_accent",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        text_secondary_on_accent: generate_single_color(
-            "text_secondary_on_accent",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
-        )?,
-        volume_background: generate_single_color(
-            "volume_background",
-            &schemes,
-            source_color,
-            default_scheme,
-            true,
         )?,
         source_color: generate_single_color(
             "source_color",
             &schemes,
             source_color,
             default_scheme,
-            false,
         )?,
     })
 }
@@ -720,53 +488,20 @@ fn generate_single_color(
     schemes: &Schemes,
     source_color: &[u8; 4],
     default_scheme: &SchemesEnum,
-    is_android: bool,
 ) -> Result<ColorVariants, Report> {
-    let color_default: Color = match is_android {
-        true => {
-            let scheme = match default_scheme {
-                SchemesEnum::Light => &schemes.light_android,
-                SchemesEnum::Dark => &schemes.dark_android,
-                SchemesEnum::Amoled => &schemes.amoled_android,
-            };
-            Color::new(*SchemeAndroid::get_value(scheme, field, source_color))
-        }
-        false => {
-            let scheme = match default_scheme {
-                SchemesEnum::Light => &schemes.light,
-                SchemesEnum::Dark => &schemes.dark,
-                SchemesEnum::Amoled => &schemes.amoled,
-            };
-            Color::new(*Scheme::get_value(scheme, field, source_color))
-        }
+    let scheme = match default_scheme {
+        SchemesEnum::Light => &schemes.light,
+        SchemesEnum::Dark => &schemes.dark,
+        SchemesEnum::Amoled => &schemes.amoled,
     };
 
-    let color_light: Color = match is_android {
-        true => Color::new(*SchemeAndroid::get_value(
-            &schemes.light_android,
-            field,
-            source_color,
-        )),
-        false => Color::new(*Scheme::get_value(&schemes.light, field, source_color)),
-    };
+    let color_default: Color = Color::new(*Scheme::get_value(scheme, field, source_color));
 
-    let color_dark: Color = match is_android {
-        true => Color::new(*SchemeAndroid::get_value(
-            &schemes.dark_android,
-            field,
-            source_color,
-        )),
-        false => Color::new(*Scheme::get_value(&schemes.light, field, source_color)),
-    };
+    let color_light: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
 
-    let color_amoled: Color = match is_android {
-        true => Color::new(*SchemeAndroid::get_value(
-            &schemes.amoled_android,
-            field,
-            source_color,
-        )),
-        false => Color::new(*Scheme::get_value(&schemes.light, field, source_color)),
-    };
+    let color_dark: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
+
+    let color_amoled: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
 
     Ok(ColorVariants {
         default: generate_color_strings(color_default),

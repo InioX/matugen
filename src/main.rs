@@ -15,7 +15,7 @@ use crate::util::{
 
 use material_color_utilities_rs::{
     palettes::core::{ColorPalette, CorePalette},
-    scheme::{scheme::Scheme, scheme_android::SchemeAndroid},
+    scheme::scheme::Scheme,
 };
 
 use clap::{Parser, ValueEnum};
@@ -29,9 +29,6 @@ pub struct Schemes {
     pub light: Scheme,
     pub dark: Scheme,
     pub amoled: Scheme,
-    pub light_android: SchemeAndroid,
-    pub dark_android: SchemeAndroid,
-    pub amoled_android: SchemeAndroid,
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -73,9 +70,6 @@ fn main() -> Result<(), Report> {
         light: Scheme::light_from_core_palette(&mut palette),
         dark: Scheme::dark_from_core_palette(&mut palette),
         amoled: Scheme::pure_dark_from_core_palette(&mut palette),
-        light_android: SchemeAndroid::light_from_core_palette(&mut palette),
-        dark_android: SchemeAndroid::dark_from_core_palette(&mut palette),
-        amoled_android: SchemeAndroid::pure_dark_from_core_palette(&mut palette),
     };
 
     if args.show_colors == Some(true) {

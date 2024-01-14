@@ -1,4 +1,3 @@
-use material_color_utilities_rs::scheme::scheme_android::SchemeAndroid;
 use material_color_utilities_rs::{scheme::scheme::Scheme, util::color::format_argb_as_rgb};
 use owo_colors::{OwoColorize, Style};
 
@@ -68,35 +67,6 @@ pub const COLORS: [&str; 46] = [
     "surface_container_highest",
 ];
 
-pub const COLORS_ANDROID: [&str; 26] = [
-    "source_color",
-    "color_accent_primary",
-    "color_accent_primary_variant",
-    "color_accent_secondary",
-    "color_accent_secondary_variant",
-    "color_accent_tertiary",
-    "color_accent_tertiary_variant",
-    "text_color_primary",
-    "text_color_secondary",
-    "text_color_tertiary",
-    "text_color_primary_inverse",
-    "text_color_secondary_inverse",
-    "text_color_tertiary_inverse",
-    "color_background",
-    "color_background_floating",
-    "color_surface",
-    "color_surface_variant",
-    "color_surface_highlight",
-    "surface_header",
-    "under_surface",
-    "off_state",
-    "accent_surface",
-    "text_primary_on_accent",
-    "text_secondary_on_accent",
-    "volume_background",
-    "scrim_android", // Should just be `scrim`, renamed so its not the same as `scrim` in `COLORS`
-];
-
 // TODO Fix this monstrosity
 pub trait SchemeExt {
     fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4];
@@ -155,43 +125,6 @@ impl SchemeExt for Scheme {
     }
 }
 
-pub trait SchemeAndroidExt {
-    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4];
-}
-impl SchemeAndroidExt for SchemeAndroid {
-    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4] {
-        match field {
-            "source_color" => source_color,
-            "color_accent_primary" => &self.color_accent_primary,
-            "color_accent_primary_variant" => &self.color_accent_primary_variant,
-            "color_accent_secondary" => &self.color_accent_secondary,
-            "color_accent_secondary_variant" => &self.color_accent_secondary_variant,
-            "color_accent_tertiary" => &self.color_accent_tertiary,
-            "color_accent_tertiary_variant" => &self.color_accent_tertiary_variant,
-            "text_color_primary" => &self.text_color_primary,
-            "text_color_secondary" => &self.text_color_secondary,
-            "text_color_tertiary" => &self.text_color_tertiary,
-            "text_color_primary_inverse" => &self.text_color_primary_inverse,
-            "text_color_secondary_inverse" => &self.text_color_secondary_inverse,
-            "text_color_tertiary_inverse" => &self.text_color_tertiary_inverse,
-            "color_background" => &self.color_background,
-            "color_background_floating" => &self.color_background_floating,
-            "color_surface" => &self.color_surface,
-            "color_surface_variant" => &self.color_surface_variant,
-            "color_surface_highlight" => &self.color_surface_highlight,
-            "surface_header" => &self.surface_header,
-            "under_surface" => &self.under_surface,
-            "off_state" => &self.off_state,
-            "accent_surface" => &self.accent_surface,
-            "text_primary_on_accent" => &self.text_primary_on_accent,
-            "text_secondary_on_accent" => &self.text_secondary_on_accent,
-            "volume_background" => &self.volume_background,
-            "scrim_android" => &self.scrim,
-            _ => panic!("{}", field),
-        }
-    }
-}
-
 #[derive(Debug)]
 pub struct Color {
     pub red: u8,
@@ -224,36 +157,7 @@ pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
         generate_table_rows(&mut table, field, color_light, color_dark, color_amoled);
     }
 
-    let mut table_android: Table = generate_table_format();
-
-    for field in COLORS_ANDROID {
-        let color_light: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.light_android,
-            field,
-            source_color,
-        ));
-        let color_dark: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.dark_android,
-            field,
-            source_color,
-        ));
-        let color_amoled: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.amoled_android,
-            field,
-            source_color,
-        ));
-
-        generate_table_rows(
-            &mut table_android,
-            field,
-            color_light,
-            color_dark,
-            color_amoled,
-        );
-    }
-
     table.printstd();
-    table_android.printstd();
 }
 
 fn hex(color: Color, prefix: bool) -> String {
@@ -308,32 +212,6 @@ pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
         colors_normal_amoled.insert(field, fmt(color_amoled));
     }
 
-    let mut colors_android_light: HashMap<&str, String> = HashMap::new();
-    let mut colors_android_dark: HashMap<&str, String> = HashMap::new();
-    let mut colors_android_amoled: HashMap<&str, String> = HashMap::new();
-
-    for field in COLORS_ANDROID {
-        let color_light: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.light_android,
-            field,
-            source_color,
-        ));
-        let color_dark: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.dark_android,
-            field,
-            source_color,
-        ));
-        let color_amoled: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.amoled_android,
-            field,
-            source_color,
-        ));
-
-        colors_android_light.insert(field, fmt(color_light));
-        colors_android_dark.insert(field, fmt(color_dark));
-        colors_android_amoled.insert(field, fmt(color_amoled));
-    }
-
     println!(
         "{}",
         json!({
@@ -342,11 +220,6 @@ pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
                 "dark": colors_normal_dark,
                 "amoled": colors_normal_amoled,
             },
-            "colors_android": {
-                "light": colors_android_light,
-                "dark": colors_android_dark,
-                "amoled": colors_android_amoled,
-            }
         })
     );
 }
