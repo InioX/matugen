@@ -1,5 +1,5 @@
 <div align="center">
-     <img src="https://user-images.githubusercontent.com/81521595/236634805-15e68f9b-44a5-4efc-b275-0eb1f6a28bd9.gif" width=45% height=45%>
+     <img src="https://github.com/InioX/matugen/assets/81521595/66cfec75-702c-4b55-83fc-c474de171057" width=55% height=55%>
      <br><br>
      <img src="https://github.com/InioX/matugen/assets/81521595/ec3a165d-442d-4494-9aec-24254d11ae61" width=50% height=50%>
      <br><br>
