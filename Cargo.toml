@@ -41,6 +41,7 @@ update-informer = "1.1.0"
 upon = "0.8.0"
 reqwest = { version = "0.11.23", default_features=false, features = ["blocking", "rustls-tls"] }
 material-colors = "0.1.1"
+ahash = "0.8.7"
 
 [workspace]
 members = ["material-color-utilities-rs"]
