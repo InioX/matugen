@@ -1,4 +1,4 @@
-use color_eyre::{Help, Report};
+use color_eyre::Report;
 use image::{imageops::FilterType, DynamicImage, GenericImageView};
 use material_color_utilities_rs::{quantize::quantizer_celebi::QuantizerCelebi, score::score};
 

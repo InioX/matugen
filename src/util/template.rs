@@ -16,9 +16,7 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use crate::util::arguments::Source;
-use crate::util::color::SchemeExt;
 use crate::util::config::CustomKeyword;
-use crate::Scheme;
 
 use material_color_utilities_rs::util::color::format_argb_as_rgb;
 use resolve_path::PathResolveExt;
@@ -493,13 +491,19 @@ fn generate_single_color(
         SchemesEnum::Dark => &schemes.dark,
     };
 
-    let color_default: Color = Color::new(*Scheme::get_value(scheme, field, source_color));
+    if field == "source_color" {
+        return Ok(ColorVariants {
+            default: generate_color_strings(Color::new(*source_color)),
+            light: generate_color_strings(Color::new(*source_color)),
+            dark: generate_color_strings(Color::new(*source_color)),
+        });
+    }
 
-    let color_light: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
+    let color_default: Color = Color::new(scheme[field]);
 
-    let color_dark: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
+    let color_light: Color = Color::new(schemes.light[field]);
 
-    let color_amoled: Color = Color::new(*Scheme::get_value(&schemes.light, field, source_color));
+    let color_dark: Color = Color::new(schemes.dark[field]);
 
     Ok(ColorVariants {
         default: generate_color_strings(color_default),

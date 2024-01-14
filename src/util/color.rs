@@ -1,4 +1,4 @@
-use material_color_utilities_rs::{scheme::scheme::Scheme, util::color::format_argb_as_rgb};
+use material_color_utilities_rs::util::color::format_argb_as_rgb;
 use owo_colors::{OwoColorize, Style};
 
 use prettytable::{format, Cell, Row, Table};
@@ -17,113 +17,6 @@ use colorsys::{ColorAlpha, Hsl, Rgb};
 use serde_json::json;
 use std::collections::HashMap;
 use std::str::FromStr;
-
-pub const COLORS: [&str; 46] = [
-    "source_color",
-    "primary",
-    "primary_fixed",
-    "primary_fixed_dim",
-    "on_primary",
-    "on_primary_fixed",
-    "on_primary_fixed_variant",
-    "primary_container",
-    "on_primary_container",
-    "secondary",
-    "secondary_fixed",
-    "secondary_fixed_dim",
-    "on_secondary",
-    "on_secondary_fixed",
-    "on_secondary_fixed_variant",
-    "secondary_container",
-    "on_secondary_container",
-    "tertiary",
-    "tertiary_fixed",
-    "tertiary_fixed_dim",
-    "on_tertiary",
-    "on_tertiary_fixed",
-    "on_tertiary_fixed_variant",
-    "tertiary_container",
-    "on_tertiary_container",
-    "error",
-    "on_error",
-    "error_container",
-    "on_error_container",
-    "surface",
-    "on_surface",
-    "on_surface_variant",
-    "outline",
-    "outline_variant",
-    "shadow",
-    "scrim",
-    "inverse_surface",
-    "inverse_on_surface",
-    "inverse_primary",
-    "surface_dim",
-    "surface_bright",
-    "surface_container_lowest",
-    "surface_container_low",
-    "surface_container",
-    "surface_container_high",
-    "surface_container_highest",
-];
-
-// TODO Fix this monstrosity
-pub trait SchemeExt {
-    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4];
-}
-impl SchemeExt for Scheme {
-    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4] {
-        match field {
-            "primary" => &self.primary,
-            "primary_fixed" => &self.primary_fixed,
-            "primary_fixed_dim" => &self.primary_fixed_dim,
-            "on_primary" => &self.on_primary,
-            "on_primary_fixed" => &self.on_primary_fixed,
-            "on_primary_fixed_variant" => &self.on_primary_fixed_variant,
-            "primary_container" => &self.primary_container,
-            "on_primary_container" => &self.on_primary_container,
-            "secondary" => &self.secondary,
-            "secondary_fixed" => &self.secondary_fixed,
-            "secondary_fixed_dim" => &self.secondary_fixed_dim,
-            "on_secondary" => &self.on_secondary,
-            "on_secondary_fixed" => &self.on_secondary_fixed,
-            "on_secondary_fixed_variant" => &self.on_secondary_fixed_variant,
-            "secondary_container" => &self.secondary_container,
-            "on_secondary_container" => &self.on_secondary_container,
-            "tertiary" => &self.tertiary,
-            "tertiary_fixed" => &self.tertiary_fixed,
-            "tertiary_fixed_dim" => &self.tertiary_fixed_dim,
-            "on_tertiary" => &self.on_tertiary,
-            "on_tertiary_fixed" => &self.on_tertiary_fixed,
-            "on_tertiary_fixed_variant" => &self.on_tertiary_fixed_variant,
-            "tertiary_container" => &self.tertiary_container,
-            "on_tertiary_container" => &self.on_tertiary_container,
-            "error" => &self.error,
-            "on_error" => &self.on_error,
-            "error_container" => &self.error_container,
-            "on_error_container" => &self.on_error_container,
-            "surface" => &self.surface,
-            "on_surface" => &self.on_surface,
-            "on_surface_variant" => &self.on_surface_variant,
-            "outline" => &self.outline,
-            "outline_variant" => &self.outline_variant,
-            "shadow" => &self.shadow,
-            "scrim" => &self.scrim,
-            "inverse_surface" => &self.inverse_surface,
-            "inverse_on_surface" => &self.inverse_on_surface,
-            "inverse_primary" => &self.inverse_primary,
-            "surface_dim" => &self.surface_dim,
-            "surface_bright" => &self.surface_bright,
-            "surface_container_lowest" => &self.surface_container_lowest,
-            "surface_container_low" => &self.surface_container_low,
-            "surface_container" => &self.surface_container,
-            "surface_container_high" => &self.surface_container_high,
-            "surface_container_highest" => &self.surface_container_highest,
-            "source_color" => source_color,
-            _ => panic!("{}", field),
-        }
-    }
-}
 
 #[derive(Debug)]
 pub struct Color {
@@ -144,13 +37,12 @@ impl Color {
     }
 }
 
-pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
+pub fn show_color(schemes: &Schemes, _source_color: &[u8; 4]) {
     let mut table: Table = generate_table_format();
 
-    for field in COLORS {
-        let color_light: Color =
-            Color::new(*Scheme::get_value(&schemes.light, field, source_color));
-        let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
+    for (field, _color) in &schemes.dark {
+        let color_light: Color = Color::new(schemes.light[field]);
+        let color_dark: Color = Color::new(schemes.dark[field]);
 
         generate_table_rows(&mut table, field, color_light, color_dark);
     }
@@ -196,16 +88,17 @@ pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
 
     let mut colors_normal_light: HashMap<&str, String> = HashMap::new();
     let mut colors_normal_dark: HashMap<&str, String> = HashMap::new();
-    let mut colors_normal_amoled: HashMap<&str, String> = HashMap::new();
 
-    for field in COLORS {
-        let color_light: Color =
-            Color::new(*Scheme::get_value(&schemes.light, field, source_color));
-        let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
+    for (field, _color) in &schemes.dark {
+        let color_light: Color = Color::new(schemes.light[field]);
+        let color_dark: Color = Color::new(schemes.dark[field]);
 
         colors_normal_light.insert(field, fmt(color_light));
         colors_normal_dark.insert(field, fmt(color_dark));
     }
+
+    colors_normal_light.insert("source_color", fmt(Color::new(*source_color)));
+    colors_normal_dark.insert("source_color", fmt(Color::new(*source_color)));
 
     println!(
         "{}",

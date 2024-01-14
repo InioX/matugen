@@ -13,10 +13,8 @@ use crate::util::{
     template::Template,
 };
 
-use material_color_utilities_rs::{
-    palettes::core::{ColorPalette, CorePalette},
-    scheme::scheme::Scheme,
-};
+use material_colors::{scheme::tonal_spot::SchemeTonalSpot, Hct, Scheme};
+use std::collections::HashMap;
 
 use clap::{Parser, ValueEnum};
 use color_eyre::{eyre::Result, Report};
@@ -26,8 +24,8 @@ use std::io::Write;
 use update_informer::{registry, Check};
 
 pub struct Schemes {
-    pub light: Scheme,
-    pub dark: Scheme,
+    pub light: HashMap<String, [u8; 4], ahash::random_state::RandomState>,
+    pub dark: HashMap<String, [u8; 4], ahash::random_state::RandomState>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -56,7 +54,8 @@ fn main() -> Result<(), Report> {
 
     let source_color = get_source_color(&args.source)?;
 
-    let mut palette: CorePalette = generate_palette(&args.palette.unwrap(), source_color)?;
+    let scheme1 = Scheme::from(SchemeTonalSpot::new(Hct::new(source_color), false, None).scheme);
+    let scheme2 = Scheme::from(SchemeTonalSpot::new(Hct::new(source_color), true, None).scheme);
 
     let config: ConfigFile = ConfigFile::read(&args)?;
 
@@ -65,8 +64,8 @@ fn main() -> Result<(), Report> {
         .expect("Something went wrong while parsing the mode");
 
     let schemes: Schemes = Schemes {
-        light: Scheme::light_from_core_palette(&mut palette),
-        dark: Scheme::dark_from_core_palette(&mut palette),
+        light: HashMap::from(scheme1),
+        dark: HashMap::from(scheme2),
     };
 
     if args.show_colors == Some(true) {
@@ -153,22 +152,4 @@ fn setup_logging(log_level: LevelFilter) -> Result<(), Report> {
         .format(|buf, record| writeln!(buf, "{}", record.args()))
         .try_init()?;
     Ok(())
-}
-
-fn generate_palette(
-    color_palette: &ColorPalette,
-    source_color: [u8; 4],
-) -> Result<CorePalette, Report> {
-    debug!("{:?}", source_color);
-
-    Ok(CorePalette::new(
-        [
-            source_color[0],
-            source_color[1],
-            source_color[2],
-            source_color[3],
-        ],
-        true,
-        color_palette,
-    ))
 }
