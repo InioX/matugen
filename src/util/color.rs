@@ -151,10 +151,8 @@ pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
         let color_light: Color =
             Color::new(*Scheme::get_value(&schemes.light, field, source_color));
         let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
-        let color_amoled: Color =
-            Color::new(*Scheme::get_value(&schemes.amoled, field, source_color));
 
-        generate_table_rows(&mut table, field, color_light, color_dark, color_amoled);
+        generate_table_rows(&mut table, field, color_light, color_dark);
     }
 
     table.printstd();
@@ -204,12 +202,9 @@ pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
         let color_light: Color =
             Color::new(*Scheme::get_value(&schemes.light, field, source_color));
         let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
-        let color_amoled: Color =
-            Color::new(*Scheme::get_value(&schemes.amoled, field, source_color));
 
         colors_normal_light.insert(field, fmt(color_light));
         colors_normal_dark.insert(field, fmt(color_dark));
-        colors_normal_amoled.insert(field, fmt(color_amoled));
     }
 
     println!(
@@ -218,7 +213,6 @@ pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
             "colors": {
                 "light": colors_normal_light,
                 "dark": colors_normal_dark,
-                "amoled": colors_normal_amoled,
             },
         })
     );
@@ -252,19 +246,11 @@ fn generate_table_format() -> Table {
         Cell::new("LIGHT").style_spec("c"),
         Cell::new("DARK").style_spec("c"),
         Cell::new("DARK").style_spec("c"),
-        Cell::new("AMOLED").style_spec("c"),
-        Cell::new("AMOLED").style_spec("c"),
     ]));
     table
 }
 
-fn generate_table_rows(
-    table: &mut Table,
-    field: &str,
-    color_light: Color,
-    color_dark: Color,
-    color_amoled: Color,
-) {
+fn generate_table_rows(table: &mut Table, field: &str, color_light: Color, color_dark: Color) {
     let formatstr = "  ";
 
     table.add_row(Row::new(vec![
@@ -297,20 +283,6 @@ fn generate_table_rows(
         )
         .style_spec("c"),
         Cell::new(format!("{}", formatstr.style(generate_style(&color_dark))).as_str())
-            .style_spec("c"),
-        // Amoled theme
-        Cell::new(
-            format_argb_as_rgb([
-                color_amoled.alpha,
-                color_amoled.red,
-                color_amoled.green,
-                color_amoled.blue,
-            ])
-            .to_uppercase()
-            .as_str(),
-        )
-        .style_spec("c"),
-        Cell::new(format!("{}", formatstr.style(generate_style(&color_amoled))).as_str())
             .style_spec("c"),
     ]));
 }

@@ -28,14 +28,12 @@ use update_informer::{registry, Check};
 pub struct Schemes {
     pub light: Scheme,
     pub dark: Scheme,
-    pub amoled: Scheme,
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum SchemesEnum {
     Light,
     Dark,
-    Amoled,
 }
 
 fn main() -> Result<(), Report> {
@@ -69,7 +67,6 @@ fn main() -> Result<(), Report> {
     let schemes: Schemes = Schemes {
         light: Scheme::light_from_core_palette(&mut palette),
         dark: Scheme::dark_from_core_palette(&mut palette),
-        amoled: Scheme::pure_dark_from_core_palette(&mut palette),
     };
 
     if args.show_colors == Some(true) {
