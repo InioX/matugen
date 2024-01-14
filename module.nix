@@ -47,7 +47,7 @@ matugen: {
       else ""
     } \
       --mode ${cfg.variant} \
-      --type ${cfg.palette} \
+      --type ${cfg.type} \
       --json ${cfg.jsonFormat} \
       --quiet \
       > $out/theme.json
