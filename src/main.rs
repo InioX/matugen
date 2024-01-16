@@ -45,8 +45,6 @@ fn main() -> Result<(), Report> {
     color_eyre::install()?;
     let args = Cli::parse();
 
-    println!("{:?}", args.r#type);
-
     let log_level: LevelFilter = if args.verbose == Some(true) {
         LevelFilter::Info
     } else if args.quiet == Some(true) {
