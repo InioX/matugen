@@ -521,9 +521,8 @@ fn generate_color_strings(color: Color) -> Colora {
     ));
     let hsl_color = Hsl::from(&base_color);
     Colora {
-        hex: format_argb_as_rgb([color.alpha, color.red, color.green, color.blue]),
-        hex_stripped: format_argb_as_rgb([color.alpha, color.red, color.green, color.blue])[1..]
-            .to_string(),
+        hex: base_color.to_hex_string(),
+        hex_stripped: base_color.to_hex_string()[1..].to_string(),
         rgb: format!("rgb({:?}, {:?}, {:?})", color.red, color.green, color.blue),
         rgba: format!(
             "rgba({:?}, {:?}, {:?}, {:?})",
