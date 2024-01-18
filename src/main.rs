@@ -13,10 +13,8 @@ use crate::util::{
     template::Template,
 };
 
-use material_color_utilities_rs::{
-    palettes::core::{ColorPalette, CorePalette},
-    scheme::{scheme::Scheme, scheme_android::SchemeAndroid},
-};
+use material_colors::{Hct, Scheme};
+use std::collections::HashMap;
 
 use clap::{Parser, ValueEnum};
 use color_eyre::{eyre::Result, Report};
@@ -25,20 +23,22 @@ use serde::{Deserialize, Serialize};
 use std::io::Write;
 use update_informer::{registry, Check};
 
+use util::arguments::SchemeTypes;
+
+use material_colors::{
+    SchemeContent, SchemeExpressive, SchemeFidelity, SchemeFruitSalad, SchemeMonochrome,
+    SchemeNeutral, SchemeRainbow, SchemeTonalSpot,
+};
+
 pub struct Schemes {
-    pub light: Scheme,
-    pub dark: Scheme,
-    pub amoled: Scheme,
-    pub light_android: SchemeAndroid,
-    pub dark_android: SchemeAndroid,
-    pub amoled_android: SchemeAndroid,
+    pub light: HashMap<String, [u8; 4], ahash::random_state::RandomState>,
+    pub dark: HashMap<String, [u8; 4], ahash::random_state::RandomState>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum SchemesEnum {
     Light,
     Dark,
-    Amoled,
 }
 
 fn main() -> Result<(), Report> {
@@ -61,7 +61,8 @@ fn main() -> Result<(), Report> {
 
     let source_color = get_source_color(&args.source)?;
 
-    let mut palette: CorePalette = generate_palette(&args.palette.unwrap(), source_color)?;
+    let scheme_dark = generate_scheme(&args.r#type, source_color, true);
+    let scheme_light = generate_scheme(&args.r#type, source_color, false);
 
     let config: ConfigFile = ConfigFile::read(&args)?;
 
@@ -70,12 +71,8 @@ fn main() -> Result<(), Report> {
         .expect("Something went wrong while parsing the mode");
 
     let schemes: Schemes = Schemes {
-        light: Scheme::light_from_core_palette(&mut palette),
-        dark: Scheme::dark_from_core_palette(&mut palette),
-        amoled: Scheme::pure_dark_from_core_palette(&mut palette),
-        light_android: SchemeAndroid::light_from_core_palette(&mut palette),
-        dark_android: SchemeAndroid::dark_from_core_palette(&mut palette),
-        amoled_android: SchemeAndroid::pure_dark_from_core_palette(&mut palette),
+        dark: HashMap::from(scheme_dark),
+        light: HashMap::from(scheme_light),
     };
 
     if args.show_colors == Some(true) {
@@ -164,20 +161,41 @@ fn setup_logging(log_level: LevelFilter) -> Result<(), Report> {
     Ok(())
 }
 
-fn generate_palette(
-    color_palette: &ColorPalette,
+fn generate_scheme(
+    scheme_type: &Option<SchemeTypes>,
     source_color: [u8; 4],
-) -> Result<CorePalette, Report> {
-    debug!("{:?}", source_color);
-
-    Ok(CorePalette::new(
-        [
-            source_color[0],
-            source_color[1],
-            source_color[2],
-            source_color[3],
-        ],
-        true,
-        color_palette,
-    ))
+    is_dark: bool,
+) -> Scheme {
+    match scheme_type.unwrap() {
+        SchemeTypes::SchemeContent => {
+            return Scheme::from(SchemeContent::new(Hct::new(source_color), is_dark, None).scheme)
+        }
+        SchemeTypes::SchemeExpressive => {
+            return Scheme::from(
+                SchemeExpressive::new(Hct::new(source_color), is_dark, None).scheme,
+            )
+        }
+        SchemeTypes::SchemeFidelity => {
+            return Scheme::from(SchemeFidelity::new(Hct::new(source_color), is_dark, None).scheme)
+        }
+        SchemeTypes::SchemeFruitSalad => {
+            return Scheme::from(
+                SchemeFruitSalad::new(Hct::new(source_color), is_dark, None).scheme,
+            )
+        }
+        SchemeTypes::SchemeMonochrome => {
+            return Scheme::from(
+                SchemeMonochrome::new(Hct::new(source_color), is_dark, None).scheme,
+            )
+        }
+        SchemeTypes::SchemeNeutral => {
+            return Scheme::from(SchemeNeutral::new(Hct::new(source_color), is_dark, None).scheme)
+        }
+        SchemeTypes::SchemeRainbow => {
+            return Scheme::from(SchemeRainbow::new(Hct::new(source_color), is_dark, None).scheme)
+        }
+        SchemeTypes::SchemeTonalSpot => {
+            return Scheme::from(SchemeTonalSpot::new(Hct::new(source_color), is_dark, None).scheme)
+        }
+    }
 }

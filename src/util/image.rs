@@ -1,8 +1,9 @@
-use color_eyre::{Help, Report};
+use color_eyre::Report;
 use image::{imageops::FilterType, DynamicImage, GenericImageView};
-use material_color_utilities_rs::{quantize::quantizer_celebi::QuantizerCelebi, score::score};
+use material_colors::quantize::quantizer::Quantizer;
+use material_colors::quantize::quantizer_celebi::QuantizerCelebi;
 
-use super::color::Color;
+use material_colors::score::Score;
 
 pub fn fetch_image(url: &str) -> Result<DynamicImage, Report> {
     let bytes = reqwest::blocking::get(url)?.bytes()?;
@@ -22,9 +23,9 @@ pub fn source_color_from_image(img: DynamicImage) -> Result<Vec<[u8; 4]>, Report
 
     let pixels: Vec<[u8; 4]> = generate_pixels(&resized_img);
 
-    let theme = QuantizerCelebi::quantize(&mut QuantizerCelebi, &pixels, 128);
+    let result = QuantizerCelebi.quantize(&pixels, 128, None);
 
-    let score = score(&theme);
+    let score = Score::score(&result.color_to_count, None, None, None);
 
     Ok(score)
 }
@@ -32,14 +33,16 @@ pub fn source_color_from_image(img: DynamicImage) -> Result<Vec<[u8; 4]>, Report
 fn generate_pixels(image: &DynamicImage) -> Vec<[u8; 4]> {
     let mut pixels = vec![];
     for pixel in image.pixels() {
-        let color: Color = Color {
-            red: pixel.2[0],
-            green: pixel.2[1],
-            blue: pixel.2[2],
-            alpha: pixel.2[3],
-        };
+        let red = pixel.2[0];
+        let green = pixel.2[1];
+        let blue = pixel.2[2];
+        let alpha = pixel.2[3];
 
-        let argb: [u8; 4] = [color.alpha, color.red, color.green, color.blue];
+        if alpha < 255 {
+            continue;
+        }
+
+        let argb: [u8; 4] = [alpha, red, green, blue];
 
         pixels.push(argb);
     }
