@@ -1,6 +1,9 @@
 use color_eyre::Report;
 use image::{imageops::FilterType, DynamicImage, GenericImageView};
-use material_color_utilities_rs::{quantize::quantizer_celebi::QuantizerCelebi, score::score};
+use material_colors::quantize::quantizer::Quantizer;
+use material_colors::quantize::quantizer_celebi::QuantizerCelebi;
+
+use material_colors::score::Score;
 
 use super::color::Color;
 
@@ -22,9 +25,9 @@ pub fn source_color_from_image(img: DynamicImage) -> Result<Vec<[u8; 4]>, Report
 
     let pixels: Vec<[u8; 4]> = generate_pixels(&resized_img);
 
-    let theme = QuantizerCelebi::quantize(&mut QuantizerCelebi, &pixels, 128);
+    let result = QuantizerCelebi.quantize(&pixels, 128, None);
 
-    let score = score(&theme);
+    let score = Score::score(&result.color_to_count, None, None, None);
 
     Ok(score)
 }
