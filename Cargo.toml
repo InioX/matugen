@@ -22,7 +22,6 @@ winapi = { version = "0.3", features = ["winuser"] }
 enquote = "1.1.0"
 
 [dependencies]
-material-color-utilities-rs = { version = "0.5.0",package = "ini-material-color-utilities-rs", path = "material-color-utilities-rs", features = ["serde", "clap"] }
 image = "0.24.6"
 owo-colors = "4.0.0"
 clap = { version = "4.2.4", features = ["derive"] }
@@ -40,6 +39,5 @@ serde_json = "1.0.107"
 update-informer = "1.1.0"
 upon = "0.8.0"
 reqwest = { version = "0.11.23", default_features=false, features = ["blocking", "rustls-tls"] }
-
-[workspace]
-members = ["material-color-utilities-rs"]
+material-colors = "0.1.1"
+ahash = "0.8.7"

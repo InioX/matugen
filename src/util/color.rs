@@ -1,5 +1,3 @@
-use material_color_utilities_rs::scheme::scheme_android::SchemeAndroid;
-use material_color_utilities_rs::{scheme::scheme::Scheme, util::color::format_argb_as_rgb};
 use owo_colors::{OwoColorize, Style};
 
 use prettytable::{format, Cell, Row, Table};
@@ -19,320 +17,69 @@ use serde_json::json;
 use std::collections::HashMap;
 use std::str::FromStr;
 
-pub const COLORS: [&str; 46] = [
-    "source_color",
-    "primary",
-    "primary_fixed",
-    "primary_fixed_dim",
-    "on_primary",
-    "on_primary_fixed",
-    "on_primary_fixed_variant",
-    "primary_container",
-    "on_primary_container",
-    "secondary",
-    "secondary_fixed",
-    "secondary_fixed_dim",
-    "on_secondary",
-    "on_secondary_fixed",
-    "on_secondary_fixed_variant",
-    "secondary_container",
-    "on_secondary_container",
-    "tertiary",
-    "tertiary_fixed",
-    "tertiary_fixed_dim",
-    "on_tertiary",
-    "on_tertiary_fixed",
-    "on_tertiary_fixed_variant",
-    "tertiary_container",
-    "on_tertiary_container",
-    "error",
-    "on_error",
-    "error_container",
-    "on_error_container",
-    "surface",
-    "on_surface",
-    "on_surface_variant",
-    "outline",
-    "outline_variant",
-    "shadow",
-    "scrim",
-    "inverse_surface",
-    "inverse_on_surface",
-    "inverse_primary",
-    "surface_dim",
-    "surface_bright",
-    "surface_container_lowest",
-    "surface_container_low",
-    "surface_container",
-    "surface_container_high",
-    "surface_container_highest",
-];
-
-pub const COLORS_ANDROID: [&str; 26] = [
-    "source_color",
-    "color_accent_primary",
-    "color_accent_primary_variant",
-    "color_accent_secondary",
-    "color_accent_secondary_variant",
-    "color_accent_tertiary",
-    "color_accent_tertiary_variant",
-    "text_color_primary",
-    "text_color_secondary",
-    "text_color_tertiary",
-    "text_color_primary_inverse",
-    "text_color_secondary_inverse",
-    "text_color_tertiary_inverse",
-    "color_background",
-    "color_background_floating",
-    "color_surface",
-    "color_surface_variant",
-    "color_surface_highlight",
-    "surface_header",
-    "under_surface",
-    "off_state",
-    "accent_surface",
-    "text_primary_on_accent",
-    "text_secondary_on_accent",
-    "volume_background",
-    "scrim_android", // Should just be `scrim`, renamed so its not the same as `scrim` in `COLORS`
-];
-
-// TODO Fix this monstrosity
-pub trait SchemeExt {
-    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4];
-}
-impl SchemeExt for Scheme {
-    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4] {
-        match field {
-            "primary" => &self.primary,
-            "primary_fixed" => &self.primary_fixed,
-            "primary_fixed_dim" => &self.primary_fixed_dim,
-            "on_primary" => &self.on_primary,
-            "on_primary_fixed" => &self.on_primary_fixed,
-            "on_primary_fixed_variant" => &self.on_primary_fixed_variant,
-            "primary_container" => &self.primary_container,
-            "on_primary_container" => &self.on_primary_container,
-            "secondary" => &self.secondary,
-            "secondary_fixed" => &self.secondary_fixed,
-            "secondary_fixed_dim" => &self.secondary_fixed_dim,
-            "on_secondary" => &self.on_secondary,
-            "on_secondary_fixed" => &self.on_secondary_fixed,
-            "on_secondary_fixed_variant" => &self.on_secondary_fixed_variant,
-            "secondary_container" => &self.secondary_container,
-            "on_secondary_container" => &self.on_secondary_container,
-            "tertiary" => &self.tertiary,
-            "tertiary_fixed" => &self.tertiary_fixed,
-            "tertiary_fixed_dim" => &self.tertiary_fixed_dim,
-            "on_tertiary" => &self.on_tertiary,
-            "on_tertiary_fixed" => &self.on_tertiary_fixed,
-            "on_tertiary_fixed_variant" => &self.on_tertiary_fixed_variant,
-            "tertiary_container" => &self.tertiary_container,
-            "on_tertiary_container" => &self.on_tertiary_container,
-            "error" => &self.error,
-            "on_error" => &self.on_error,
-            "error_container" => &self.error_container,
-            "on_error_container" => &self.on_error_container,
-            "surface" => &self.surface,
-            "on_surface" => &self.on_surface,
-            "on_surface_variant" => &self.on_surface_variant,
-            "outline" => &self.outline,
-            "outline_variant" => &self.outline_variant,
-            "shadow" => &self.shadow,
-            "scrim" => &self.scrim,
-            "inverse_surface" => &self.inverse_surface,
-            "inverse_on_surface" => &self.inverse_on_surface,
-            "inverse_primary" => &self.inverse_primary,
-            "surface_dim" => &self.surface_dim,
-            "surface_bright" => &self.surface_bright,
-            "surface_container_lowest" => &self.surface_container_lowest,
-            "surface_container_low" => &self.surface_container_low,
-            "surface_container" => &self.surface_container,
-            "surface_container_high" => &self.surface_container_high,
-            "surface_container_highest" => &self.surface_container_highest,
-            "source_color" => source_color,
-            _ => panic!("{}", field),
-        }
-    }
+pub fn rgb_from_argb(color: [u8; 4]) -> Rgb {
+    Rgb::from([
+        color[1] as f64,
+        color[2] as f64,
+        color[3] as f64,
+        color[0] as f64,
+    ])
 }
 
-pub trait SchemeAndroidExt {
-    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4];
-}
-impl SchemeAndroidExt for SchemeAndroid {
-    fn get_value<'a>(&'a self, field: &str, source_color: &'a [u8; 4]) -> &[u8; 4] {
-        match field {
-            "source_color" => source_color,
-            "color_accent_primary" => &self.color_accent_primary,
-            "color_accent_primary_variant" => &self.color_accent_primary_variant,
-            "color_accent_secondary" => &self.color_accent_secondary,
-            "color_accent_secondary_variant" => &self.color_accent_secondary_variant,
-            "color_accent_tertiary" => &self.color_accent_tertiary,
-            "color_accent_tertiary_variant" => &self.color_accent_tertiary_variant,
-            "text_color_primary" => &self.text_color_primary,
-            "text_color_secondary" => &self.text_color_secondary,
-            "text_color_tertiary" => &self.text_color_tertiary,
-            "text_color_primary_inverse" => &self.text_color_primary_inverse,
-            "text_color_secondary_inverse" => &self.text_color_secondary_inverse,
-            "text_color_tertiary_inverse" => &self.text_color_tertiary_inverse,
-            "color_background" => &self.color_background,
-            "color_background_floating" => &self.color_background_floating,
-            "color_surface" => &self.color_surface,
-            "color_surface_variant" => &self.color_surface_variant,
-            "color_surface_highlight" => &self.color_surface_highlight,
-            "surface_header" => &self.surface_header,
-            "under_surface" => &self.under_surface,
-            "off_state" => &self.off_state,
-            "accent_surface" => &self.accent_surface,
-            "text_primary_on_accent" => &self.text_primary_on_accent,
-            "text_secondary_on_accent" => &self.text_secondary_on_accent,
-            "volume_background" => &self.volume_background,
-            "scrim_android" => &self.scrim,
-            _ => panic!("{}", field),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct Color {
-    pub red: u8,
-    pub green: u8,
-    pub blue: u8,
-    pub alpha: u8,
-}
-
-impl Color {
-    pub fn new(colors: [u8; 4]) -> Color {
-        Color {
-            red: colors[1],
-            green: colors[2],
-            blue: colors[3],
-            alpha: colors[0],
-        }
-    }
-}
-
-pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
+pub fn show_color(schemes: &Schemes, _source_color: &[u8; 4]) {
     let mut table: Table = generate_table_format();
 
-    for field in COLORS {
-        let color_light: Color =
-            Color::new(*Scheme::get_value(&schemes.light, field, source_color));
-        let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
-        let color_amoled: Color =
-            Color::new(*Scheme::get_value(&schemes.amoled, field, source_color));
+    for (field, _color) in &schemes.dark {
+        let color_light: Rgb = rgb_from_argb(schemes.light[field]);
+        let color_dark: Rgb = rgb_from_argb(schemes.dark[field]);
 
-        generate_table_rows(&mut table, field, color_light, color_dark, color_amoled);
-    }
-
-    let mut table_android: Table = generate_table_format();
-
-    for field in COLORS_ANDROID {
-        let color_light: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.light_android,
-            field,
-            source_color,
-        ));
-        let color_dark: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.dark_android,
-            field,
-            source_color,
-        ));
-        let color_amoled: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.amoled_android,
-            field,
-            source_color,
-        ));
-
-        generate_table_rows(
-            &mut table_android,
-            field,
-            color_light,
-            color_dark,
-            color_amoled,
-        );
+        generate_table_rows(&mut table, field, color_light, color_dark);
     }
 
     table.printstd();
-    table_android.printstd();
-}
-
-fn hex(color: Color, prefix: bool) -> String {
-    format!(
-        "{}{:02x}{:02x}{:02x}",
-        if prefix { "#" } else { "" },
-        color.red,
-        color.green,
-        color.blue
-    )
 }
 
 pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
     type F = Format;
     let fmt = match format {
-        F::Rgb => |c: Color| format!("rgb({:?}, {:?}, {:?})", c.red, c.green, c.blue),
-        F::Rgba => |c: Color| {
+        F::Rgb => |c: Rgb| format!("rgb({:?}, {:?}, {:?})", c.red(), c.green(), c.blue()),
+        F::Rgba => |c: Rgb| {
             format!(
                 "rgba({:?}, {:?}, {:?}, {:?})",
-                c.red, c.green, c.blue, c.alpha
+                c.red(),
+                c.green(),
+                c.blue(),
+                c.alpha()
             )
         },
         F::Hsl => {
-            |c: Color| Hsl::new(c.red as f64, c.green as f64, c.blue as f64, None).to_css_string()
+            |c: Rgb| Hsl::from((c.red() as f64, c.green() as f64, c.blue() as f64)).to_css_string()
         }
-        F::Hsla => |c: Color| {
-            Hsl::new(
-                c.red as f64,
-                c.green as f64,
-                c.blue as f64,
-                Some(c.alpha as f64),
-            )
+        F::Hsla => |c: Rgb| {
+            Hsl::from((
+                c.red() as f64,
+                c.green() as f64,
+                c.blue() as f64,
+                c.alpha() as f64,
+            ))
             .to_css_string()
         },
-        F::Hex => |c: Color| hex(c, true),
-        F::Strip => |c: Color| hex(c, false),
+        F::Hex => |c: Rgb| c.to_hex_string(),
+        F::Strip => |c: Rgb| c.to_hex_string().replace("#", ""),
     };
 
     let mut colors_normal_light: HashMap<&str, String> = HashMap::new();
     let mut colors_normal_dark: HashMap<&str, String> = HashMap::new();
-    let mut colors_normal_amoled: HashMap<&str, String> = HashMap::new();
 
-    for field in COLORS {
-        let color_light: Color =
-            Color::new(*Scheme::get_value(&schemes.light, field, source_color));
-        let color_dark: Color = Color::new(*Scheme::get_value(&schemes.dark, field, source_color));
-        let color_amoled: Color =
-            Color::new(*Scheme::get_value(&schemes.amoled, field, source_color));
+    for (field, _color) in &schemes.dark {
+        let color_light: Rgb = rgb_from_argb(schemes.light[field]);
+        let color_dark: Rgb = rgb_from_argb(schemes.dark[field]);
 
         colors_normal_light.insert(field, fmt(color_light));
         colors_normal_dark.insert(field, fmt(color_dark));
-        colors_normal_amoled.insert(field, fmt(color_amoled));
     }
 
-    let mut colors_android_light: HashMap<&str, String> = HashMap::new();
-    let mut colors_android_dark: HashMap<&str, String> = HashMap::new();
-    let mut colors_android_amoled: HashMap<&str, String> = HashMap::new();
-
-    for field in COLORS_ANDROID {
-        let color_light: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.light_android,
-            field,
-            source_color,
-        ));
-        let color_dark: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.dark_android,
-            field,
-            source_color,
-        ));
-        let color_amoled: Color = Color::new(*SchemeAndroid::get_value(
-            &schemes.amoled_android,
-            field,
-            source_color,
-        ));
-
-        colors_android_light.insert(field, fmt(color_light));
-        colors_android_dark.insert(field, fmt(color_dark));
-        colors_android_amoled.insert(field, fmt(color_amoled));
-    }
+    colors_normal_light.insert("source_color", fmt(rgb_from_argb(*source_color)));
 
     println!(
         "{}",
@@ -340,13 +87,7 @@ pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
             "colors": {
                 "light": colors_normal_light,
                 "dark": colors_normal_dark,
-                "amoled": colors_normal_amoled,
             },
-            "colors_android": {
-                "light": colors_android_light,
-                "dark": colors_android_dark,
-                "amoled": colors_android_amoled,
-            }
         })
     );
 }
@@ -379,73 +120,32 @@ fn generate_table_format() -> Table {
         Cell::new("LIGHT").style_spec("c"),
         Cell::new("DARK").style_spec("c"),
         Cell::new("DARK").style_spec("c"),
-        Cell::new("AMOLED").style_spec("c"),
-        Cell::new("AMOLED").style_spec("c"),
     ]));
     table
 }
 
-fn generate_table_rows(
-    table: &mut Table,
-    field: &str,
-    color_light: Color,
-    color_dark: Color,
-    color_amoled: Color,
-) {
+fn generate_table_rows(table: &mut Table, field: &str, color_light: Rgb, color_dark: Rgb) {
     let formatstr = "  ";
 
     table.add_row(Row::new(vec![
         // Color names
         Cell::new(field).style_spec(""),
         // Light scheme
-        Cell::new(
-            format_argb_as_rgb([
-                color_light.alpha,
-                color_light.red,
-                color_light.green,
-                color_light.blue,
-            ])
-            .to_uppercase()
-            .as_str(),
-        )
-        .style_spec("c"),
+        Cell::new(color_light.to_hex_string().to_uppercase().as_str()).style_spec("c"),
         Cell::new(format!("{}", formatstr.style(generate_style(&color_light))).as_str())
             .style_spec("c"),
         // Dark scheme
-        Cell::new(
-            format_argb_as_rgb([
-                color_dark.alpha,
-                color_dark.red,
-                color_dark.green,
-                color_dark.blue,
-            ])
-            .to_uppercase()
-            .as_str(),
-        )
-        .style_spec("c"),
+        Cell::new(color_dark.to_hex_string().to_uppercase().as_str()).style_spec("c"),
         Cell::new(format!("{}", formatstr.style(generate_style(&color_dark))).as_str())
-            .style_spec("c"),
-        // Amoled theme
-        Cell::new(
-            format_argb_as_rgb([
-                color_amoled.alpha,
-                color_amoled.red,
-                color_amoled.green,
-                color_amoled.blue,
-            ])
-            .to_uppercase()
-            .as_str(),
-        )
-        .style_spec("c"),
-        Cell::new(format!("{}", formatstr.style(generate_style(&color_amoled))).as_str())
             .style_spec("c"),
     ]));
 }
 
-fn generate_style(color: &Color) -> Style {
-    let luma = color.red as u16 + color.blue as u16 + color.green as u16;
+fn generate_style(color: &Rgb) -> Style {
+    let luma = color.red() as u16 + color.blue() as u16 + color.green() as u16;
 
-    let owo_color: owo_colors::Rgb = owo_colors::Rgb(color.red, color.green, color.blue);
+    let owo_color: owo_colors::Rgb =
+        owo_colors::Rgb(color.red() as u8, color.green() as u8, color.blue() as u8);
 
     if luma > 500 {
         Style::new().black().on_color(owo_color)
