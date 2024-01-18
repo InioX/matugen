@@ -8,5 +8,5 @@ swww_options = [
 ]
 
 [templates.name1]
-input_path = "example/colors.css"
-output_path = "example/a/colors-generated.css"
+input_path = "example/colors.whatever-extension"
+output_path = "example/a/colors-generated.whatever-extension"
