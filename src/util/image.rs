@@ -5,8 +5,6 @@ use material_colors::quantize::quantizer_celebi::QuantizerCelebi;
 
 use material_colors::score::Score;
 
-use super::color::Color;
-
 pub fn fetch_image(url: &str) -> Result<DynamicImage, Report> {
     let bytes = reqwest::blocking::get(url)?.bytes()?;
     Ok(image::load_from_memory(&bytes)?)
@@ -35,18 +33,16 @@ pub fn source_color_from_image(img: DynamicImage) -> Result<Vec<[u8; 4]>, Report
 fn generate_pixels(image: &DynamicImage) -> Vec<[u8; 4]> {
     let mut pixels = vec![];
     for pixel in image.pixels() {
-        let color: Color = Color {
-            red: pixel.2[0],
-            green: pixel.2[1],
-            blue: pixel.2[2],
-            alpha: pixel.2[3],
-        };
+        let red = pixel.2[0];
+        let green = pixel.2[1];
+        let blue = pixel.2[2];
+        let alpha = pixel.2[3];
 
-        if color.alpha < 255 {
+        if alpha < 255 {
             continue;
         }
 
-        let argb: [u8; 4] = [color.alpha, color.red, color.green, color.blue];
+        let argb: [u8; 4] = [alpha, red, green, blue];
 
         pixels.push(argb);
     }
