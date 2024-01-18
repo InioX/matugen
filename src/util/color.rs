@@ -1,4 +1,3 @@
-use material_color_utilities_rs::util::color::format_argb_as_rgb;
 use owo_colors::{OwoColorize, Style};
 
 use prettytable::{format, Cell, Row, Table};
@@ -18,31 +17,21 @@ use serde_json::json;
 use std::collections::HashMap;
 use std::str::FromStr;
 
-#[derive(Debug)]
-pub struct Color {
-    pub red: u8,
-    pub green: u8,
-    pub blue: u8,
-    pub alpha: u8,
-}
-
-impl Color {
-    pub fn new(colors: [u8; 4]) -> Color {
-        Color {
-            red: colors[1],
-            green: colors[2],
-            blue: colors[3],
-            alpha: colors[0],
-        }
-    }
+pub fn rgb_from_argb(color: [u8; 4]) -> Rgb {
+    Rgb::from([
+        color[1] as f64,
+        color[2] as f64,
+        color[3] as f64,
+        color[0] as f64,
+    ])
 }
 
 pub fn show_color(schemes: &Schemes, _source_color: &[u8; 4]) {
     let mut table: Table = generate_table_format();
 
     for (field, _color) in &schemes.dark {
-        let color_light: Color = Color::new(schemes.light[field]);
-        let color_dark: Color = Color::new(schemes.dark[field]);
+        let color_light: Rgb = rgb_from_argb(schemes.light[field]);
+        let color_dark: Rgb = rgb_from_argb(schemes.dark[field]);
 
         generate_table_rows(&mut table, field, color_light, color_dark);
     }
@@ -50,55 +39,47 @@ pub fn show_color(schemes: &Schemes, _source_color: &[u8; 4]) {
     table.printstd();
 }
 
-fn hex(color: Color, prefix: bool) -> String {
-    format!(
-        "{}{:02x}{:02x}{:02x}",
-        if prefix { "#" } else { "" },
-        color.red,
-        color.green,
-        color.blue
-    )
-}
-
 pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
     type F = Format;
     let fmt = match format {
-        F::Rgb => |c: Color| format!("rgb({:?}, {:?}, {:?})", c.red, c.green, c.blue),
-        F::Rgba => |c: Color| {
+        F::Rgb => |c: Rgb| format!("rgb({:?}, {:?}, {:?})", c.red(), c.green(), c.blue()),
+        F::Rgba => |c: Rgb| {
             format!(
                 "rgba({:?}, {:?}, {:?}, {:?})",
-                c.red, c.green, c.blue, c.alpha
+                c.red(),
+                c.green(),
+                c.blue(),
+                c.alpha()
             )
         },
         F::Hsl => {
-            |c: Color| Hsl::new(c.red as f64, c.green as f64, c.blue as f64, None).to_css_string()
+            |c: Rgb| Hsl::from((c.red() as f64, c.green() as f64, c.blue() as f64)).to_css_string()
         }
-        F::Hsla => |c: Color| {
-            Hsl::new(
-                c.red as f64,
-                c.green as f64,
-                c.blue as f64,
-                Some(c.alpha as f64),
-            )
+        F::Hsla => |c: Rgb| {
+            Hsl::from((
+                c.red() as f64,
+                c.green() as f64,
+                c.blue() as f64,
+                c.alpha() as f64,
+            ))
             .to_css_string()
         },
-        F::Hex => |c: Color| hex(c, true),
-        F::Strip => |c: Color| hex(c, false),
+        F::Hex => |c: Rgb| c.to_hex_string(),
+        F::Strip => |c: Rgb| c.to_hex_string().replace("#", ""),
     };
 
     let mut colors_normal_light: HashMap<&str, String> = HashMap::new();
     let mut colors_normal_dark: HashMap<&str, String> = HashMap::new();
 
     for (field, _color) in &schemes.dark {
-        let color_light: Color = Color::new(schemes.light[field]);
-        let color_dark: Color = Color::new(schemes.dark[field]);
+        let color_light: Rgb = rgb_from_argb(schemes.light[field]);
+        let color_dark: Rgb = rgb_from_argb(schemes.dark[field]);
 
         colors_normal_light.insert(field, fmt(color_light));
         colors_normal_dark.insert(field, fmt(color_dark));
     }
 
-    colors_normal_light.insert("source_color", fmt(Color::new(*source_color)));
-    colors_normal_dark.insert("source_color", fmt(Color::new(*source_color)));
+    colors_normal_light.insert("source_color", fmt(rgb_from_argb(*source_color)));
 
     println!(
         "{}",
@@ -143,47 +124,28 @@ fn generate_table_format() -> Table {
     table
 }
 
-fn generate_table_rows(table: &mut Table, field: &str, color_light: Color, color_dark: Color) {
+fn generate_table_rows(table: &mut Table, field: &str, color_light: Rgb, color_dark: Rgb) {
     let formatstr = "  ";
 
     table.add_row(Row::new(vec![
         // Color names
         Cell::new(field).style_spec(""),
         // Light scheme
-        Cell::new(
-            format_argb_as_rgb([
-                color_light.alpha,
-                color_light.red,
-                color_light.green,
-                color_light.blue,
-            ])
-            .to_uppercase()
-            .as_str(),
-        )
-        .style_spec("c"),
+        Cell::new(color_light.to_hex_string().to_uppercase().as_str()).style_spec("c"),
         Cell::new(format!("{}", formatstr.style(generate_style(&color_light))).as_str())
             .style_spec("c"),
         // Dark scheme
-        Cell::new(
-            format_argb_as_rgb([
-                color_dark.alpha,
-                color_dark.red,
-                color_dark.green,
-                color_dark.blue,
-            ])
-            .to_uppercase()
-            .as_str(),
-        )
-        .style_spec("c"),
+        Cell::new(color_dark.to_hex_string().to_uppercase().as_str()).style_spec("c"),
         Cell::new(format!("{}", formatstr.style(generate_style(&color_dark))).as_str())
             .style_spec("c"),
     ]));
 }
 
-fn generate_style(color: &Color) -> Style {
-    let luma = color.red as u16 + color.blue as u16 + color.green as u16;
+fn generate_style(color: &Rgb) -> Style {
+    let luma = color.red() as u16 + color.blue() as u16 + color.green() as u16;
 
-    let owo_color: owo_colors::Rgb = owo_colors::Rgb(color.red, color.green, color.blue);
+    let owo_color: owo_colors::Rgb =
+        owo_colors::Rgb(color.red() as u8, color.green() as u8, color.blue() as u8);
 
     if luma > 500 {
         Style::new().black().on_color(owo_color)

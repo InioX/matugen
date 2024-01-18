@@ -3,7 +3,7 @@ use color_eyre::eyre::WrapErr;
 use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
-use colorsys::{Hsl, Rgb};
+use colorsys::{ColorAlpha, Hsl};
 use serde::{Deserialize, Serialize};
 
 use std::str;
@@ -17,8 +17,6 @@ use std::path::PathBuf;
 
 use crate::util::arguments::Source;
 use crate::util::config::CustomKeyword;
-
-use material_color_utilities_rs::util::color::format_argb_as_rgb;
 use resolve_path::PathResolveExt;
 
 use crate::{Schemes, SchemesEnum};
@@ -56,57 +54,7 @@ struct ColorVariants {
     pub default: Colora,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Colors {
-    primary: ColorVariants,
-    primary_fixed: ColorVariants,
-    primary_fixed_dim: ColorVariants,
-    on_primary: ColorVariants,
-    on_primary_fixed: ColorVariants,
-    on_primary_fixed_variant: ColorVariants,
-    primary_container: ColorVariants,
-    on_primary_container: ColorVariants,
-    secondary: ColorVariants,
-    secondary_fixed: ColorVariants,
-    secondary_fixed_dim: ColorVariants,
-    on_secondary: ColorVariants,
-    on_secondary_fixed: ColorVariants,
-    on_secondary_fixed_variant: ColorVariants,
-    secondary_container: ColorVariants,
-    on_secondary_container: ColorVariants,
-    tertiary: ColorVariants,
-    tertiary_fixed: ColorVariants,
-    tertiary_fixed_dim: ColorVariants,
-    on_tertiary: ColorVariants,
-    on_tertiary_fixed: ColorVariants,
-    on_tertiary_fixed_variant: ColorVariants,
-    tertiary_container: ColorVariants,
-    on_tertiary_container: ColorVariants,
-    error: ColorVariants,
-    on_error: ColorVariants,
-    error_container: ColorVariants,
-    on_error_container: ColorVariants,
-    surface: ColorVariants,
-    on_surface: ColorVariants,
-    on_surface_variant: ColorVariants,
-    outline: ColorVariants,
-    outline_variant: ColorVariants,
-    shadow: ColorVariants,
-    scrim: ColorVariants,
-    inverse_surface: ColorVariants,
-    inverse_on_surface: ColorVariants,
-    inverse_primary: ColorVariants,
-    surface_dim: ColorVariants,
-    surface_bright: ColorVariants,
-    surface_container_lowest: ColorVariants,
-    surface_container_low: ColorVariants,
-    surface_container: ColorVariants,
-    surface_container_high: ColorVariants,
-    surface_container_highest: ColorVariants,
-    source_color: ColorVariants,
-}
-
-use super::color::Color;
+use super::color::rgb_from_argb;
 
 impl Template {
     pub fn generate(
@@ -136,7 +84,7 @@ impl Template {
             Source::Color { .. } => None,
         };
 
-        let colors: Colors = generate_colors(schemes, source_color, default_scheme)?;
+        let colors = generate_colors(schemes, source_color, default_scheme)?;
 
         let mut custom: HashMap<String, String> = Default::default();
 
@@ -264,220 +212,19 @@ fn generate_colors(
     schemes: &Schemes,
     source_color: &[u8; 4],
     default_scheme: &SchemesEnum,
-) -> Result<Colors, Report> {
-    Ok(Colors {
-        primary: generate_single_color("primary", &schemes, source_color, default_scheme)?,
-        primary_fixed: generate_single_color(
-            "primary_fixed",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        primary_fixed_dim: generate_single_color(
-            "primary_fixed_dim",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        on_primary: generate_single_color("on_primary", &schemes, source_color, default_scheme)?,
-        on_primary_fixed: generate_single_color(
-            "on_primary_fixed",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        on_primary_fixed_variant: generate_single_color(
-            "on_primary_fixed_variant",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        primary_container: generate_single_color(
-            "primary_container",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        on_primary_container: generate_single_color(
-            "on_primary_container",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        secondary: generate_single_color("secondary", &schemes, source_color, default_scheme)?,
-        secondary_fixed: generate_single_color(
-            "secondary_fixed",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        secondary_fixed_dim: generate_single_color(
-            "secondary_fixed_dim",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        on_secondary: generate_single_color(
-            "on_secondary",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        on_secondary_fixed: generate_single_color(
-            "on_secondary_fixed",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        on_secondary_fixed_variant: generate_single_color(
-            "on_secondary_fixed_variant",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        secondary_container: generate_single_color(
-            "secondary_container",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        on_secondary_container: generate_single_color(
-            "on_secondary_container",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        tertiary: generate_single_color("tertiary", &schemes, source_color, default_scheme)?,
-        tertiary_fixed: generate_single_color(
-            "tertiary_fixed",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        tertiary_fixed_dim: generate_single_color(
-            "tertiary_fixed_dim",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        on_tertiary: generate_single_color("on_tertiary", &schemes, source_color, default_scheme)?,
-        on_tertiary_fixed: generate_single_color(
-            "on_tertiary_fixed",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        on_tertiary_fixed_variant: generate_single_color(
-            "on_tertiary_fixed_variant",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        tertiary_container: generate_single_color(
-            "tertiary_container",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        on_tertiary_container: generate_single_color(
-            "on_tertiary_container",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        error: generate_single_color("error", &schemes, source_color, default_scheme)?,
-        on_error: generate_single_color("on_error", &schemes, source_color, default_scheme)?,
-        error_container: generate_single_color(
-            "error_container",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        on_error_container: generate_single_color(
-            "on_error_container",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        surface: generate_single_color("surface", &schemes, source_color, default_scheme)?,
-        on_surface: generate_single_color("on_surface", &schemes, source_color, default_scheme)?,
-        on_surface_variant: generate_single_color(
-            "on_surface_variant",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        outline: generate_single_color("outline", &schemes, source_color, default_scheme)?,
-        outline_variant: generate_single_color(
-            "outline_variant",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        shadow: generate_single_color("shadow", &schemes, source_color, default_scheme)?,
-        scrim: generate_single_color("scrim", &schemes, source_color, default_scheme)?,
-        inverse_surface: generate_single_color(
-            "inverse_surface",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        inverse_on_surface: generate_single_color(
-            "inverse_on_surface",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        inverse_primary: generate_single_color(
-            "inverse_primary",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        surface_dim: generate_single_color("surface_dim", &schemes, source_color, default_scheme)?,
-        surface_bright: generate_single_color(
-            "surface_bright",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        surface_container_lowest: generate_single_color(
-            "surface_container_lowest",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        surface_container_low: generate_single_color(
-            "surface_container_low",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        surface_container: generate_single_color(
-            "surface_container",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        surface_container_high: generate_single_color(
-            "surface_container_high",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        surface_container_highest: generate_single_color(
-            "surface_container_highest",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-        source_color: generate_single_color(
-            "source_color",
-            &schemes,
-            source_color,
-            default_scheme,
-        )?,
-    })
+) -> Result<HashMap<String, ColorVariants>, Report> {
+    let mut hashmap: HashMap<String, ColorVariants> = Default::default();
+    for (field, _color) in &schemes.dark {
+        hashmap.insert(
+            field.to_string(),
+            generate_single_color(field, &schemes, source_color, default_scheme)?,
+        );
+    }
+    hashmap.insert(
+        String::from("source_color"),
+        generate_single_color("source_color", &schemes, source_color, default_scheme)?,
+    );
+    Ok(hashmap)
 }
 
 fn generate_single_color(
@@ -493,40 +240,37 @@ fn generate_single_color(
 
     if field == "source_color" {
         return Ok(ColorVariants {
-            default: generate_color_strings(Color::new(*source_color)),
-            light: generate_color_strings(Color::new(*source_color)),
-            dark: generate_color_strings(Color::new(*source_color)),
+            default: generate_color_strings(*source_color),
+            light: generate_color_strings(*source_color),
+            dark: generate_color_strings(*source_color),
         });
     }
 
-    let color_default: Color = Color::new(scheme[field]);
-
-    let color_light: Color = Color::new(schemes.light[field]);
-
-    let color_dark: Color = Color::new(schemes.dark[field]);
-
     Ok(ColorVariants {
-        default: generate_color_strings(color_default),
-        light: generate_color_strings(color_light),
-        dark: generate_color_strings(color_dark),
+        default: generate_color_strings(scheme[field]),
+        light: generate_color_strings(schemes.light[field]),
+        dark: generate_color_strings(schemes.dark[field]),
     })
 }
 
-fn generate_color_strings(color: Color) -> Colora {
-    let base_color = Rgb::from((
-        color.red as f64,
-        color.green as f64,
-        color.blue as f64,
-        color.alpha as f64,
-    ));
+fn generate_color_strings(color: [u8; 4]) -> Colora {
+    let base_color = rgb_from_argb(color);
     let hsl_color = Hsl::from(&base_color);
     Colora {
         hex: base_color.to_hex_string(),
         hex_stripped: base_color.to_hex_string()[1..].to_string(),
-        rgb: format!("rgb({:?}, {:?}, {:?})", color.red, color.green, color.blue),
+        rgb: format!(
+            "rgb({:?}, {:?}, {:?})",
+            base_color.red(),
+            base_color.green(),
+            base_color.blue()
+        ),
         rgba: format!(
             "rgba({:?}, {:?}, {:?}, {:?})",
-            color.red, color.green, color.blue, color.alpha
+            base_color.red(),
+            base_color.green(),
+            base_color.blue(),
+            base_color.alpha()
         ),
         hsl: format!(
             "hsl({:?}, {:?}, {:?})",
@@ -535,10 +279,10 @@ fn generate_color_strings(color: Color) -> Colora {
             hsl_color.lightness(),
         ),
         hsla: hsl_color.to_css_string(),
-        red: format!("{:?}", color.red),
-        green: format!("{:?}", color.green),
-        blue: format!("{:?}", color.blue),
-        alpha: format!("{:?}", color.alpha),
+        red: format!("{:?}", base_color.red()),
+        green: format!("{:?}", base_color.green()),
+        blue: format!("{:?}", base_color.blue()),
+        alpha: format!("{:?}", base_color.alpha()),
         hue: format!("{:?}", &hsl_color.hue()),
         lightness: format!("{:?}", &hsl_color.lightness()),
         saturation: format!("{:?}", &hsl_color.saturation()),

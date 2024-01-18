@@ -1,3 +1,5 @@
+source_color {{colors.source_color.default.hex}};
+
 primary {{colors.primary.default.hex}};
 on_primary {{colors.on_primary.default.hex}};
 primary_container {{colors.primary_container.default.hex}};
