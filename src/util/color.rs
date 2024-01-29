@@ -6,8 +6,7 @@ use crate::Schemes;
 
 use crate::util::image::fetch_image;
 
-use color_eyre::Help;
-use image::ImageError;
+use image::io::Reader as ImageReader;
 
 use super::arguments::{ColorFormat, Format, Source};
 use super::image::source_color_from_image;
@@ -159,26 +158,21 @@ pub fn get_source_color(source: &Source) -> Result<[u8; 4], Report> {
         Source::Image { path } => {
             // test
             info!("Opening image in <d><u>{}</>", path);
-            let img = match image::open(path) {
-                Ok(img) => img,
-                Err(ImageError::Unsupported(e)) => {
-                    return Err(Report::new(e).suggestion("Try using another image that is valid."))
-                }
-                Err(ImageError::IoError(e)) => {
-                    return Err(Report::new(e).suggestion(
-                        "Try using an image that exists or make sure the path provided is valid.",
-                    ))
-                }
-                Err(e) => return Err(Report::new(e)),
-            };
-            source_color_from_image(img)?[0]
+            let img = ImageReader::open(path).expect("failed to open image")
+            .with_guessed_format()
+            .expect("failed to guess format")
+            .decode()
+            .expect("failed to decode image")
+            .into_rgba8();
+    
+            source_color_from_image(img)?
         }
         Source::WebImage { url } => {
             // test
             info!("Fetching image from <d><u>{}</>", url);
 
             let img = fetch_image(url)?;
-            source_color_from_image(img)?[0]
+            source_color_from_image(img.into_rgba8())?
         }
         Source::Color(color) => {
             let src: Rgb = match color {
