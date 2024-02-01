@@ -49,7 +49,6 @@ fn reload_gtk_theme(args: &Cli) -> Result<(), Report> {
     let mode = match args.mode {
         Some(SchemesEnum::Light) => "light",
         Some(SchemesEnum::Dark) => "dark",
-        Some(SchemesEnum::Amoled) => "dark",
         None => "dark",
     };
 

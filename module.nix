@@ -47,7 +47,7 @@ matugen: {
       else ""
     } \
       --mode ${cfg.variant} \
-      --palette ${cfg.palette} \
+      --type ${cfg.type} \
       --json ${cfg.jsonFormat} \
       --quiet \
       > $out/theme.json
@@ -89,10 +89,10 @@ in {
       '';
     };
 
-    palette = lib.mkOption {
+    type = lib.mkOption {
       description = "Palette used when generating the colorschemes.";
-      type = lib.types.enum ["default" "triadic" "adjacent"];
-      default = osCfg.palette or "default";
+      type = lib.types.enum ["scheme-content" "scheme-expressive" "scheme-fidelity" "scheme-fruit-salad" "scheme-monochrome" "scheme-neutral" "scheme-rainbow" "scheme-tonal-spot"];
+      default = osCfg.palette or "scheme-tonal-spot";
       example = "triadic";
     };
 
