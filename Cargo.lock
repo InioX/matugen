@@ -872,6 +872,7 @@ dependencies = [
  "directories",
  "enquote",
  "image",
+ "indexmap",
  "log",
  "material-colors",
  "owo-colors 4.0.0",
