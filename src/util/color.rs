@@ -25,7 +25,7 @@ pub fn rgb_from_argb(color: [u8; 4]) -> Rgb {
     ])
 }
 
-pub fn show_color(schemes: &Schemes, _source_color: &[u8; 4]) {
+pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
     let mut table: Table = generate_table_format();
 
     for (field, _color) in &schemes.dark {
@@ -34,6 +34,8 @@ pub fn show_color(schemes: &Schemes, _source_color: &[u8; 4]) {
 
         generate_table_rows(&mut table, field, color_light, color_dark);
     }
+
+    generate_table_rows(&mut table, "source_color", rgb_from_argb(*source_color), rgb_from_argb(*source_color));
 
     table.printstd();
 }
