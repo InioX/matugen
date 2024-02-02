@@ -7,6 +7,7 @@ use crate::Schemes;
 use crate::util::image::fetch_image;
 
 use image::io::Reader as ImageReader;
+use image::imageops::{resize, FilterType};
 
 use super::arguments::{ColorFormat, Format, Source};
 use super::image::source_color_from_image;
@@ -164,15 +165,18 @@ pub fn get_source_color(source: &Source) -> Result<[u8; 4], Report> {
             .decode()
             .expect("failed to decode image")
             .into_rgba8();
-    
+            let img = resize(&img, 128, 128, FilterType::Gaussian);
+
             source_color_from_image(img)?
         }
         Source::WebImage { url } => {
             // test
             info!("Fetching image from <d><u>{}</>", url);
 
-            let img = fetch_image(url)?;
-            source_color_from_image(img.into_rgba8())?
+            let img = fetch_image(url)?.into_rgba8();
+            let img = resize(&img, 128, 128, FilterType::Gaussian);
+
+            source_color_from_image(img)?
         }
         Source::Color(color) => {
             let src: Rgb = match color {
