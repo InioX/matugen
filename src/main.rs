@@ -71,8 +71,8 @@ fn main() -> Result<(), Report> {
         .expect("Something went wrong while parsing the mode");
 
     let schemes: Schemes = Schemes {
-        dark: HashMap::from(scheme_dark),
-        light: HashMap::from(scheme_light),
+        dark: HashMap::from_iter(scheme_dark),
+        light: HashMap::from_iter(scheme_light),
     };
 
     if args.show_colors == Some(true) {
