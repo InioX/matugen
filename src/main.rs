@@ -13,8 +13,9 @@ use crate::util::{
     template::Template,
 };
 
+use indexmap::IndexMap;
+
 use material_colors::{Hct, Scheme};
-use std::collections::HashMap;
 
 use clap::{Parser, ValueEnum};
 use color_eyre::{eyre::Result, Report};
@@ -31,8 +32,8 @@ use material_colors::{
 };
 
 pub struct Schemes {
-    pub light: HashMap<String, [u8; 4], ahash::random_state::RandomState>,
-    pub dark: HashMap<String, [u8; 4], ahash::random_state::RandomState>,
+    pub light: IndexMap<String, [u8; 4], ahash::random_state::RandomState>,
+    pub dark: IndexMap<String, [u8; 4], ahash::random_state::RandomState>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -71,8 +72,8 @@ fn main() -> Result<(), Report> {
         .expect("Something went wrong while parsing the mode");
 
     let schemes: Schemes = Schemes {
-        dark: HashMap::from_iter(scheme_dark),
-        light: HashMap::from_iter(scheme_light),
+        dark: IndexMap::from_iter(scheme_dark),
+        light: IndexMap::from_iter(scheme_light),
     };
 
     if args.show_colors == Some(true) {
