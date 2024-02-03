@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0](https://github.com/InioX/matugen/compare/v2.0.0...v2.1.0) - 2024-02-03
+
+### Added
+- add --contrast flag
+
+### Fixed
+- add back source_color to `--show-colors`
+- use IndexMap for `--show-colors` table
+
+### Other
+- Merge pull request [#52](https://github.com/InioX/matugen/pull/52) from InioX/dev
+- *(readme)* update acknowledgements
+- *(readme)* remove roadmap
+- bump material-colors ver
+
 ## [2.0.0](https://github.com/InioX/matugen/compare/v1.2.1...v2.0.0) - 2024-02-01
 
 ### Added
