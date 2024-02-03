@@ -60,31 +60,6 @@ Matugen is a cross-platform tool that generates a colorscheme either from an ima
 
 <h2>
      <sub>
-          <img  src="https://github.com/InioX/matugen/assets/81521595/1ff9c777-94d9-4e24-85ec-725a6aa10612"
-           height="25"
-           width="25">
-     </sub>
-     Roadmap
-</h2>
-
-- [ ] Add GTK4 UI
-- [x] Add a light/dark/amoled option for each template
-- [x] Support more color formats for generating colorscheme
-    - [x] Rgba
-    - [x] Rgb
-    - [x] Hsl
-- [x] Suport changing the wallpaper on different platforms
-     - [x] MacOS
-     - [x] Windows
-- [x] Support changing the wallpaper on X11
-     - [x] Feh
-     - [x] Nitrogen
-
-> [!NOTE]
-> Want a feature that is not listed above? Simply [open an issue](https://github.com/InioX/Matugen/issues).
-
-<h2>
-     <sub>
           <img  src="https://github.com/InioX/matugen/assets/81521595/223f698f-9e72-430b-9a75-c9892fcea94e"
            height="25"
            width="25">
