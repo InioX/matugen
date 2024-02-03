@@ -175,5 +175,5 @@ make install
      Acknowledgements
 </h2>
 
-- [material-color-utilities-rs](https://github.com/alphaqu/material-color-utilities-rs)
-- [wallpaper.rs](https://github.com/reujab/wallpaper.rs)
+- [material-colors](https://github.com/Aiving/material-colors)
+- [wallpaper.rs](https://github.com/reujab/wallpaper.rs) - Changing wallpaper for Windows
