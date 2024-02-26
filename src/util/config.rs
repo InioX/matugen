@@ -28,13 +28,7 @@ pub struct Config {
     pub swww_options: Option<Vec<String>>,
     pub feh_options: Option<Vec<String>>,
     pub prefix: Option<String>,
-    pub custom_keywords: Option<HashMap<String, CustomKeyword>>,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct CustomKeyword {
-    pub find: String,
-    pub replace: String,
+    pub custom_keywords: Option<HashMap<String, String>>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]

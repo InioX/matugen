@@ -16,7 +16,6 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use crate::util::arguments::Source;
-use crate::util::config::CustomKeyword;
 use resolve_path::PathResolveExt;
 
 use crate::{Schemes, SchemesEnum};
@@ -64,7 +63,7 @@ impl Template {
         prefix: &Option<String>,
         source_color: &[u8; 4],
         default_scheme: &SchemesEnum,
-        custom_keywords: &Option<HashMap<String, CustomKeyword>>,
+        custom_keywords: &Option<HashMap<String, String>>,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -89,8 +88,8 @@ impl Template {
         let mut custom: HashMap<String, String> = Default::default();
 
         for entry in custom_keywords.iter() {
-            for (_name, values) in entry {
-                custom.insert(values.find.to_string(), values.replace.to_string());
+            for (name, value) in entry {
+                custom.insert(name.to_string(), value.to_string());
             }
         }
 
