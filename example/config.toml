@@ -7,6 +7,9 @@ swww_options = [
     "center",
 ]
 
+[config.custom_keywords]
+test = "aaaa"
+
 [templates.name1]
 input_path = "example/colors.whatever-extension"
 output_path = "example/a/colors-generated.whatever-extension"
