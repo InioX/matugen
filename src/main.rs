@@ -24,7 +24,7 @@ use serde::{Deserialize, Serialize};
 use std::io::Write;
 use update_informer::{registry, Check};
 
-use util::arguments::SchemeTypes;
+use util::{arguments::SchemeTypes, color::harmonize_colors};
 
 use material_colors::{
     SchemeContent, SchemeExpressive, SchemeFidelity, SchemeFruitSalad, SchemeMonochrome,
@@ -76,6 +76,12 @@ fn main() -> Result<(), Report> {
         light: IndexMap::from_iter(scheme_light),
     };
 
+    let mut harmonized_colors = None;
+
+    if let Some(colors) = &config.config.colors_to_harmonize {
+        harmonized_colors = Some(harmonize_colors(&source_color, colors));
+    };
+
     if args.show_colors == Some(true) {
         show_color(&schemes, &source_color);
     }
@@ -93,6 +99,7 @@ fn main() -> Result<(), Report> {
             &source_color,
             &default_scheme,
             &config.config.custom_keywords,
+            harmonized_colors,
         )?;
 
         if config.config.reload_apps == Some(true) {

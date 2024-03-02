@@ -6,8 +6,8 @@ use crate::Schemes;
 
 use crate::util::image::fetch_image;
 
-use image::io::Reader as ImageReader;
 use image::imageops::{resize, FilterType};
+use image::io::Reader as ImageReader;
 
 use super::arguments::{ColorFormat, Format, Source};
 use super::image::source_color_from_image;
@@ -17,6 +17,8 @@ use serde_json::json;
 use std::collections::HashMap;
 use std::str::FromStr;
 
+use material_colors::blend::harmonize;
+
 pub fn rgb_from_argb(color: [u8; 4]) -> Rgb {
     Rgb::from([
         color[1] as f64,
@@ -24,6 +26,30 @@ pub fn rgb_from_argb(color: [u8; 4]) -> Rgb {
         color[3] as f64,
         color[0] as f64,
     ])
+}
+
+pub fn harmonize_colors(
+    source_color: &[u8; 4],
+    colors: &HashMap<String, String>,
+) -> HashMap<String, [u8; 4]> {
+    debug!("colors_to_harmonize: {:#?}", &colors);
+    let mut harmonized_colors: HashMap<String, [u8; 4]> = HashMap::default();
+
+    for (name, color) in colors {
+        let rgb = Rgb::from_hex_str(&color)
+            .expect("Invalid hex color string provided for `harmonized_colors`");
+
+        let argb: [u8; 4] = [
+            rgb.alpha() as u8,
+            rgb.red() as u8,
+            rgb.green() as u8,
+            rgb.blue() as u8,
+        ];
+        harmonized_colors.insert(name.to_string(), harmonize(argb, *source_color));
+    }
+
+    debug!("harmonized_colors: {:#?}", &harmonized_colors);
+    harmonized_colors
 }
 
 pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
@@ -36,7 +62,12 @@ pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
         generate_table_rows(&mut table, field, color_light, color_dark);
     }
 
-    generate_table_rows(&mut table, "source_color", rgb_from_argb(*source_color), rgb_from_argb(*source_color));
+    generate_table_rows(
+        &mut table,
+        "source_color",
+        rgb_from_argb(*source_color),
+        rgb_from_argb(*source_color),
+    );
 
     table.printstd();
 }
@@ -161,12 +192,13 @@ pub fn get_source_color(source: &Source) -> Result<[u8; 4], Report> {
         Source::Image { path } => {
             // test
             info!("Opening image in <d><u>{}</>", path);
-            let img = ImageReader::open(path).expect("failed to open image")
-            .with_guessed_format()
-            .expect("failed to guess format")
-            .decode()
-            .expect("failed to decode image")
-            .into_rgba8();
+            let img = ImageReader::open(path)
+                .expect("failed to open image")
+                .with_guessed_format()
+                .expect("failed to guess format")
+                .decode()
+                .expect("failed to decode image")
+                .into_rgba8();
             let img = resize(&img, 128, 128, FilterType::Gaussian);
 
             source_color_from_image(img)?
