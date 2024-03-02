@@ -1,3 +1,11 @@
+red #FF0000;
+green #00FF00;
+blue #0000FF;
+
+red {{harmonized_colors.red.hex}};
+green {{harmonized_colors.green.hex}};
+blue {{harmonized_colors.blue.hex}};
+
 source_color {{colors.source_color.default.hex}};
 
 primary {{colors.primary.default.hex}};

@@ -13,3 +13,8 @@ test = "aaaa"
 [templates.name1]
 input_path = "example/colors.whatever-extension"
 output_path = "example/a/colors-generated.whatever-extension"
+
+[config.colors_to_harmonize]
+green = "#00FF00"
+red = "#FF0000"
+blue = "#0000FF"
