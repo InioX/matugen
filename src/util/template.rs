@@ -112,6 +112,9 @@ impl Template {
         let mut engine = Engine::with_syntax(syntax);
 
         engine.add_filter("set_lightness", set_lightness);
+        engine.add_filter("replace", |s: String, from: String, to: String| {
+            s.replace(&from, &to)
+        });
 
         let image = match &source {
             Source::Image { path } => Some(path),
