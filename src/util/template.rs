@@ -6,6 +6,10 @@ use color_eyre::{eyre::Result, Report};
 use colorsys::{ColorAlpha, Hsl};
 use serde::{Deserialize, Serialize};
 
+use upon::Value;
+
+use crate::util::filters::set_lightness;
+
 use std::str;
 
 use std::collections::HashMap;
@@ -15,8 +19,11 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 
+use crate::util::color::{
+    format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
+};
+
 use crate::util::arguments::Source;
-use crate::util::config::CustomKeyword;
 use resolve_path::PathResolveExt;
 
 use crate::{Schemes, SchemesEnum};
@@ -56,6 +63,29 @@ struct ColorVariants {
 
 use super::color::rgb_from_argb;
 
+pub fn check_string_value(value: &Value) -> Option<&String> {
+    match value {
+        Value::String(v) => Some(v),
+        _v => None,
+    }
+}
+
+pub fn parse_color(string: &String) -> Option<&str> {
+    if let Some(_s) = string.strip_prefix('#') {
+        return Some("hex");
+    }
+
+    if let (Some(i), Some(s)) = (string.find('('), string.strip_suffix(')')) {
+        let fname = s[..i].trim_end();
+        Some(fname)
+    } else if string.len() == 6 {
+        // Does not matter if it is actually a stripped hex or not, we handle it somewhere else.
+        return Some("hex_stripped");
+    } else {
+        None
+    }
+}
+
 impl Template {
     pub fn generate(
         schemes: &Schemes,
@@ -64,7 +94,8 @@ impl Template {
         prefix: &Option<String>,
         source_color: &[u8; 4],
         default_scheme: &SchemesEnum,
-        custom_keywords: &Option<HashMap<String, CustomKeyword>>,
+        custom_keywords: &Option<HashMap<String, String>>,
+        harmonized_colors: Option<HashMap<String, [u8; 4]>>,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -78,6 +109,13 @@ impl Template {
         let syntax = Syntax::builder().expr("{{", "}}").block("<*", "*>").build();
         let mut engine = Engine::with_syntax(syntax);
 
+        engine.add_filter("set_lightness", set_lightness);
+        engine.add_filter("to_upper", str::to_uppercase);
+        engine.add_filter("to_lower", str::to_lowercase);
+        engine.add_filter("replace", |s: String, from: String, to: String| {
+            s.replace(&from, &to)
+        });
+
         let image = match &source {
             Source::Image { path } => Some(path),
             Source::WebImage { .. } => None,
@@ -86,13 +124,21 @@ impl Template {
 
         let colors = generate_colors(schemes, source_color, default_scheme)?;
 
+        let harmonized = generate_harmonized_colors(source_color, harmonized_colors)?;
+
         let mut custom: HashMap<String, String> = Default::default();
 
         for entry in custom_keywords.iter() {
-            for (_name, values) in entry {
-                custom.insert(values.find.to_string(), values.replace.to_string());
+            for (name, value) in entry {
+                custom.insert(name.to_string(), value.to_string());
             }
         }
+
+        let render_data = upon::value! {
+            colors: &colors, image: image, custom: &custom, harmonized_colors: harmonized,
+        };
+
+        // debug!("render_data: {:#?}", &render_data);
 
         for (i, (name, template)) in templates.iter().enumerate() {
             let input_path_absolute = template.input_path.try_resolve()?;
@@ -143,7 +189,7 @@ impl Template {
 
             let data = engine
                 .template(name)
-                .render(upon::value! { colors: &colors, image: image, custom: &custom, })
+                .render(&render_data)
                 .to_string()
                 .map_err(|error| {
                     let message = format!(
@@ -217,14 +263,29 @@ fn generate_colors(
     for (field, _color) in &schemes.dark {
         hashmap.insert(
             field.to_string(),
-            generate_single_color(field, &schemes, source_color, default_scheme)?,
+            generate_single_color(field, schemes, source_color, default_scheme)?,
         );
     }
     hashmap.insert(
         String::from("source_color"),
-        generate_single_color("source_color", &schemes, source_color, default_scheme)?,
+        generate_single_color("source_color", schemes, source_color, default_scheme)?,
     );
     Ok(hashmap)
+}
+
+fn generate_harmonized_colors(
+    _source_color: &[u8; 4],
+    harmonized_colors: Option<HashMap<String, [u8; 4]>>,
+) -> Result<Option<HashMap<String, Colora>>, Report> {
+    if let Some(colors) = harmonized_colors {
+        let mut map: HashMap<String, Colora> = Default::default();
+        for (name, color) in colors {
+            map.insert(name, generate_color_strings(color));
+        }
+        Ok(Some(map))
+    } else {
+        Ok(None)
+    }
 }
 
 fn generate_single_color(
@@ -257,32 +318,16 @@ fn generate_color_strings(color: [u8; 4]) -> Colora {
     let base_color = rgb_from_argb(color);
     let hsl_color = Hsl::from(&base_color);
     Colora {
-        hex: base_color.to_hex_string(),
-        hex_stripped: base_color.to_hex_string()[1..].to_string(),
-        rgb: format!(
-            "rgb({:?}, {:?}, {:?})",
-            base_color.red(),
-            base_color.green(),
-            base_color.blue()
-        ),
-        rgba: format!(
-            "rgba({:?}, {:?}, {:?}, {:?})",
-            base_color.red(),
-            base_color.green(),
-            base_color.blue(),
-            base_color.alpha()
-        ),
-        hsl: format!(
-            "hsl({:?}, {:?}, {:?})",
-            hsl_color.hue(),
-            hsl_color.saturation(),
-            hsl_color.lightness(),
-        ),
-        hsla: hsl_color.to_css_string(),
-        red: format!("{:?}", base_color.red()),
-        green: format!("{:?}", base_color.green()),
-        blue: format!("{:?}", base_color.blue()),
-        alpha: format!("{:?}", base_color.alpha()),
+        hex: format_hex(&base_color),
+        hex_stripped: format_hex_stripped(&base_color),
+        rgb: format_rgb(&base_color),
+        rgba: format_rgba(&base_color),
+        hsl: format_hsl(&hsl_color),
+        hsla: format_hsla(&hsl_color),
+        red: format!("{:?}", base_color.red() as u8),
+        green: format!("{:?}", base_color.green() as u8),
+        blue: format!("{:?}", base_color.blue() as u8),
+        alpha: format!("{:?}", base_color.alpha() as u8),
         hue: format!("{:?}", &hsl_color.hue()),
         lightness: format!("{:?}", &hsl_color.lightness()),
         saturation: format!("{:?}", &hsl_color.saturation()),
