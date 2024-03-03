@@ -87,7 +87,7 @@ fn main() -> Result<(), Report> {
     }
 
     if let Some(ref format) = args.json {
-        dump_json(&schemes, &source_color, format);
+        dump_json(&schemes, &source_color, format, &harmonized_colors);
     }
 
     if args.dry_run == Some(false) {
@@ -99,7 +99,7 @@ fn main() -> Result<(), Report> {
             &source_color,
             &default_scheme,
             &config.config.custom_keywords,
-            harmonized_colors,
+            &harmonized_colors,
         )?;
 
         if config.config.reload_apps == Some(true) {
@@ -177,44 +177,28 @@ fn generate_scheme(
 ) -> Scheme {
     match scheme_type.unwrap() {
         SchemeTypes::SchemeContent => {
-            Scheme::from(
-                SchemeContent::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-            )
+            Scheme::from(SchemeContent::new(Hct::new(source_color), is_dark, contrast_level).scheme)
         }
-        SchemeTypes::SchemeExpressive => {
-            Scheme::from(
-                SchemeExpressive::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-            )
-        }
-        SchemeTypes::SchemeFidelity => {
-            Scheme::from(
-                SchemeFidelity::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-            )
-        }
-        SchemeTypes::SchemeFruitSalad => {
-            Scheme::from(
-                SchemeFruitSalad::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-            )
-        }
-        SchemeTypes::SchemeMonochrome => {
-            Scheme::from(
-                SchemeMonochrome::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-            )
-        }
+        SchemeTypes::SchemeExpressive => Scheme::from(
+            SchemeExpressive::new(Hct::new(source_color), is_dark, contrast_level).scheme,
+        ),
+        SchemeTypes::SchemeFidelity => Scheme::from(
+            SchemeFidelity::new(Hct::new(source_color), is_dark, contrast_level).scheme,
+        ),
+        SchemeTypes::SchemeFruitSalad => Scheme::from(
+            SchemeFruitSalad::new(Hct::new(source_color), is_dark, contrast_level).scheme,
+        ),
+        SchemeTypes::SchemeMonochrome => Scheme::from(
+            SchemeMonochrome::new(Hct::new(source_color), is_dark, contrast_level).scheme,
+        ),
         SchemeTypes::SchemeNeutral => {
-            Scheme::from(
-                SchemeNeutral::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-            )
+            Scheme::from(SchemeNeutral::new(Hct::new(source_color), is_dark, contrast_level).scheme)
         }
         SchemeTypes::SchemeRainbow => {
-            Scheme::from(
-                SchemeRainbow::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-            )
+            Scheme::from(SchemeRainbow::new(Hct::new(source_color), is_dark, contrast_level).scheme)
         }
-        SchemeTypes::SchemeTonalSpot => {
-            Scheme::from(
-                SchemeTonalSpot::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-            )
-        }
+        SchemeTypes::SchemeTonalSpot => Scheme::from(
+            SchemeTonalSpot::new(Hct::new(source_color), is_dark, contrast_level).scheme,
+        ),
     }
 }

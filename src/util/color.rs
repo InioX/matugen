@@ -118,7 +118,12 @@ pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
     table.printstd();
 }
 
-pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
+pub fn dump_json(
+    schemes: &Schemes,
+    source_color: &[u8; 4],
+    format: &Format,
+    harmonized_colors: &Option<HashMap<String, [u8; 4]>>,
+) {
     type F = Format;
     let fmt = match format {
         F::Rgb => |c: Rgb| format!("rgb({:?}, {:?}, {:?})", c.red(), c.green(), c.blue()),
@@ -131,18 +136,8 @@ pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
                 c.alpha()
             )
         },
-        F::Hsl => {
-            |c: Rgb| Hsl::from((c.red(), c.green(), c.blue())).to_css_string()
-        }
-        F::Hsla => |c: Rgb| {
-            Hsl::from((
-                c.red(),
-                c.green(),
-                c.blue(),
-                c.alpha(),
-            ))
-            .to_css_string()
-        },
+        F::Hsl => |c: Rgb| Hsl::from((c.red(), c.green(), c.blue())).to_css_string(),
+        F::Hsla => |c: Rgb| Hsl::from((c.red(), c.green(), c.blue(), c.alpha())).to_css_string(),
         F::Hex => |c: Rgb| c.to_hex_string(),
         F::Strip => |c: Rgb| c.to_hex_string().replace('#', ""),
     };
@@ -167,6 +162,7 @@ pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
                 "light": colors_normal_light,
                 "dark": colors_normal_dark,
             },
+            "harmonized_colors": harmonized_colors,
         })
     );
 }
