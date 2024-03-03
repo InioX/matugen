@@ -3,8 +3,6 @@ use color_eyre::eyre::WrapErr;
 use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
-
-
 use colorsys::{ColorAlpha, Hsl};
 use serde::{Deserialize, Serialize};
 
@@ -112,6 +110,8 @@ impl Template {
         let mut engine = Engine::with_syntax(syntax);
 
         engine.add_filter("set_lightness", set_lightness);
+        engine.add_filter("to_upper", str::to_uppercase);
+        engine.add_filter("to_lower", str::to_lowercase);
         engine.add_filter("replace", |s: String, from: String, to: String| {
             s.replace(&from, &to)
         });
