@@ -1,6 +1,6 @@
 use colorsys::ColorTransform;
 use colorsys::Rgb;
-use colorsys::{ColorAlpha, Hsl};
+use colorsys::{Hsl};
 use std::str::FromStr;
 use upon::Value;
 

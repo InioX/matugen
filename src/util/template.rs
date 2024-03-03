@@ -3,11 +3,11 @@ use color_eyre::eyre::WrapErr;
 use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
-use colorsys::ColorTransform;
-use colorsys::Rgb;
+
+
 use colorsys::{ColorAlpha, Hsl};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
+
 use upon::Value;
 
 use crate::util::filters::set_lightness;
@@ -67,19 +67,19 @@ use super::color::rgb_from_argb;
 
 pub fn check_string_value(value: &Value) -> Option<&String> {
     match value {
-        Value::String(v) => return Some(v),
-        v => return None,
+        Value::String(v) => Some(v),
+        _v => None,
     }
 }
 
 pub fn parse_color(string: &String) -> Option<&str> {
-    if let Some(s) = string.strip_prefix('#') {
+    if let Some(_s) = string.strip_prefix('#') {
         return Some("hex");
     }
 
     if let (Some(i), Some(s)) = (string.find('('), string.strip_suffix(')')) {
         let fname = s[..i].trim_end();
-        return Some(fname);
+        Some(fname)
     } else if string.len() == 6 {
         // Does not matter if it is actually a stripped hex or not, we handle it somewhere else.
         return Some("hex_stripped");
@@ -263,18 +263,18 @@ fn generate_colors(
     for (field, _color) in &schemes.dark {
         hashmap.insert(
             field.to_string(),
-            generate_single_color(field, &schemes, source_color, default_scheme)?,
+            generate_single_color(field, schemes, source_color, default_scheme)?,
         );
     }
     hashmap.insert(
         String::from("source_color"),
-        generate_single_color("source_color", &schemes, source_color, default_scheme)?,
+        generate_single_color("source_color", schemes, source_color, default_scheme)?,
     );
     Ok(hashmap)
 }
 
 fn generate_harmonized_colors(
-    source_color: &[u8; 4],
+    _source_color: &[u8; 4],
     harmonized_colors: Option<HashMap<String, [u8; 4]>>,
 ) -> Result<Option<HashMap<String, Colora>>, Report> {
     if let Some(colors) = harmonized_colors {
@@ -284,7 +284,7 @@ fn generate_harmonized_colors(
         }
         Ok(Some(map))
     } else {
-        return Ok(None);
+        Ok(None)
     }
 }
 
