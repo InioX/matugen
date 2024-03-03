@@ -95,7 +95,7 @@ impl Template {
         source_color: &[u8; 4],
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
-        harmonized_colors: Option<HashMap<String, [u8; 4]>>,
+        harmonized_colors: &Option<HashMap<String, [u8; 4]>>,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -275,12 +275,12 @@ fn generate_colors(
 
 fn generate_harmonized_colors(
     _source_color: &[u8; 4],
-    harmonized_colors: Option<HashMap<String, [u8; 4]>>,
+    harmonized_colors: &Option<HashMap<String, [u8; 4]>>,
 ) -> Result<Option<HashMap<String, Colora>>, Report> {
     if let Some(colors) = harmonized_colors {
         let mut map: HashMap<String, Colora> = Default::default();
         for (name, color) in colors {
-            map.insert(name, generate_color_strings(color));
+            map.insert(name.to_string(), generate_color_strings(*color));
         }
         Ok(Some(map))
     } else {
