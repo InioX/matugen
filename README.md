@@ -33,13 +33,34 @@
      Description
 </h2>
 
-Matugen is a cross-platform tool that generates a colorscheme either from an image or a color, and replaces keywords inside provided templates. It can also set the wallpaper if one was provided, and allows you to define your own keywords.
+### Features
+- **Generate/Export Material You Color Palette:**
+     - Generate a Material You color palette either from an image or a color
+     - Output the generated palette as JSON to stdout, or use keywords inside templates that get exported as files
+- **Keyword Filters:**
+     - Use filters to change values of the keywords, like changing lightness for colors and manipulating strings with `replace`, `to_upper` and `to_lower`
+- **Custom Keywords/Colors:**
+     - Define your own custom keywords or colors you would like to be harmonized inside the config file, that you can then use in templates
+- **Palette Customization:**
+     - Customize the contrast and scheme type for the palette
+- **Restart Apps/Change Wallpaper:**
+     - Restart supported apps and set the wallpaper on Windows, MacOS, Linux and NetBSD
 
+<br>
+<div align="center">
+<table>
+  <tr>
+     <th>
+     <p>If you would like to learn more about the features and configuration, read the wiki <a href="https://github.com/InioX/matugen/wiki">here.</a></p>
+     </th>
+  </tr>
+</table>
+</div>
 
-#### About Material Design 3
+### About Material Design 3
 [Material Design 3](https://m3.material.io/) offers a new color system that allows for more flexible and dynamic use of color. The new system includes a wider range of colors, as well as a range of tints and shades that can be used to create subtle variations in color.
 
-#### Other projects
+### Other projects
 - [Mitsugen](https://github.com/DimitrisMilonopoulos/mitsugen) - For gnome-shell, based on the [old](https://github.com/InioX/matugen/tree/python) version of Matugen
 - [pywal](https://github.com/dylanaraps/pywal) - More color generation backends, default theme files. 
 - [wpgtk](https://github.com/deviantfero/wpgtk) - Like pywal, but with a gui and more features.
