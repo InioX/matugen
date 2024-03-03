@@ -28,6 +28,52 @@ pub fn rgb_from_argb(color: [u8; 4]) -> Rgb {
     ])
 }
 
+pub fn format_hex(color: &Rgb) -> String {
+    color.to_hex_string()
+}
+
+pub fn format_hex_stripped(color: &Rgb) -> String {
+    color.to_hex_string()[1..].to_string()
+}
+
+pub fn format_rgb(color: &Rgb) -> String {
+    format!(
+        "rgb({:?}, {:?}, {:?})",
+        color.red() as u8,
+        color.green() as u8,
+        color.blue() as u8,
+    )
+}
+
+pub fn format_rgba(color: &Rgb) -> String {
+    format!(
+        "rgba({:?}, {:?}, {:?}, {:?})",
+        color.red() as u8,
+        color.green() as u8,
+        color.blue() as u8,
+        color.alpha() as u8
+    )
+}
+
+pub fn format_hsl(color: &Hsl) -> String {
+    format!(
+        "hsl({:?}, {:?}%, {:?}%)",
+        color.hue() as u8,
+        color.saturation() as u8,
+        color.lightness() as u8,
+    )
+}
+
+pub fn format_hsla(color: &Hsl) -> String {
+    format!(
+        "hsla({:?}, {:?}%, {:?}%, {:?})",
+        color.hue() as u8,
+        color.saturation() as u8,
+        color.lightness() as u8,
+        color.alpha() as u8
+    )
+}
+
 pub fn harmonize_colors(
     source_color: &[u8; 4],
     colors: &HashMap<String, String>,

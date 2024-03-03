@@ -3,8 +3,14 @@ use color_eyre::eyre::WrapErr;
 use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
+use colorsys::ColorTransform;
+use colorsys::Rgb;
 use colorsys::{ColorAlpha, Hsl};
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
+use upon::Value;
+
+use crate::util::filters::set_lightness;
 
 use std::str;
 
@@ -14,6 +20,10 @@ use std::fs::read_to_string;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
+
+use crate::util::color::{
+    format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
+};
 
 use crate::util::arguments::Source;
 use resolve_path::PathResolveExt;
@@ -55,6 +65,29 @@ struct ColorVariants {
 
 use super::color::rgb_from_argb;
 
+pub fn check_string_value(value: &Value) -> Option<&String> {
+    match value {
+        Value::String(v) => return Some(v),
+        v => return None,
+    }
+}
+
+pub fn parse_color(string: &String) -> Option<&str> {
+    if let Some(s) = string.strip_prefix('#') {
+        return Some("hex");
+    }
+
+    if let (Some(i), Some(s)) = (string.find('('), string.strip_suffix(')')) {
+        let fname = s[..i].trim_end();
+        return Some(fname);
+    } else if string.len() == 6 {
+        // Does not matter if it is actually a stripped hex or not, we handle it somewhere else.
+        return Some("hex_stripped");
+    } else {
+        None
+    }
+}
+
 impl Template {
     pub fn generate(
         schemes: &Schemes,
@@ -77,6 +110,8 @@ impl Template {
 
         let syntax = Syntax::builder().expr("{{", "}}").block("<*", "*>").build();
         let mut engine = Engine::with_syntax(syntax);
+
+        engine.add_filter("set_lightness", set_lightness);
 
         let image = match &source {
             Source::Image { path } => Some(path),
@@ -280,32 +315,16 @@ fn generate_color_strings(color: [u8; 4]) -> Colora {
     let base_color = rgb_from_argb(color);
     let hsl_color = Hsl::from(&base_color);
     Colora {
-        hex: base_color.to_hex_string(),
-        hex_stripped: base_color.to_hex_string()[1..].to_string(),
-        rgb: format!(
-            "rgb({:?}, {:?}, {:?})",
-            base_color.red(),
-            base_color.green(),
-            base_color.blue()
-        ),
-        rgba: format!(
-            "rgba({:?}, {:?}, {:?}, {:?})",
-            base_color.red(),
-            base_color.green(),
-            base_color.blue(),
-            base_color.alpha()
-        ),
-        hsl: format!(
-            "hsl({:?}, {:?}, {:?})",
-            hsl_color.hue(),
-            hsl_color.saturation(),
-            hsl_color.lightness(),
-        ),
-        hsla: hsl_color.to_css_string(),
-        red: format!("{:?}", base_color.red()),
-        green: format!("{:?}", base_color.green()),
-        blue: format!("{:?}", base_color.blue()),
-        alpha: format!("{:?}", base_color.alpha()),
+        hex: format_hex(&base_color),
+        hex_stripped: format_hex_stripped(&base_color),
+        rgb: format_rgb(&base_color),
+        rgba: format_rgba(&base_color),
+        hsl: format_hsl(&hsl_color),
+        hsla: format_hsla(&hsl_color),
+        red: format!("{:?}", base_color.red() as u8),
+        green: format!("{:?}", base_color.green() as u8),
+        blue: format!("{:?}", base_color.blue() as u8),
+        alpha: format!("{:?}", base_color.alpha() as u8),
         hue: format!("{:?}", &hsl_color.hue()),
         lightness: format!("{:?}", &hsl_color.lightness()),
         saturation: format!("{:?}", &hsl_color.saturation()),
