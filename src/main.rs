@@ -177,42 +177,42 @@ fn generate_scheme(
 ) -> Scheme {
     match scheme_type.unwrap() {
         SchemeTypes::SchemeContent => {
-            return Scheme::from(
+            Scheme::from(
                 SchemeContent::new(Hct::new(source_color), is_dark, contrast_level).scheme,
             )
         }
         SchemeTypes::SchemeExpressive => {
-            return Scheme::from(
+            Scheme::from(
                 SchemeExpressive::new(Hct::new(source_color), is_dark, contrast_level).scheme,
             )
         }
         SchemeTypes::SchemeFidelity => {
-            return Scheme::from(
+            Scheme::from(
                 SchemeFidelity::new(Hct::new(source_color), is_dark, contrast_level).scheme,
             )
         }
         SchemeTypes::SchemeFruitSalad => {
-            return Scheme::from(
+            Scheme::from(
                 SchemeFruitSalad::new(Hct::new(source_color), is_dark, contrast_level).scheme,
             )
         }
         SchemeTypes::SchemeMonochrome => {
-            return Scheme::from(
+            Scheme::from(
                 SchemeMonochrome::new(Hct::new(source_color), is_dark, contrast_level).scheme,
             )
         }
         SchemeTypes::SchemeNeutral => {
-            return Scheme::from(
+            Scheme::from(
                 SchemeNeutral::new(Hct::new(source_color), is_dark, contrast_level).scheme,
             )
         }
         SchemeTypes::SchemeRainbow => {
-            return Scheme::from(
+            Scheme::from(
                 SchemeRainbow::new(Hct::new(source_color), is_dark, contrast_level).scheme,
             )
         }
         SchemeTypes::SchemeTonalSpot => {
-            return Scheme::from(
+            Scheme::from(
                 SchemeTonalSpot::new(Hct::new(source_color), is_dark, contrast_level).scheme,
             )
         }

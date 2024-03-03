@@ -82,7 +82,7 @@ pub fn harmonize_colors(
     let mut harmonized_colors: HashMap<String, [u8; 4]> = HashMap::default();
 
     for (name, color) in colors {
-        let rgb = Rgb::from_hex_str(&color)
+        let rgb = Rgb::from_hex_str(color)
             .expect("Invalid hex color string provided for `harmonized_colors`");
 
         let argb: [u8; 4] = [
@@ -132,19 +132,19 @@ pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
             )
         },
         F::Hsl => {
-            |c: Rgb| Hsl::from((c.red() as f64, c.green() as f64, c.blue() as f64)).to_css_string()
+            |c: Rgb| Hsl::from((c.red(), c.green(), c.blue())).to_css_string()
         }
         F::Hsla => |c: Rgb| {
             Hsl::from((
-                c.red() as f64,
-                c.green() as f64,
-                c.blue() as f64,
-                c.alpha() as f64,
+                c.red(),
+                c.green(),
+                c.blue(),
+                c.alpha(),
             ))
             .to_css_string()
         },
         F::Hex => |c: Rgb| c.to_hex_string(),
-        F::Strip => |c: Rgb| c.to_hex_string().replace("#", ""),
+        F::Strip => |c: Rgb| c.to_hex_string().replace('#', ""),
     };
 
     let mut colors_normal_light: HashMap<&str, String> = HashMap::new();
