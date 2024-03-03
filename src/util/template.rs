@@ -95,7 +95,7 @@ impl Template {
         source_color: &[u8; 4],
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
-        harmonized_colors: Option<HashMap<String, [u8; 4]>>,
+        harmonized_colors: &Option<HashMap<String, [u8; 4]>>,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -160,9 +160,7 @@ impl Template {
                     input_path_absolute.display(),
                     error
                 );
-                Report::new(error)
-                    .wrap_err(message)
-                    .suggestion("Make sure you closed the {{ opening  properly.")
+                Report::new(error).wrap_err(message)
             })?;
 
             debug!(
@@ -196,36 +194,10 @@ impl Template {
                         "[{} - {}]\n{:#}",
                         name,
                         input_path_absolute.display(),
-                        error
+                        &error
                     );
-                    Report::new(error).wrap_err(message).note(
-                        r#"The following colors have been removed:
-    - color_accent_primary
-    - color_accent_primary_variant
-    - color_accent_secondary
-    - color_accent_secondary_variant
-    - color_accent_tertiary
-    - color_accent_tertiary_variant
-    - text_color_primary
-    - text_color_secondary:
-    - text_color_tertiary
-    - text_color_primary_inverse
-    - text_color_secondary_inverse
-    - text_color_tertiary_inverse
-    - color_background
-    - color_background_floating
-    - color_surface
-    - color_surface_variant
-    - color_surface_highlight
-    - surface_header
-    - under_surface
-    - off_state
-    - accent_surface
-    - text_primary_on_accent
-    - text_secondary_on_accent
-    - volume_background
-                    "#,
-                    )
+
+                    Report::new(error).wrap_err(message)
                 })?;
 
             let mut output_file = OpenOptions::new()
@@ -275,12 +247,12 @@ fn generate_colors(
 
 fn generate_harmonized_colors(
     _source_color: &[u8; 4],
-    harmonized_colors: Option<HashMap<String, [u8; 4]>>,
+    harmonized_colors: &Option<HashMap<String, [u8; 4]>>,
 ) -> Result<Option<HashMap<String, Colora>>, Report> {
     if let Some(colors) = harmonized_colors {
         let mut map: HashMap<String, Colora> = Default::default();
         for (name, color) in colors {
-            map.insert(name, generate_color_strings(color));
+            map.insert(name.to_string(), generate_color_strings(*color));
         }
         Ok(Some(map))
     } else {
