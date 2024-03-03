@@ -160,9 +160,7 @@ impl Template {
                     input_path_absolute.display(),
                     error
                 );
-                Report::new(error)
-                    .wrap_err(message)
-                    .suggestion("Make sure you closed the {{ opening  properly.")
+                Report::new(error).wrap_err(message)
             })?;
 
             debug!(
@@ -196,36 +194,10 @@ impl Template {
                         "[{} - {}]\n{:#}",
                         name,
                         input_path_absolute.display(),
-                        error
+                        &error
                     );
-                    Report::new(error).wrap_err(message).note(
-                        r#"The following colors have been removed:
-    - color_accent_primary
-    - color_accent_primary_variant
-    - color_accent_secondary
-    - color_accent_secondary_variant
-    - color_accent_tertiary
-    - color_accent_tertiary_variant
-    - text_color_primary
-    - text_color_secondary:
-    - text_color_tertiary
-    - text_color_primary_inverse
-    - text_color_secondary_inverse
-    - text_color_tertiary_inverse
-    - color_background
-    - color_background_floating
-    - color_surface
-    - color_surface_variant
-    - color_surface_highlight
-    - surface_header
-    - under_surface
-    - off_state
-    - accent_surface
-    - text_primary_on_accent
-    - text_secondary_on_accent
-    - volume_background
-                    "#,
-                    )
+
+                    Report::new(error).wrap_err(message)
                 })?;
 
             let mut output_file = OpenOptions::new()
