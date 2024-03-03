@@ -2,9 +2,21 @@ red #FF0000;
 green #00FF00;
 blue #0000FF;
 
-red {{harmonized_colors.red.hex}};
-green {{harmonized_colors.green.hex}};
-blue {{harmonized_colors.blue.hex}};
+test {{ colors.source_color.default.rgb | set_lightness: 20.0 }}
+test {{ colors.source_color.default.rgb | set_lightness: -20.0 }}
+test {{ colors.source_color.default.rgb }}
+
+{{ colors.source_color.default.hex_stripped | set_lightness: 20.0 }}
+
+{{ colors.source_color.default.hex | set_lightness: 20.0 }}
+
+Should  not change at all
+{{ colors.source_color.default.red | set_lightness: 5.0 }}
+
+red {{harmonized_colors.red.rgb}};
+red {{harmonized_colors.red.rgba}};
+green {{harmonized_colors.green.hsl}};
+blue {{harmonized_colors.blue.hsla}};
 
 source_color {{colors.source_color.default.hex}};
 
