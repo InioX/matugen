@@ -1,0 +1,30 @@
+name: Release to AUR
+on:
+  release:
+    types: [created]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install cargo-aur
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-aur
+          
+      - name: Create PKGBUILD
+        run: cargo aur
+
+      - name: cd into cargo-aur
+        run: cd ./target/cargo-aur/
+
+      - name: Publish AUR package
+        uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
+        with:
+          pkgname: matugen
+          pkgbuild: ./PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update AUR package
+          ssh_keyscan_types: rsa,dsa,ecdsa,ed25519
