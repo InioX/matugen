@@ -17,7 +17,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          run: cargo aur
+      - run: cargo aur
 
       - name: cd into cargo-aur
         run: cd ./target/cargo-aur/
