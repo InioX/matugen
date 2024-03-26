@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0](https://github.com/InioX/matugen/compare/v2.1.0...v2.2.0) - 2024-03-26
+
+### Added
+- add `harmonized_colors` to `--json` flag ([#53](https://github.com/InioX/matugen/pull/53))
+- add `to_upper` and `to_lower` filters
+- add `replace` filter
+- add `set_lightness` filter
+- add `colors_to_harmonize`
+- *(config)* change `custom_keywords` configuration syntax
+
+### Fixed
+- move aur publish into `aur.yml`
+- remove aur action in `main.yml`
+- format `harmonized_colors` in `dump_json` ([#53](https://github.com/InioX/matugen/pull/53))
+
+### Other
+- *(readme)* update features
+- *(readme)* add arch install guide
+- Merge pull request [#58](https://github.com/InioX/matugen/pull/58) from Ehllay/main
+- Merge pull request [#57](https://github.com/InioX/matugen/pull/57) from InioX/dev
+- remove error message when compiling template
+- run `clippy fix`
+
 ## [2.1.0](https://github.com/InioX/matugen/compare/v2.0.0...v2.1.0) - 2024-02-03
 
 ### Added
