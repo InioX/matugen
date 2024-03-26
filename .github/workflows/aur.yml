@@ -12,13 +12,13 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-aur
-          
-      - name: Create PKGBUILD
-        uses: actions-rs/toolchain@v1
+         
+      - uses: dtolnay/rust-toolchain@stable
+    
+      - uses: ClementTsang/cargo-action@v0.0.3
         with:
-          toolchain: stable
-      - run: cargo aur
-
+           command: aur
+        
       - name: cd into cargo-aur
         run: cd ./target/cargo-aur/
 
