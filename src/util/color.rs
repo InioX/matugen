@@ -152,6 +152,18 @@ pub fn dump_json(
         colors_normal_light.insert(field, fmt(color_light));
         colors_normal_dark.insert(field, fmt(color_dark));
     }
+    
+    let mut harmonized_colors_map: HashMap<&str, String> = HashMap::new();
+    
+    match harmonized_colors {
+      Some(harmonized_colors) => {
+      for (name, color) in harmonized_colors {
+let color: Rgb = rgb_from_argb(*color);
+harmonized_colors_map.insert(name.as_str(), fmt(color));
+      }
+      }
+      None => {}
+    }
 
     colors_normal_light.insert("source_color", fmt(rgb_from_argb(*source_color)));
 
@@ -162,7 +174,7 @@ pub fn dump_json(
                 "light": colors_normal_light,
                 "dark": colors_normal_dark,
             },
-            "harmonized_colors": harmonized_colors,
+            "harmonized_colors": harmonized_colors_map,
         })
     );
 }
