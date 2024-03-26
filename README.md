@@ -38,7 +38,7 @@
      - Generate a Material You color palette either from an image or a color
      - Output the generated palette as JSON to stdout, or use keywords inside templates that get exported as files
 - **Keyword Filters:**
-     - Use filters to change values of the keywords, like changing lightness for colors and manipulating strings with `replace`, `to_upper` and `to_lower`
+     - Use filters to change values of the keywords, like changing lightness for colors and manipulating strings with `replace`, `to_upper`, `to_lower` and `set_lightness`
 - **Custom Keywords/Colors:**
      - Define your own custom keywords or colors you would like to be harmonized inside the config file, that you can then use in templates
 - **Palette Customization:**
