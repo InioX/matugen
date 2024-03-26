@@ -7,17 +7,14 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    steps:
-      - name: Install cargo-aur
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-aur
-         
+    steps:        
       - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-aur
+        run: cargo install cargo-aur
     
-      - uses: ClementTsang/cargo-action@v0.0.3
-        with:
-           command: aur
+      - name: Create PKGBUILD
+        run: cargo aur
         
       - name: cd into cargo-aur
         run: cd ./target/cargo-aur/
