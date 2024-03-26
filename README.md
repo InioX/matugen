@@ -106,6 +106,25 @@ cargo install matugen
 </p>
 </details>
 
+<h4>
+     <sub>
+          <img  src="https://cdn.simpleicons.org/archlinux/white"
+           height="20"
+           width="20">
+     </sub>
+     Arch
+</h4>
+
+<details><summary>Click to expand</summary>
+
+Using your favourite AUR helper:
+
+```shell
+yay install matugen
+```
+
+</p>
+</details>
 
 <h4>
      <sub>
