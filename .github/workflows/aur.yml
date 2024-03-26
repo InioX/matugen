@@ -14,7 +14,10 @@ jobs:
           crate: cargo-aur
           
       - name: Create PKGBUILD
-        run: cargo aur
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: cargo aur
 
       - name: cd into cargo-aur
         run: cd ./target/cargo-aur/
