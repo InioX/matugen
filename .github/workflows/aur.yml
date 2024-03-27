@@ -18,13 +18,13 @@ jobs:
         run: cargo aur
 
       - name: temp
-        run: ls
-
-      - name: temp
-        run: ls ./target
+        run: ls ./target/cargo-aur
         
       - name: cd into cargo-aur
         run: cd ./target/cargo-aur/
+
+      - name: a
+        run: ls
 
       - name: Publish AUR package
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
