@@ -120,7 +120,7 @@ cargo install matugen
 Using your favourite AUR helper:
 
 ```shell
-yay install matugen
+yay install matugen-bin
 ```
 
 </p>
