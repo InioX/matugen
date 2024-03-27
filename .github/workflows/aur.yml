@@ -16,6 +16,12 @@ jobs:
     
       - name: Create PKGBUILD
         run: cargo aur
+
+      - name: temp
+        run: ls
+
+      - name: temp
+        run: ls ./target
         
       - name: cd into cargo-aur
         run: cd ./target/cargo-aur/
