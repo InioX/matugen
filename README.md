@@ -95,6 +95,7 @@
            width="20">
      </sub>
      Cargo
+     <a href="https://aur.archlinux.org/packages/matugen-bin"><img alt="AUR Version" src="https://img.shields.io/crates/v/matugen?color=brightgreen&label=" align="right"></a>
 </h4>
 
 <details><summary>Click to expand</summary>
@@ -113,6 +114,7 @@ cargo install matugen
            width="20">
      </sub>
      Arch
+     <a href="https://crates.io/crates/matugen"><img alt="Cargo Version" src="https://img.shields.io/aur/version/matugen-bin?color=brightgreen&label=" align="right"></a>
 </h4>
 
 <details><summary>Click to expand</summary>
@@ -133,6 +135,7 @@ yay install matugen-bin
            width="20">
      </sub>
      NixOS
+     <a href="j"><img alt="NixOS Version" src="https://img.shields.io/badge/latest-brightgreen" align="right"></a>
 </h4>
 
 <details><summary>Click to expand</summary>
@@ -190,6 +193,8 @@ planned.
            width="20">
      </sub>
      NetBSD
+     <a href="https://repology.org/project/matugen/versions">
+  <img src="https://repology.org/badge/version-for-repo/pkgsrc_current/matugen.svg?header=" alt="pkgsrc current package" align="right"></a>
 </h4>
 
 <details><summary>Click to expand</summary>
