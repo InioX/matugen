@@ -17,6 +17,12 @@ jobs:
       - name: Create PKGBUILD
         run: cargo aur
 
+      - name: upload binaries to release
+        uses: softprops/action-gh-release@v1
+        if: ${{startsWith(github.ref, 'refs/tags/') }}
+        with:
+          files: ./target/cargo-aur/*.tar.gz
+
       - name: Publish AUR package
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
         with:
