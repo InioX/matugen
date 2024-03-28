@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1](https://github.com/InioX/matugen/compare/v2.2.0...v2.2.1) - 2024-03-28
+
+### Other
+- Update aur.yml
+
 ## [2.2.0](https://github.com/InioX/matugen/compare/v2.1.0...v2.2.0) - 2024-03-26
 
 ### Added
