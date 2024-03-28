@@ -21,7 +21,7 @@ jobs:
         run: cargo aur
 
       - name: Upload assets
-        run: gh release upload $GITHUB_REF ./target/cargo-aur/*.tar.gz
+        run: gh release upload ${{ github.event.release.tag_name }} ./target/cargo-aur/*.tar.gz
 
       - name: Publish AUR package
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
