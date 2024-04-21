@@ -2,7 +2,7 @@
   description = " A material you color generation tool for linux ";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    systems.url = "github:nix-systems/x86_64-linux";
+    systems.url = "github:nix-systems/default-linux";
   };
   outputs = { self, nixpkgs, systems }:
     let
