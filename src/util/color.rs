@@ -1,3 +1,10 @@
+use material_colors::dynamic_color::dynamic_scheme::DynamicScheme;
+use material_colors::dynamic_color::material_dynamic_colors::MaterialDynamicColors;
+use material_colors::utils::theme::{ColorGroup, CustomColor, CustomColorGroup};
+use material_colors::{
+    Hct, SchemeContent, SchemeExpressive, SchemeFidelity, SchemeFruitSalad, SchemeMonochrome,
+    SchemeNeutral, SchemeRainbow, SchemeTonalSpot,
+};
 use owo_colors::{OwoColorize, Style};
 
 use prettytable::{format, Cell, Row, Table};
@@ -9,7 +16,7 @@ use crate::util::image::fetch_image;
 use image::imageops::{resize, FilterType};
 use image::io::Reader as ImageReader;
 
-use super::arguments::{ColorFormat, Format, Source};
+use super::arguments::{ColorFormat, Format, SchemeTypes, Source};
 use super::image::source_color_from_image;
 use color_eyre::{eyre::Result, Report};
 use colorsys::{ColorAlpha, Hsl, Rgb};
@@ -74,28 +81,76 @@ pub fn format_hsla(color: &Hsl) -> String {
     )
 }
 
-pub fn harmonize_colors(
-    source_color: &[u8; 4],
-    colors: &HashMap<String, String>,
-) -> HashMap<String, [u8; 4]> {
-    debug!("colors_to_harmonize: {:#?}", &colors);
-    let mut harmonized_colors: HashMap<String, [u8; 4]> = HashMap::default();
-
-    for (name, color) in colors {
-        let rgb = Rgb::from_hex_str(color)
-            .expect("Invalid hex color string provided for `harmonized_colors`");
-
-        let argb: [u8; 4] = [
-            rgb.alpha() as u8,
-            rgb.red() as u8,
-            rgb.green() as u8,
-            rgb.blue() as u8,
-        ];
-        harmonized_colors.insert(name.to_string(), harmonize(argb, *source_color));
+pub fn generate_dynamic_scheme(
+    scheme_type: &Option<SchemeTypes>,
+    source_color: [u8; 4],
+    is_dark: bool,
+    contrast_level: Option<f64>,
+) -> DynamicScheme {
+    match scheme_type.unwrap() {
+        SchemeTypes::SchemeContent => {
+            SchemeContent::new(Hct::new(source_color), is_dark, contrast_level).scheme
+        }
+        SchemeTypes::SchemeExpressive => {
+            SchemeExpressive::new(Hct::new(source_color), is_dark, contrast_level).scheme
+        }
+        SchemeTypes::SchemeFidelity => {
+            SchemeFidelity::new(Hct::new(source_color), is_dark, contrast_level).scheme
+        }
+        SchemeTypes::SchemeFruitSalad => {
+            SchemeFruitSalad::new(Hct::new(source_color), is_dark, contrast_level).scheme
+        }
+        SchemeTypes::SchemeMonochrome => {
+            SchemeMonochrome::new(Hct::new(source_color), is_dark, contrast_level).scheme
+        }
+        SchemeTypes::SchemeNeutral => {
+            SchemeNeutral::new(Hct::new(source_color), is_dark, contrast_level).scheme
+        }
+        SchemeTypes::SchemeRainbow => {
+            SchemeRainbow::new(Hct::new(source_color), is_dark, contrast_level).scheme
+        }
+        SchemeTypes::SchemeTonalSpot => {
+            SchemeTonalSpot::new(Hct::new(source_color), is_dark, contrast_level).scheme
+        }
     }
+}
 
-    debug!("harmonized_colors: {:#?}", &harmonized_colors);
-    harmonized_colors
+pub fn make_custom_color(
+    color: CustomColor,
+    scheme_type: &Option<SchemeTypes>,
+    source_color: [u8; 4],
+    contrast_level: Option<f64>,
+) -> CustomColorGroup {
+    debug!("make_custom_color: {:#?}", &color);
+
+    let value = if color.blend {
+        harmonize(color.value, source_color)
+    } else {
+        color.value
+    };
+
+    let light = generate_dynamic_scheme(scheme_type, value, false, contrast_level);
+    let dark = generate_dynamic_scheme(scheme_type, value, true, contrast_level);
+
+    let custom_color = CustomColorGroup {
+        color,
+        value,
+        light: ColorGroup {
+            color: MaterialDynamicColors::primary().get_argb(&light),
+            on_color: MaterialDynamicColors::on_primary().get_argb(&light),
+            color_container: MaterialDynamicColors::primary_container().get_argb(&light),
+            on_color_container: MaterialDynamicColors::on_primary_container().get_argb(&light),
+        },
+        dark: ColorGroup {
+            color: MaterialDynamicColors::primary().get_argb(&dark),
+            on_color: MaterialDynamicColors::on_primary().get_argb(&dark),
+            color_container: MaterialDynamicColors::primary_container().get_argb(&dark),
+            on_color_container: MaterialDynamicColors::on_primary_container().get_argb(&dark),
+        },
+    };
+
+    debug!("custom_color: {:#?}", &custom_color);
+    custom_color
 }
 
 pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
@@ -118,12 +173,7 @@ pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
     table.printstd();
 }
 
-pub fn dump_json(
-    schemes: &Schemes,
-    source_color: &[u8; 4],
-    format: &Format,
-    harmonized_colors: &Option<HashMap<String, [u8; 4]>>,
-) {
+pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
     type F = Format;
     let fmt = match format {
         F::Rgb => |c: Rgb| format!("rgb({:?}, {:?}, {:?})", c.red(), c.green(), c.blue()),
@@ -152,18 +202,6 @@ pub fn dump_json(
         colors_normal_light.insert(field, fmt(color_light));
         colors_normal_dark.insert(field, fmt(color_dark));
     }
-    
-    let mut harmonized_colors_map: HashMap<&str, String> = HashMap::new();
-    
-    match harmonized_colors {
-      Some(harmonized_colors) => {
-      for (name, color) in harmonized_colors {
-let color: Rgb = rgb_from_argb(*color);
-harmonized_colors_map.insert(name.as_str(), fmt(color));
-      }
-      }
-      None => {}
-    }
 
     colors_normal_light.insert("source_color", fmt(rgb_from_argb(*source_color)));
 
@@ -174,7 +212,6 @@ harmonized_colors_map.insert(name.as_str(), fmt(color));
                 "light": colors_normal_light,
                 "dark": colors_normal_dark,
             },
-            "harmonized_colors": harmonized_colors_map,
         })
     );
 }
