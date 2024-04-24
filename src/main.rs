@@ -15,21 +15,16 @@ use crate::util::{
 
 use indexmap::IndexMap;
 
-use material_colors::{Hct, Scheme};
+use material_colors::Scheme;
 
 use clap::{Parser, ValueEnum};
 use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
 use serde::{Deserialize, Serialize};
-use std::io::Write;
+use std::{collections::HashMap, io::Write};
 use update_informer::{registry, Check};
 
-use util::{arguments::SchemeTypes, color::harmonize_colors};
-
-use material_colors::{
-    SchemeContent, SchemeExpressive, SchemeFidelity, SchemeFruitSalad, SchemeMonochrome,
-    SchemeNeutral, SchemeRainbow, SchemeTonalSpot,
-};
+use util::color::{generate_dynamic_scheme, make_custom_color};
 
 pub struct Schemes {
     pub light: IndexMap<String, [u8; 4], ahash::random_state::RandomState>,
@@ -62,8 +57,18 @@ fn main() -> Result<(), Report> {
 
     let source_color = get_source_color(&args.source)?;
 
-    let scheme_dark = generate_scheme(&args.r#type, source_color, true, args.contrast);
-    let scheme_light = generate_scheme(&args.r#type, source_color, false, args.contrast);
+    let scheme_dark = Scheme::from(generate_dynamic_scheme(
+        &args.r#type,
+        source_color,
+        true,
+        args.contrast,
+    ));
+    let scheme_light = Scheme::from(generate_dynamic_scheme(
+        &args.r#type,
+        source_color,
+        false,
+        args.contrast,
+    ));
 
     let config: ConfigFile = ConfigFile::read(&args)?;
 
@@ -71,15 +76,50 @@ fn main() -> Result<(), Report> {
         .mode
         .expect("Something went wrong while parsing the mode");
 
+    let empty = HashMap::new();
+    let custom_colors = config
+        .config
+        .custom_colors
+        .as_ref()
+        .unwrap_or(&empty)
+        .iter()
+        .map(|(name, color)| {
+            make_custom_color(
+                color
+                    .to_custom_color(name.to_string())
+                    .expect("Failed to parse custom color"),
+                &args.r#type,
+                source_color,
+                args.contrast,
+            )
+        });
+    macro_rules! from_color {
+        ($color: expr, $variant: ident) => {
+            [
+                (format!("{}_source", $color.color.name), $color.color.value),
+                (format!("{}_value", $color.color.name), $color.color.value),
+                (format!("{}", $color.color.name), $color.$variant.color),
+                (
+                    format!("on_{}", $color.color.name),
+                    $color.$variant.on_color,
+                ),
+                (
+                    format!("{}_container", $color.color.name),
+                    $color.$variant.color_container,
+                ),
+                (
+                    format!("on_{}_container", $color.color.name),
+                    $color.$variant.on_color_container,
+                ),
+            ]
+        };
+    }
+    let custom_colors_dark = custom_colors.clone().flat_map(|c| from_color!(c, dark));
+    let custom_colors_light = custom_colors.flat_map(|c| from_color!(c, light));
+
     let schemes: Schemes = Schemes {
-        dark: IndexMap::from_iter(scheme_dark),
-        light: IndexMap::from_iter(scheme_light),
-    };
-
-    let mut harmonized_colors = None;
-
-    if let Some(colors) = &config.config.colors_to_harmonize {
-        harmonized_colors = Some(harmonize_colors(&source_color, colors));
+        dark: IndexMap::from_iter(scheme_dark.into_iter().chain(custom_colors_dark)),
+        light: IndexMap::from_iter(scheme_light.into_iter().chain(custom_colors_light)),
     };
 
     if args.show_colors == Some(true) {
@@ -87,7 +127,7 @@ fn main() -> Result<(), Report> {
     }
 
     if let Some(ref format) = args.json {
-        dump_json(&schemes, &source_color, format, &harmonized_colors);
+        dump_json(&schemes, &source_color, format);
     }
 
     if args.dry_run == Some(false) {
@@ -99,7 +139,6 @@ fn main() -> Result<(), Report> {
             &source_color,
             &default_scheme,
             &config.config.custom_keywords,
-            &harmonized_colors,
         )?;
 
         if config.config.reload_apps == Some(true) {
@@ -167,38 +206,4 @@ fn setup_logging(log_level: LevelFilter) -> Result<(), Report> {
         .format(|buf, record| writeln!(buf, "{}", record.args()))
         .try_init()?;
     Ok(())
-}
-
-fn generate_scheme(
-    scheme_type: &Option<SchemeTypes>,
-    source_color: [u8; 4],
-    is_dark: bool,
-    contrast_level: Option<f64>,
-) -> Scheme {
-    match scheme_type.unwrap() {
-        SchemeTypes::SchemeContent => {
-            Scheme::from(SchemeContent::new(Hct::new(source_color), is_dark, contrast_level).scheme)
-        }
-        SchemeTypes::SchemeExpressive => Scheme::from(
-            SchemeExpressive::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-        ),
-        SchemeTypes::SchemeFidelity => Scheme::from(
-            SchemeFidelity::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-        ),
-        SchemeTypes::SchemeFruitSalad => Scheme::from(
-            SchemeFruitSalad::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-        ),
-        SchemeTypes::SchemeMonochrome => Scheme::from(
-            SchemeMonochrome::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-        ),
-        SchemeTypes::SchemeNeutral => {
-            Scheme::from(SchemeNeutral::new(Hct::new(source_color), is_dark, contrast_level).scheme)
-        }
-        SchemeTypes::SchemeRainbow => {
-            Scheme::from(SchemeRainbow::new(Hct::new(source_color), is_dark, contrast_level).scheme)
-        }
-        SchemeTypes::SchemeTonalSpot => Scheme::from(
-            SchemeTonalSpot::new(Hct::new(source_color), is_dark, contrast_level).scheme,
-        ),
-    }
 }
