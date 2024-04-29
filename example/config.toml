@@ -14,7 +14,7 @@ test = "aaaa"
 input_path = "example/colors.whatever-extension"
 output_path = "example/a/colors-generated.whatever-extension"
 
-[config.colors_to_harmonize]
+[config.custom_colors]
 green = "#00FF00"
 red = "#FF0000"
-blue = "#0000FF"
+blue = { color = "#0000FF", blend = false }
