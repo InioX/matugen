@@ -2,8 +2,8 @@ use material_colors::dynamic_color::dynamic_scheme::DynamicScheme;
 use material_colors::dynamic_color::material_dynamic_colors::MaterialDynamicColors;
 use material_colors::utils::theme::{ColorGroup, CustomColor, CustomColorGroup};
 use material_colors::{
-    Hct, SchemeContent, SchemeExpressive, SchemeFidelity, SchemeFruitSalad, SchemeMonochrome,
-    SchemeNeutral, SchemeRainbow, SchemeTonalSpot,
+    Argb, FilterType, Hct, ImageReader, SchemeContent, SchemeExpressive, SchemeFidelity,
+    SchemeFruitSalad, SchemeMonochrome, SchemeNeutral, SchemeRainbow, SchemeTonalSpot,
 };
 use owo_colors::{OwoColorize, Style};
 
@@ -11,13 +11,7 @@ use prettytable::{format, Cell, Row, Table};
 
 use crate::Schemes;
 
-use crate::util::image::fetch_image;
-
-use image::imageops::{resize, FilterType};
-use image::io::Reader as ImageReader;
-
 use super::arguments::{ColorFormat, Format, SchemeTypes, Source};
-use super::image::source_color_from_image;
 use color_eyre::{eyre::Result, Report};
 use colorsys::{ColorAlpha, Hsl, Rgb};
 use serde_json::json;
@@ -26,12 +20,12 @@ use std::str::FromStr;
 
 use material_colors::blend::harmonize;
 
-pub fn rgb_from_argb(color: [u8; 4]) -> Rgb {
+pub fn rgb_from_argb(color: Argb) -> Rgb {
     Rgb::from([
-        color[1] as f64,
-        color[2] as f64,
-        color[3] as f64,
-        color[0] as f64,
+        color.red as f64,
+        color.green as f64,
+        color.blue as f64,
+        color.alpha as f64,
     ])
 }
 
@@ -83,7 +77,7 @@ pub fn format_hsla(color: &Hsl) -> String {
 
 pub fn generate_dynamic_scheme(
     scheme_type: &Option<SchemeTypes>,
-    source_color: [u8; 4],
+    source_color: Argb,
     is_dark: bool,
     contrast_level: Option<f64>,
 ) -> DynamicScheme {
@@ -118,7 +112,7 @@ pub fn generate_dynamic_scheme(
 pub fn make_custom_color(
     color: CustomColor,
     scheme_type: &Option<SchemeTypes>,
-    source_color: [u8; 4],
+    source_color: Argb,
     contrast_level: Option<f64>,
 ) -> CustomColorGroup {
     debug!("make_custom_color: {:#?}", &color);
@@ -153,7 +147,7 @@ pub fn make_custom_color(
     custom_color
 }
 
-pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
+pub fn show_color(schemes: &Schemes, source_color: &Argb) {
     let mut table: Table = generate_table_format();
 
     for (field, _color) in &schemes.dark {
@@ -173,7 +167,7 @@ pub fn show_color(schemes: &Schemes, source_color: &[u8; 4]) {
     table.printstd();
 }
 
-pub fn dump_json(schemes: &Schemes, source_color: &[u8; 4], format: &Format) {
+pub fn dump_json(schemes: &Schemes, source_color: &Argb, format: &Format) {
     type F = Format;
     let fmt = match format {
         F::Rgb => |c: Rgb| format!("rgb({:?}, {:?}, {:?})", c.red(), c.green(), c.blue()),
@@ -278,50 +272,47 @@ fn generate_style(color: &Rgb) -> Style {
     }
 }
 
-pub fn get_source_color(source: &Source) -> Result<[u8; 4], Report> {
-    let source_color: [u8; 4] = match &source {
+pub fn get_source_color(source: &Source) -> Result<Argb, Report> {
+    let source_color: Argb = match &source {
         Source::Image { path } => {
             // test
             info!("Opening image in <d><u>{}</>", path);
-            let img = ImageReader::open(path)
-                .expect("failed to open image")
-                .with_guessed_format()
-                .expect("failed to guess format")
-                .decode()
-                .expect("failed to decode image")
-                .into_rgba8();
-            let img = resize(&img, 128, 128, FilterType::Gaussian);
-
-            source_color_from_image(img)?
+            ImageReader::extract_color(ImageReader::open(path)?.resize(
+                128,
+                128,
+                FilterType::Gaussian,
+            ))
         }
         Source::WebImage { url } => {
             // test
             info!("Fetching image from <d><u>{}</>", url);
 
-            let img = fetch_image(url)?.into_rgba8();
-            let img = resize(&img, 128, 128, FilterType::Gaussian);
-
-            source_color_from_image(img)?
+            let bytes = reqwest::blocking::get(url)?.bytes()?;
+            ImageReader::extract_color(ImageReader::read(&bytes)?.resize(
+                128,
+                128,
+                FilterType::Gaussian,
+            ))
         }
-        Source::Color(color) => {
-            let src: Rgb = match color {
-                ColorFormat::Hex { string } => {
-                    Rgb::from_hex_str(string).expect("Invalid hex color string provided")
-                }
-                ColorFormat::Rgb { string } => {
-                    string.parse().expect("Invalid rgb color string provided")
-                }
-                ColorFormat::Hsl { string } => Hsl::from_str(string)
+        Source::Color(color) => match color {
+            ColorFormat::Hex { string } => {
+                Argb::from_str(string).expect("Invalid hex color string provided")
+            }
+            ColorFormat::Rgb { string } => {
+                string.parse().expect("Invalid rgb color string provided")
+            }
+            ColorFormat::Hsl { string } => {
+                let rgb: Rgb = Hsl::from_str(string)
                     .expect("Invalid hsl color string provided")
-                    .into(),
-            };
-            [
-                src.alpha() as u8,
-                src.red() as u8,
-                src.green() as u8,
-                src.blue() as u8,
-            ]
-        }
+                    .into();
+                Argb {
+                    red: rgb.red() as u8,
+                    green: rgb.green() as u8,
+                    blue: rgb.blue() as u8,
+                    alpha: 255,
+                }
+            }
+        },
     };
     Ok(source_color)
 }

@@ -5,12 +5,7 @@ authors = ["InioX"]
 description = "A material you color generation tool with templates"
 repository = "https://github.com/InioX/matugen"
 categories = ["command-line-utilities"]
-exclude = [
-    "default.nix",
-    "flake.nix",
-    "shell.nix",
-    "example/*",
-]
+exclude = ["default.nix", "flake.nix", "shell.nix", "example/*"]
 license = "GPL-2.0"
 edition = "2021"
 
@@ -23,7 +18,7 @@ winapi = { version = "0.3", features = ["winuser"] }
 # This is here because of #43
 enquote = "1.1.0"
 
-image = "0.24.6"
+image = "0.25.0"
 owo-colors = "4.0.0"
 clap = { version = "4.2.4", features = ["derive"] }
 color-eyre = { version = "0.6.2", default-features = false }
@@ -39,7 +34,10 @@ prettytable-rs = "0.10.0"
 serde_json = "1.0.107"
 update-informer = "1.1.0"
 upon = "0.8.0"
-reqwest = { version = "0.11.23", default_features=false, features = ["blocking", "rustls-tls"] }
-material-colors = "0.1.4"
+reqwest = { version = "0.11.23", default_features = false, features = [
+  "blocking",
+  "rustls-tls",
+] }
+material-colors = { version = "0.2.1", features = ["image"] }
 ahash = "0.8.7"
 indexmap = "2.2.2"
