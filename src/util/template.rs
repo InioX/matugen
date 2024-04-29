@@ -95,7 +95,6 @@ impl Template {
         source_color: &[u8; 4],
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
-        harmonized_colors: &Option<HashMap<String, [u8; 4]>>,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -124,8 +123,6 @@ impl Template {
 
         let colors = generate_colors(schemes, source_color, default_scheme)?;
 
-        let harmonized = generate_harmonized_colors(source_color, harmonized_colors)?;
-
         let mut custom: HashMap<String, String> = Default::default();
 
         for entry in custom_keywords.iter() {
@@ -135,7 +132,7 @@ impl Template {
         }
 
         let render_data = upon::value! {
-            colors: &colors, image: image, custom: &custom, harmonized_colors: harmonized,
+            colors: &colors, image: image, custom: &custom,
         };
 
         // debug!("render_data: {:#?}", &render_data);
@@ -243,21 +240,6 @@ fn generate_colors(
         generate_single_color("source_color", schemes, source_color, default_scheme)?,
     );
     Ok(hashmap)
-}
-
-fn generate_harmonized_colors(
-    _source_color: &[u8; 4],
-    harmonized_colors: &Option<HashMap<String, [u8; 4]>>,
-) -> Result<Option<HashMap<String, Colora>>, Report> {
-    if let Some(colors) = harmonized_colors {
-        let mut map: HashMap<String, Colora> = Default::default();
-        for (name, color) in colors {
-            map.insert(name.to_string(), generate_color_strings(*color));
-        }
-        Ok(Some(map))
-    } else {
-        Ok(None)
-    }
 }
 
 fn generate_single_color(
