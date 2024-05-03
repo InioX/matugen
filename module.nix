@@ -1,139 +1,107 @@
-# this arg is the matugen flake input
 matugen: {
+  config,
   pkgs,
   lib,
-  config,
   ...
-} @ args: let
+} @ inputs:
+with lib; let
   cfg = config.programs.matugen;
-  osCfg = args.osConfig.programs.matugen or {};
+  osCfg = inputs.osConfig.programs.matugen or {};
 
-  configFormat = pkgs.formats.toml {};
+  tomlFormat = pkgs.formats.toml {};
 
-  capitalize = str: let
-    inherit (builtins) substring stringLength;
-    firstChar = substring 0 1 str;
-    restOfString = substring 1 (stringLength str) str;
-  in
-    lib.concatStrings [(lib.toUpper firstChar) restOfString];
+  templateModule = types.submodule {
+    options = {
+      input_path = mkOption {
+        type = types.path;
 
-  # don't use ~, use $HOME
-  sanitizedTemplates =
-    builtins.mapAttrs (_: v: {
-      mode = capitalize cfg.variant;
-      input_path = builtins.toString v.input_path;
-      output_path = builtins.replaceStrings ["$HOME"] ["~"] v.output_path;
-    })
-    cfg.templates;
+        example = "./gtk.css";
+        description = "Path to a matugen template file.";
+      };
 
-  matugenConfig = configFormat.generate "matugen-config.toml" {
-    config = {};
-    templates = sanitizedTemplates;
+      output_path = mkOption {
+        type = types.str;
+
+        example = "$XDG_CACHE_HOME/wal/colors.json";
+        description = "Destination path where the processed template files should be stored.";
+      };
+    };
   };
-
-  # get matugen package
-  pkg = matugen.packages.${pkgs.system}.default;
-
-  themePackage = pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {} ''
-    mkdir -p $out
-    cd $out
-    export HOME=$(pwd)
-
-    ${pkg}/bin/matugen \
-      image ${cfg.wallpaper} \
-      ${
-      if cfg.templates != {}
-      then "--config ${matugenConfig}"
-      else ""
-    } \
-      --mode ${cfg.variant} \
-      --type ${cfg.type} \
-      --json ${cfg.jsonFormat} \
-      --quiet \
-      > $out/theme.json
-  '';
-  colors = builtins.fromJSON (builtins.readFile "${themePackage}/theme.json");
 in {
   options.programs.matugen = {
-    enable = lib.mkEnableOption "Matugen declarative theming";
+    enable =
+      mkEnableOption
+      {
+        default = osCfg.enable or {};
+        description = "Whether to enable Matugen.";
+      };
 
-    wallpaper = lib.mkOption {
-      description = "Path to `wallpaper` that matugen will generate the colorschemes from";
-      type = lib.types.path;
-      default = osCfg.wallpaper or "${pkgs.nixos-artwork.wallpapers.simple-blue}/share/backgrounds/nixos/nix-wallpaper-simple-blue.png";
-      defaultText = lib.literalExample ''
-        "${pkgs.nixos-artwork.wallpapers.simple-blue}/share/backgrounds/nixos/nix-wallpaper-simple-blue.png"
+    settings = mkOption {
+      type = tomlFormat.type;
+      default = osCfg.settings or {};
+
+      example = ''
+        config.reload_apps_list = {
+          gtk_theme = true;
+          kitty = true;
+        };
       '';
-    };
-
-    templates = lib.mkOption {
-      type = with lib.types;
-        attrsOf (submodule {
-          options = {
-            input_path = lib.mkOption {
-              type = path;
-              description = "Path to the template";
-              example = "./style.css";
-            };
-            output_path = lib.mkOption {
-              type = str;
-              description = "Path where the generated file will be written to";
-              example = "~/.config/sytle.css";
-            };
-          };
-        });
-      default = osCfg.templates or {};
       description = ''
-        Templates that have `@{placeholders}` which will be replaced by the respective colors.
-        See <https://github.com/InioX/matugen/wiki/Configuration#example-of-all-the-color-keywords> for a list of colors.
+        Matugen configuration file in nix syntax.
+
+        Written to {file}`$XDG_CONFIG_HOME/matugen/config.toml`
+        A manual for configuring matugen can be found at <https://github.com/InioX/matugen/wiki/Configuration>.
       '';
     };
 
-    type = lib.mkOption {
-      description = "Palette used when generating the colorschemes.";
-      type = lib.types.enum ["scheme-content" "scheme-expressive" "scheme-fidelity" "scheme-fruit-salad" "scheme-monochrome" "scheme-neutral" "scheme-rainbow" "scheme-tonal-spot"];
-      default = osCfg.palette or "scheme-tonal-spot";
-      example = "triadic";
+    templates = mkOption {
+      type = types.attrsOf templateModule;
+      default = osCfg.templates or {};
+
+      example = ''
+        {
+          input_path = ./gtk.css;
+          output_path = "$XDG_CACHE_HOME/wal/colors.json";
+        }
+      '';
+      description = ''
+        Templates that matugen is supposed to complete.
+        A guide to writing templates can be found here <https://github.com/InioX/matugen/wiki/Configuration>.
+      '';
     };
 
-    jsonFormat = lib.mkOption {
-      description = "Color format of the colorschemes.";
-      type = lib.types.enum ["rgb" "rgba" "hsl" "hsla" "hex" "strip"];
-      default = osCfg.jsonFormat or "strip";
-      example = "rgba";
-    };
+    wallpaper = mkOption {
+      type = with types; nullOr path;
+      default = osCfg.wallpaper or null;
 
-    variant = lib.mkOption {
-      description = "Colorscheme variant.";
-      type = lib.types.enum ["light" "dark" "amoled"];
-      default = osCfg.variant or "dark";
-      example = "light";
-    };
-
-    theme.files = lib.mkOption {
-      type = lib.types.package;
-      readOnly = true;
-      default =
-        if builtins.hasAttr "templates" osCfg
-        then
-          if cfg.templates != osCfg.templates
-          then themePackage
-          else osCfg.theme.files
-        else themePackage;
-      description = "Generated theme files. Including only the variant chosen.";
-    };
-
-    theme.colors = lib.mkOption {
-      inherit (pkgs.formats.json {}) type;
-      readOnly = true;
-      default =
-        if builtins.hasAttr "templates" osCfg
-        then
-          if cfg.templates != osCfg.templates
-          then colors
-          else osCfg.theme.colors
-        else colors;
-      description = "Generated theme colors. Includes all variants.";
+      example = "../wallpaper/astolfo.png";
+      description = "Wallpaper to use when decleratively using matugen. If omited, The wallpaper can only be configured imperatively.";
     };
   };
+
+  config = let
+    package = matugen.packages.${pkgs.system}.default;
+
+    mergedCfg =
+      cfg.settings
+      // (
+        if cfg.templates != {}
+        then {templates = cfg.templates;}
+        else {}
+      );
+
+    resultsPackage =
+      if (cfg.wallpaper != null)
+      # TODO this doesn't work because of the $out prefix I'd need to write to.
+      then [(pkgs.runCommand "results" {} "${package}/bin/matugen image ${cfg.wallpaper}")]
+      else [];
+  in
+    mkIf cfg.enable {
+      home.packages =
+        [package]
+        ++ resultsPackage;
+
+      xdg.configFile."matugen/config.toml".source =
+        mkIf (mergedCfg != {}) (tomlFormat.generate "config.toml" mergedCfg);
+    };
 }
