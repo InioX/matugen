@@ -15,7 +15,7 @@ use crate::util::{
 
 use indexmap::IndexMap;
 
-use material_colors::{Argb, Scheme};
+use material_colors::{color::Argb, scheme::Scheme};
 
 use clap::{Parser, ValueEnum};
 use color_eyre::{eyre::Result, Report};

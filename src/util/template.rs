@@ -4,7 +4,7 @@ use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
 use colorsys::{ColorAlpha, Hsl};
-use material_colors::Argb;
+use material_colors::color::Argb;
 use serde::{Deserialize, Serialize};
 
 use upon::Value;
