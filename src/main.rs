@@ -176,8 +176,8 @@ fn main() -> Result<(), Report> {
             wallpaper::unix::set(
                 path,
                 wallpaper_tool,
-                &config.config.swww_options,
                 &config.config.feh_options,
+                &config.config.swww_options,
             )?;
         }
     }
