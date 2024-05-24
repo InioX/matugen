@@ -4,6 +4,7 @@ use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
 use colorsys::{ColorAlpha, Hsl};
+use material_colors::color::Argb;
 use serde::{Deserialize, Serialize};
 
 use upon::Value;
@@ -92,7 +93,7 @@ impl Template {
         templates: &HashMap<String, Template>,
         source: &Source,
         prefix: &Option<String>,
-        source_color: &[u8; 4],
+        source_color: &Argb,
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
     ) -> Result<(), Report> {
@@ -225,7 +226,7 @@ impl Template {
 
 fn generate_colors(
     schemes: &Schemes,
-    source_color: &[u8; 4],
+    source_color: &Argb,
     default_scheme: &SchemesEnum,
 ) -> Result<HashMap<String, ColorVariants>, Report> {
     let mut hashmap: HashMap<String, ColorVariants> = Default::default();
@@ -245,7 +246,7 @@ fn generate_colors(
 fn generate_single_color(
     field: &str,
     schemes: &Schemes,
-    source_color: &[u8; 4],
+    source_color: &Argb,
     default_scheme: &SchemesEnum,
 ) -> Result<ColorVariants, Report> {
     let scheme = match default_scheme {
@@ -268,7 +269,7 @@ fn generate_single_color(
     })
 }
 
-fn generate_color_strings(color: [u8; 4]) -> Colora {
+fn generate_color_strings(color: Argb) -> Colora {
     let base_color = rgb_from_argb(color);
     let hsl_color = Hsl::from(&base_color);
     Colora {

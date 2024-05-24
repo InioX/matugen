@@ -15,7 +15,7 @@ use crate::util::{
 
 use indexmap::IndexMap;
 
-use material_colors::Scheme;
+use material_colors::{color::Argb, scheme::Scheme};
 
 use clap::{Parser, ValueEnum};
 use color_eyre::{eyre::Result, Report};
@@ -27,8 +27,8 @@ use update_informer::{registry, Check};
 use util::color::{generate_dynamic_scheme, make_custom_color};
 
 pub struct Schemes {
-    pub light: IndexMap<String, [u8; 4], ahash::random_state::RandomState>,
-    pub dark: IndexMap<String, [u8; 4], ahash::random_state::RandomState>,
+    pub light: IndexMap<String, Argb, ahash::random_state::RandomState>,
+    pub dark: IndexMap<String, Argb, ahash::random_state::RandomState>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -176,8 +176,8 @@ fn main() -> Result<(), Report> {
             wallpaper::unix::set(
                 path,
                 wallpaper_tool,
-                &config.config.swww_options,
                 &config.config.feh_options,
+                &config.config.swww_options,
             )?;
         }
     }

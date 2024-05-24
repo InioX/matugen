@@ -1,8 +1,8 @@
 use directories::ProjectDirs;
-use material_colors::{argb_from_hex, utils::string::ParseError};
-use std::collections::HashMap;
+use material_colors::color::Argb;
 use std::fs;
 use std::path::PathBuf;
+use std::{collections::HashMap, str::FromStr};
 
 use color_eyre::{Help, Report};
 
@@ -30,15 +30,15 @@ impl CustomColor {
     pub fn to_custom_color(
         &self,
         name: String,
-    ) -> Result<material_colors::utils::theme::CustomColor, ParseError> {
+    ) -> Result<material_colors::theme::CustomColor, material_colors::error::Error> {
         Ok(match self {
-            CustomColor::Color(color) => material_colors::utils::theme::CustomColor {
-                value: argb_from_hex(color)?,
+            CustomColor::Color(color) => material_colors::theme::CustomColor {
+                value: Argb::from_str(color)?,
                 blend: true,
                 name,
             },
-            CustomColor::Options { color, blend } => material_colors::utils::theme::CustomColor {
-                value: argb_from_hex(color)?,
+            CustomColor::Options { color, blend } => material_colors::theme::CustomColor {
+                value: Argb::from_str(color)?,
                 blend: *blend,
                 name,
             },
