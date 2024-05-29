@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0](https://github.com/InioX/matugen/compare/v2.2.0...v2.3.0) - 2024-05-29
+
+### Added
+- rework harmonized colors into custom colors
+
+### Fixed
+- nixos flake compile error
+- update `material-colors` to 0.3.1 ([#69](https://github.com/InioX/matugen/pull/69))
+
+### Other
+- Merge pull request [#73](https://github.com/InioX/matugen/pull/73) from vt-d/patch-1
+- Fix issue [#71](https://github.com/InioX/matugen/pull/71)
+- update material-colors to 0.3.2
+- update material-colors
+- support x86_64-linux + aarch64-linux by default
+- make supportedSystems overridable
+
 ## [2.2.0](https://github.com/InioX/matugen/compare/v2.1.0...v2.2.0) - 2024-03-26
 
 ### Added
