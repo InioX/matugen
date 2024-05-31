@@ -95,7 +95,7 @@
            width="20">
      </sub>
      Cargo
-     <a href="https://aur.archlinux.org/packages/matugen-bin"><img alt="AUR Version" src="https://img.shields.io/crates/v/matugen?color=brightgreen&label=" align="right"></a>
+     <a href="https://crates.io/crates/matugen"><img alt="Cargo Version" src="https://img.shields.io/crates/v/matugen?color=brightgreen&label=" align="right"></a>
 </h4>
 
 <details><summary>Click to expand</summary>
@@ -114,7 +114,7 @@ cargo install matugen
            width="20">
      </sub>
      Arch
-     <a href="https://crates.io/crates/matugen"><img alt="Cargo Version" src="https://img.shields.io/aur/version/matugen-bin?color=brightgreen&label=" align="right"></a>
+     <a href="https://aur.archlinux.org/packages/matugen-bin"><img alt="AUR Version" src="https://img.shields.io/aur/version/matugen-bin?color=brightgreen&label=" align="right"></a>
 </h4>
 
 <details><summary>Click to expand</summary>
@@ -135,7 +135,9 @@ yay -S matugen-bin
            width="20">
      </sub>
      NixOS
-     <a href="j"><img alt="NixOS Version" src="https://img.shields.io/badge/latest-brightgreen" align="right"></a>
+     <a href="https://repology.org/project/matugen/versions">
+  <img src="https://repology.org/badge/version-for-repo/nix_stable_24_05/matugen.svg?header=" alt="nixpkgs" align="right">
+     </a><a href="j"><img alt="NixOS Version" src="https://img.shields.io/badge/git-brightgreen" align="right"></a>
 </h4>
 
 <details><summary>Click to expand</summary>
