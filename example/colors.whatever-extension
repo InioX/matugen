@@ -13,10 +13,10 @@ test {{ colors.source_color.default.rgb }}
 Should  not change at all
 {{ colors.source_color.default.red | set_lightness: 5.0 }}
 
-red {{harmonized_colors.red.rgb}};
-red {{harmonized_colors.red.rgba}};
-green {{harmonized_colors.green.hsl}};
-blue {{harmonized_colors.blue.hsla}};
+red {{colors.red.default.rgb}};
+red {{colors.red.default.rgba}};
+green {{colors.green.default.hsl}};
+blue {{colors.blue.default.hsla}};
 
 source_color {{colors.source_color.default.hex}};
 
