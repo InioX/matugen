@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.1](https://github.com/InioX/matugen/compare/v2.3.0...v2.3.1) - 2024-06-08
+
+### Fixed
+- update syntax in example template ([#77](https://github.com/InioX/matugen/pull/77))
+
+### Other
+- *(readme)* update version badges
+
 ## [2.3.0](https://github.com/InioX/matugen/compare/v2.2.0...v2.3.0) - 2024-05-29
 
 ### Added
