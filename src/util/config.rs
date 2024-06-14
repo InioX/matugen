@@ -49,6 +49,7 @@ impl CustomColor {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub reload_apps: Option<bool>,
+    pub version_check: Option<bool>,
     pub reload_apps_list: Option<Apps>,
     pub set_wallpaper: Option<bool>,
     pub wallpaper_tool: Option<WallpaperTool>,
