@@ -1,4 +1,5 @@
 [config]
+# version_check = true
 set_wallpaper = true
 wallpaper_tool = 'Swww'
 prefix = '@'

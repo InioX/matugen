@@ -49,11 +49,15 @@ fn main() -> Result<(), Report> {
         LevelFilter::Debug
     } else {
         LevelFilter::Warn
-    };
+        };
+        
+        setup_logging(log_level)?;
 
-    setup_logging(log_level)?;
+    let config: ConfigFile = ConfigFile::read(&args)?;
 
-    check_version();
+    if config.config.version_check == Some(true) {
+        check_version();
+    }
 
     let source_color = get_source_color(&args.source)?;
 
@@ -70,7 +74,6 @@ fn main() -> Result<(), Report> {
         args.contrast,
     ));
 
-    let config: ConfigFile = ConfigFile::read(&args)?;
 
     let default_scheme = args
         .mode
@@ -188,6 +191,9 @@ fn main() -> Result<(), Report> {
 fn check_version() {
     let name = env!("CARGO_PKG_NAME");
     let current_version = env!("CARGO_PKG_VERSION");
+    // for testing
+    // let current_version = "2.2.0";
+
     let informer = update_informer::new(registry::Crates, name, current_version);
 
     if let Some(version) = informer.check_version().ok().flatten() {
