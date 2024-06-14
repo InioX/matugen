@@ -49,9 +49,9 @@ fn main() -> Result<(), Report> {
         LevelFilter::Debug
     } else {
         LevelFilter::Warn
-        };
-        
-        setup_logging(log_level)?;
+    };
+
+    setup_logging(log_level)?;
 
     let config: ConfigFile = ConfigFile::read(&args)?;
 
@@ -73,7 +73,6 @@ fn main() -> Result<(), Report> {
         false,
         args.contrast,
     ));
-
 
     let default_scheme = args
         .mode
