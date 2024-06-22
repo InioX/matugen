@@ -9,11 +9,11 @@
      <img alt="downloads" src="https://custom-icon-badges.demolab.com/crates/d/matugen?color=3D3838&logo=download&style=for-the-badge&logoColor=370D10&labelColor=FEB3B3">
      <img alt="stars" src="https://custom-icon-badges.demolab.com/github/stars/InioX/matugen?color=3D3838&logo=star&style=for-the-badge&logoColor=370D10&labelColor=FEB3B3">
      <br> 
-     <a href="#-------------------------description">Description</a>
-    ·
     <a href="#-------------------------installation">Installation</a>
     ·
     <a href="https://github.com/InioX/matugen/wiki">Wiki</a>
+    ·
+    <a href="#-------------------------themes">Themes</a>
 </div>
 
 <div align="center">
@@ -56,9 +56,6 @@
   </tr>
 </table>
 </div>
-
-### About Material Design 3
-[Material Design 3](https://m3.material.io/) offers a new color system that allows for more flexible and dynamic use of color. The new system includes a wider range of colors, as well as a range of tints and shades that can be used to create subtle variations in color.
 
 ### Other projects
 - [Mitsugen](https://github.com/DimitrisMilonopoulos/mitsugen) - For gnome-shell, based on the [old](https://github.com/InioX/matugen/tree/python) version of Matugen
@@ -212,6 +209,19 @@ make install
 
 </p>
 </details>
+
+
+<h2>
+     <sub>
+     <img src="https://github.com/InioX/matugen-themes/assets/81521595/5e0b21af-62da-44ad-9492-f25689b260d9"
+           height="25"
+           width="25">
+     </sub>
+     Themes
+</h2>
+
+#### Templates
+- [InioX/matugen-themes](https://github.com/InioX/matugen-themes)
 
 <h2>
      <sub>
