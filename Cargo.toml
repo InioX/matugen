@@ -41,3 +41,4 @@ reqwest = { version = "0.11.23", default_features = false, features = [
 material-colors = { version = "0.3.2", features = ["image"] }
 ahash = "0.8.7"
 indexmap = "2.2.2"
+proper_path_tools = "0.7.0"

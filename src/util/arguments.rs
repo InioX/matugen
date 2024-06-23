@@ -37,6 +37,10 @@ pub struct Cli {
     #[arg(short, long, value_name = "FILE", global = true)]
     pub config: Option<PathBuf>,
 
+    /// Sets a custom config file
+    #[arg(short, long, value_name = "PATH", global = true)]
+    pub prefix: Option<PathBuf>,
+
     /// Value from -1 to 1. -1 represents minimum contrast, 0 represents
     /// standard (i.e. the design as spec'd), and 1 represents maximum contrast.
     #[arg(long, global = true, allow_negative_numbers = true)]

@@ -141,6 +141,7 @@ fn main() -> Result<(), Report> {
             &source_color,
             &default_scheme,
             &config.config.custom_keywords,
+            &args.prefix,
         )?;
 
         if config.config.reload_apps == Some(true) {
