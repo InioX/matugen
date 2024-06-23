@@ -5,6 +5,7 @@ use color_eyre::{eyre::Result, Report};
 
 use colorsys::{ColorAlpha, Hsl};
 use material_colors::color::Argb;
+use proper_path_tools::path::rebase;
 use serde::{Deserialize, Serialize};
 
 use upon::Value;
@@ -96,6 +97,7 @@ impl Template {
         source_color: &Argb,
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
+        path_prefix: &Option<PathBuf>
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -198,11 +200,19 @@ impl Template {
                     Report::new(error).wrap_err(message)
                 })?;
 
+            let out = if path_prefix.is_some() && !cfg!(windows) {
+                let prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
+                rebase(output_path_absolute.as_ref(), &prefix_path, None).expect("failed to rebase output path")
+            } else {
+                output_path_absolute.to_path_buf()
+            };
+
+            println!("{:?}", out);
+
             let mut output_file = OpenOptions::new()
                 .create(true)
                 .truncate(true)
-                .write(true)
-                .open(&output_path_absolute)?;
+                .write(true).open(out)?;
 
             if output_file.metadata()?.permissions().readonly() {
                 error!(
