@@ -14,6 +14,22 @@ test = "aaaa"
 [templates.name1]
 input_path = "example/colors.whatever-extension"
 output_path = "example/a/colors-generated.whatever-extension"
+colors_to_compare = [
+    { name = "black", color = "#000000" },
+    { name = "red", color = "#ff0000" },
+    { name = "maroon", color = "#800000" },
+    { name = "yellow", color = "#ffff00" },
+    { name = "olive", color = "#808000" },
+    { name = "lime", color = "#00ff00" },
+    { name = "green", color = "#008000" },
+    { name = "aqua", color = "#00ffff" },
+    { name = "teal", color = "#008080" },
+    { name = "blue", color = "#0000ff" },
+    { name = "navy", color = "#000080" },
+    { name = "fuchsia", color = "#ff00ff" },
+    { name = "purple", color = "#800080" },
+]
+compare_to = "#aefbd5"
 
 [config.custom_colors]
 green = "#00FF00"
