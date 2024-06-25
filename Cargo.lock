@@ -934,6 +934,24 @@ dependencies = [
 
 [[package]]
 name = "image"
+version = "0.24.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5690139d2f55868e080017335e4b94cb7414274c74f1669c84fb5feba2c9f69d"
+dependencies = [
+ "bytemuck",
+ "byteorder",
+ "color_quant",
+ "exr",
+ "gif",
+ "jpeg-decoder",
+ "num-traits",
+ "png",
+ "qoi",
+ "tiff",
+]
+
+[[package]]
+name = "image"
 version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd54d660e773627692c524beaad361aca785a4f9f5730ce91f42aabe5bce3d11"
@@ -1068,6 +1086,9 @@ name = "jpeg-decoder"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc0000e42512c92e31c2252315bda326620a4e034105e900c98ec492fa077b3e"
+dependencies = [
+ "rayon",
+]
 
 [[package]]
 name = "js-sys"
@@ -1169,7 +1190,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e07152b52508b3926ea2b79486f8b52f035ea790a7bbd29a95747236664805d"
 dependencies = [
  "ahash",
- "image",
+ "image 0.25.1",
  "indexmap",
 ]
 
@@ -1183,7 +1204,7 @@ dependencies = [
  "colorsys",
  "directories",
  "enquote",
- "image",
+ "image 0.24.9",
  "indexmap",
  "log",
  "material-colors",

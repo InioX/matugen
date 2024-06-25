@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use upon::Value;
 
+use crate::util::color;
 use crate::util::filters::set_lightness;
 
 use std::str;
@@ -33,10 +34,19 @@ use crate::{Schemes, SchemesEnum};
 use upon::{Engine, Syntax};
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct ColorDefinition {
+    pub name: String,
+    pub color: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Template {
     pub input_path: PathBuf,
     pub output_path: PathBuf,
     pub mode: Option<SchemesEnum>,
+    pub hook: Option<String>,
+    pub colors_to_compare: Option<Vec<ColorDefinition>>,
+    pub compare_to: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -143,6 +153,10 @@ impl Template {
         for (i, (name, template)) in templates.iter().enumerate() {
             let input_path_absolute = template.input_path.try_resolve()?;
             let output_path_absolute = template.output_path.try_resolve()?;
+            
+            if template.colors_to_compare.is_some() && template.compare_to.is_some() {
+                color::color_to_string(&template.colors_to_compare.as_ref().unwrap(), &template.compare_to.as_ref().unwrap());
+            }
 
             if !input_path_absolute.exists() {
                 warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesnt exist, skipping...</>", name, input_path_absolute.display());
@@ -207,7 +221,7 @@ impl Template {
                 output_path_absolute.to_path_buf()
             };
 
-            println!("{:?}", out);
+            debug!("out: {:?}", out);
 
             let mut output_file = OpenOptions::new()
                 .create(true)
