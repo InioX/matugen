@@ -7,6 +7,7 @@ swww_options = [
     "--transition-type",
     "center",
 ]
+default_value = "-"
 
 [config.custom_keywords]
 test = "aaaa"
@@ -30,6 +31,7 @@ colors_to_compare = [
     { name = "purple", color = "#800080" },
 ]
 compare_to = "#aefbd5"
+hook = "source color {source_color}, source image {source_image}, compared color {compared_color}"
 
 [config.custom_colors]
 green = "#00FF00"

@@ -1213,6 +1213,7 @@ dependencies = [
  "pretty_env_logger",
  "prettytable-rs",
  "proper_path_tools",
+ "regex",
  "reqwest",
  "resolve-path",
  "serde",

@@ -83,10 +83,6 @@ pub fn format_hsla(color: &Hsl) -> String {
     )
 }
 
-pub fn rgb_from_hex() {
-    
-}
-
 pub fn get_color_distance_lab(c1: &str, c2: &str) -> f64 {
     let c1 = Lab::from(Argb::from_str(c1).unwrap());
     let c2 = Lab::from(Argb::from_str(c2).unwrap());
@@ -112,21 +108,20 @@ pub fn get_color_distance_lab(c1: &str, c2: &str) -> f64 {
 //     return f64::sqrt(weightR * i64::pow(r1-r2, 2) as f64 + weightG * i64::pow(g1-g2, 2) as f64 + weightB * i64::pow(b1-b2, 2) as f64)
 // }
 
-pub fn color_to_string(colors_to_compare: &Vec<ColorDefinition>, compare_to: &String) {
-    let base_color = Rgb::from_hex_str(&compare_to).unwrap();
-    
+pub fn color_to_string(colors_to_compare: &Vec<ColorDefinition>, compare_to: &String) -> String {
     let mut closest_distance: Option<f64> = None;
     let mut closest_color: &str = "";
 
     for c in colors_to_compare {
-        let distance = get_color_distance_lab(&c.color, "#bed8f7");
+        let distance = get_color_distance_lab(&c.color, &compare_to);
         if closest_distance.is_none() || closest_distance.unwrap() > distance {
             closest_distance = Some(distance);
             closest_color = &c.name;
     }
         debug!("distance: {}, name: {}", distance, c.name)
     }
-    debug!("closest distance: {:?}, closest color: {}", closest_distance, closest_color)
+    debug!("closest distance: {:?}, closest color: {}", closest_distance, closest_color);
+    return closest_color.to_string()
 }
 
 pub fn generate_dynamic_scheme(

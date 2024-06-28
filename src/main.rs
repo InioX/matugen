@@ -24,7 +24,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, io::Write};
 use update_informer::{registry, Check};
 
-use util::color::{self, generate_dynamic_scheme, make_custom_color};
+use util::{color::{generate_dynamic_scheme, make_custom_color}};
 
 pub struct Schemes {
     pub light: IndexMap<String, Argb, ahash::random_state::RandomState>,
@@ -142,6 +142,7 @@ fn main() -> Result<(), Report> {
             &default_scheme,
             &config.config.custom_keywords,
             &args.prefix,
+            config.config.default_value,
         )?;
 
         if config.config.reload_apps == Some(true) {
