@@ -11,7 +11,9 @@ use serde::{Deserialize, Serialize};
 use upon::Value;
 
 use crate::util::color;
+use crate::util::color::color_to_string;
 use crate::util::filters::set_lightness;
+use crate::util::variables::replace_hook_keywords;
 
 use std::str;
 
@@ -44,9 +46,9 @@ pub struct Template {
     pub input_path: PathBuf,
     pub output_path: PathBuf,
     pub mode: Option<SchemesEnum>,
-    pub hook: Option<String>,
     pub colors_to_compare: Option<Vec<ColorDefinition>>,
     pub compare_to: Option<String>,
+    pub hook: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -107,7 +109,8 @@ impl Template {
         source_color: &Argb,
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
-        path_prefix: &Option<PathBuf>
+        path_prefix: &Option<PathBuf>,
+        default_fill_value: Option<String>
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -148,12 +151,25 @@ impl Template {
             colors: &colors, image: image, custom: &custom,
         };
 
+        let default_fill_value = default_fill_value.unwrap_or(String::from("-"));
+
         // debug!("render_data: {:#?}", &render_data);
 
         for (i, (name, template)) in templates.iter().enumerate() {
             let input_path_absolute = template.input_path.try_resolve()?;
             let output_path_absolute = template.output_path.try_resolve()?;
-            
+
+            if template.hook.is_some() {
+                let compared_color: Option<String> = if template.colors_to_compare.is_some() && template.compare_to.is_some() {
+                    Some(color_to_string(&template.colors_to_compare.as_ref().unwrap(), &template.compare_to.as_ref().unwrap()))
+                } else {
+                    None
+                };
+
+                let parsed = replace_hook_keywords(&template.hook.as_ref().unwrap(), &default_fill_value, image, compared_color.as_ref(), source_color);
+                println!("{}", parsed);
+            }
+
             if template.colors_to_compare.is_some() && template.compare_to.is_some() {
                 color::color_to_string(&template.colors_to_compare.as_ref().unwrap(), &template.compare_to.as_ref().unwrap());
             }
