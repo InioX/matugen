@@ -91,7 +91,7 @@ pub fn get_color_distance_lab(c1: &str, c2: &str) -> f64 {
     let a: f64 = c1.a - c2.a;
     let b: f64 = c1.b - c2.b;
 
-    return f64::sqrt((l * l) + (a * a) + (b * b))
+    return f64::sqrt((l * l) + (a * a) + (b * b));
 }
 
 // for rgb - useless but ill keep it here
@@ -99,12 +99,12 @@ pub fn get_color_distance_lab(c1: &str, c2: &str) -> f64 {
 // pub fn get_color_distance(c1: &Rgb, c2: &Rgb) -> f64 {
 //     let (r1, g1, b1) = (c1.red() as i64, c1.blue() as i64, c1.green() as i64);
 //     let (r2, g2, b2) = (c2.red() as i64, c2.green() as i64, c2.blue() as i64);
-    
+
 //     let rmean: f64 = ((r1 + r2) / 2) as f64;
 //     let weightR: f64 = 2.0 + rmean / 256.0;
 //     let weightG: f64 = 4.0;
 //     let weightB: f64 = 2.0 + (255.0 - rmean) / 256.0;
-    
+
 //     return f64::sqrt(weightR * i64::pow(r1-r2, 2) as f64 + weightG * i64::pow(g1-g2, 2) as f64 + weightB * i64::pow(b1-b2, 2) as f64)
 // }
 
@@ -117,11 +117,14 @@ pub fn color_to_string(colors_to_compare: &Vec<ColorDefinition>, compare_to: &St
         if closest_distance.is_none() || closest_distance.unwrap() > distance {
             closest_distance = Some(distance);
             closest_color = &c.name;
-    }
+        }
         debug!("distance: {}, name: {}", distance, c.name)
     }
-    debug!("closest distance: {:?}, closest color: {}", closest_distance, closest_color);
-    return closest_color.to_string()
+    debug!(
+        "closest distance: {:?}, closest color: {}",
+        closest_distance, closest_color
+    );
+    return closest_color.to_string();
 }
 
 pub fn generate_dynamic_scheme(

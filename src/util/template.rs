@@ -110,7 +110,7 @@ impl Template {
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
         path_prefix: &Option<PathBuf>,
-        default_fill_value: &Option<String>
+        default_fill_value: &Option<String>,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -161,18 +161,31 @@ impl Template {
             let output_path_absolute = template.output_path.try_resolve()?;
 
             if template.hook.is_some() {
-                let compared_color: Option<String> = if template.colors_to_compare.is_some() && template.compare_to.is_some() {
-                    Some(color_to_string(&template.colors_to_compare.as_ref().unwrap(), &template.compare_to.as_ref().unwrap()))
-                } else {
-                    None
-                };
+                let compared_color: Option<String> =
+                    if template.colors_to_compare.is_some() && template.compare_to.is_some() {
+                        Some(color_to_string(
+                            &template.colors_to_compare.as_ref().unwrap(),
+                            &template.compare_to.as_ref().unwrap(),
+                        ))
+                    } else {
+                        None
+                    };
 
-                let parsed = replace_hook_keywords(&template.hook.as_ref().unwrap(), &default_fill_value, image, compared_color.as_ref(), source_color);
+                let parsed = replace_hook_keywords(
+                    &template.hook.as_ref().unwrap(),
+                    &default_fill_value,
+                    image,
+                    compared_color.as_ref(),
+                    source_color,
+                );
                 println!("{}", parsed);
             }
 
             if template.colors_to_compare.is_some() && template.compare_to.is_some() {
-                color::color_to_string(&template.colors_to_compare.as_ref().unwrap(), &template.compare_to.as_ref().unwrap());
+                color::color_to_string(
+                    &template.colors_to_compare.as_ref().unwrap(),
+                    &template.compare_to.as_ref().unwrap(),
+                );
             }
 
             if !input_path_absolute.exists() {
@@ -233,7 +246,8 @@ impl Template {
 
             let out = if path_prefix.is_some() && !cfg!(windows) {
                 let prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
-                rebase(output_path_absolute.as_ref(), &prefix_path, None).expect("failed to rebase output path")
+                rebase(output_path_absolute.as_ref(), &prefix_path, None)
+                    .expect("failed to rebase output path")
             } else {
                 output_path_absolute.to_path_buf()
             };
@@ -243,7 +257,8 @@ impl Template {
             let mut output_file = OpenOptions::new()
                 .create(true)
                 .truncate(true)
-                .write(true).open(out)?;
+                .write(true)
+                .open(out)?;
 
             if output_file.metadata()?.permissions().readonly() {
                 error!(
