@@ -12,8 +12,8 @@ swww_options = [
 test = "aaaa"
 
 [templates.name1]
-input_path = "example/colors.whatever-extension"
-output_path = "example/a/colors-generated.whatever-extension"
+input_path = "./colors.whatever-extension"
+output_path = "./a/colors-generated.whatever-extension"
 colors_to_compare = [
     { name = "black", color = "#000000" },
     { name = "red", color = "#ff0000" },
@@ -29,7 +29,7 @@ colors_to_compare = [
     { name = "fuchsia", color = "#ff00ff" },
     { name = "purple", color = "#800080" },
 ]
-compare_to = "#aefbd5"
+compare_to = "{{colors.primary.default.hex}}"
 hook = 'echo "source color {{colors.source_color.default.hex}}, source image {{image}}, compared color {{compared_color}}"'
 
 [config.custom_colors]
