@@ -30,7 +30,7 @@ colors_to_compare = [
     { name = "purple", color = "#800080" },
 ]
 compare_to = "{{colors.primary.default.hex}}"
-hook = 'echo "source color {{colors.source_color.default.hex}}, source image {{image}}, compared color {{compared_color}}"'
+hook = 'echo "source color {{colors.source_color.default.hex}}, source image {{image}}, closest color {{closest_color}}"'
 
 [config.custom_colors]
 green = "#00FF00"
