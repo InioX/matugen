@@ -47,3 +47,4 @@ serde_json = "1.0.107"
 toml = "0.8.8"
 material-colors = { version = "0.3.2", features = ["image"] }
 regex = "1.10.5"
+execute = "0.2.13"
