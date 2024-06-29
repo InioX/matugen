@@ -18,7 +18,7 @@ use upon::{Engine, Syntax, Template, Value};
 //         }
 
 //         match input {
-//             "compared_color" => Variables::ComparedColor,
+//             "closest_color" => Variables::ComparedColor,
 //             "source_image" => Variables::SourceImage,
 //             "source_color" => Variables::SourceColor,
 //             _ => {
@@ -53,7 +53,7 @@ use upon::{Engine, Syntax, Template, Value};
 //     input: &str,
 //     default_value: &String,
 //     src_img: Option<&String>,
-//     compared_color: Option<&String>,
+//     closest_color: Option<&String>,
 //     source_color: &Argb,
 // ) -> String {
 //     let re = Regex::new(r"\{.*?\}").unwrap();
@@ -63,7 +63,7 @@ use upon::{Engine, Syntax, Template, Value};
 //     let result = re.replace_all(input, |cap: &Captures| {
 //         match Variables::from(&cap[0]) {
 //             Variables::Invalid => &cap[0],
-//             Variables::ComparedColor => compared_color.unwrap_or(default_value),
+//             Variables::ComparedColor => closest_color.unwrap_or(default_value),
 //             Variables::SourceImage => src_img.unwrap_or(default_value),
 //             Variables::SourceColor => &source_formatted,
 //         }
@@ -73,13 +73,13 @@ use upon::{Engine, Syntax, Template, Value};
 //     return result.to_string();
 // }
 
-pub fn format_hook_text(render_data: &mut Value, compared_color: Option<&String>, template: Template<'_>) -> String {
+pub fn format_hook_text(render_data: &mut Value, closest_color: Option<&String>, template: Template<'_>) -> String {
     let syntax = Syntax::builder().expr("{{", "}}").block("<*", "*>").build();
     let mut engine = Engine::with_syntax(syntax);
     match render_data {
         Value::Map(ref mut map) => {
-            if compared_color.is_some() {
-                map.insert("compared_color".to_string(), Value::from(compared_color.unwrap().as_str()));
+            if closest_color.is_some() {
+                map.insert("closest_color".to_string(), Value::from(closest_color.unwrap().as_str()));
             }
         },
         _ => {
