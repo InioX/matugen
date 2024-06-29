@@ -314,7 +314,7 @@ fn format_hook(
     engine: &Engine,
     render_data: &mut Value,
 ) -> Result<(), Report> {
-    let compared_color: Option<String> =
+    let closest_color: Option<String> =
         if template.colors_to_compare.is_some() && template.compare_to.is_some() {
             let s = engine.compile(template.compare_to.as_ref().unwrap())?;
             let compare_to = s.render(&engine, &render_data).to_string()?;
@@ -328,7 +328,7 @@ fn format_hook(
     Ok(
         if template.colors_to_compare.is_some() && template.compare_to.is_some() {
             let t = engine.compile(template.hook.as_ref().unwrap())?;
-            let res = format_hook_text(render_data, compared_color.as_ref(), t);
+            let res = format_hook_text(render_data, closest_color.as_ref(), t);
             let mut command = shell(&res);
 
             command.stdout(Stdio::inherit());
