@@ -15,6 +15,8 @@ use crate::util::color::color_to_string;
 use crate::util::filters::set_lightness;
 use crate::util::variables::format_hook_text;
 
+use std::fs::canonicalize;
+use std::path::Path;
 use std::str;
 
 use std::process::{Command, Stdio};
@@ -81,6 +83,26 @@ struct ColorVariants {
 
 use super::color::rgb_from_argb;
 
+pub trait StripCanonicalization where Self: AsRef<Path> {
+    #[cfg(not(target_os = "windows"))]
+    fn strip_canonicalization(&self) -> PathBuf {
+        self.as_ref().to_path_buf()
+    }
+
+    #[cfg(target_os = "windows")]
+    fn strip_canonicalization(&self) -> PathBuf {
+        const VERBATIM_PREFIX: &str = r#"\\?\"#;
+        let p = self.as_ref().display().to_string();
+        if p.starts_with(VERBATIM_PREFIX) {
+            PathBuf::from(&p[VERBATIM_PREFIX.len()..])
+        } else {
+            self.as_ref().to_path_buf()
+        }
+    }
+}
+
+impl StripCanonicalization for PathBuf {}
+
 pub fn check_string_value(value: &Value) -> Option<&String> {
     match value {
         Value::String(v) => Some(v),
@@ -114,6 +136,7 @@ impl Template {
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
         path_prefix: &Option<PathBuf>,
+        config_path: Option<PathBuf>
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -155,6 +178,13 @@ impl Template {
         for (i, (name, template)) in templates.iter().enumerate() {
             let input_path_absolute = template.input_path.try_resolve()?;
             let output_path_absolute = template.output_path.try_resolve()?;
+
+            let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
+                let base = std::fs::canonicalize(&config_path.as_ref().unwrap())?;
+                (template.input_path.try_resolve_in(&base)?.to_path_buf().strip_canonicalization(), template.output_path.try_resolve_in(&base)?.to_path_buf().strip_canonicalization())
+            } else {
+                (template.input_path.try_resolve()?.to_path_buf(), template.output_path.try_resolve()?.to_path_buf())
+            };
 
             if template.hook.is_some() {
                 format_hook(template, &engine, &mut render_data)?;
@@ -221,8 +251,8 @@ fn export_template(
     name: &String,
     render_data: &Value,
     path_prefix: &Option<PathBuf>,
-    output_path_absolute: std::borrow::Cow<std::path::Path>,
-    input_path_absolute: std::borrow::Cow<std::path::Path>,
+    output_path_absolute: PathBuf,
+    input_path_absolute: PathBuf,
     i: usize,
     templates: &HashMap<String, Template>,
 ) -> Result<(), Report> {
@@ -242,7 +272,7 @@ fn export_template(
         })?;
     let out = if path_prefix.is_some() && !cfg!(windows) {
         let prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
-        rebase(output_path_absolute.as_ref(), &prefix_path, None)
+        rebase(&output_path_absolute, &prefix_path, None)
             .expect("failed to rebase output path")
     } else {
         output_path_absolute.to_path_buf()
@@ -286,19 +316,17 @@ fn format_hook(
 ) -> Result<(), Report> {
     let compared_color: Option<String> =
         if template.colors_to_compare.is_some() && template.compare_to.is_some() {
+            let s = engine.compile(template.compare_to.as_ref().unwrap())?;
+            let compare_to = s.render(&engine, &render_data).to_string()?;
             Some(color_to_string(
                 &template.colors_to_compare.as_ref().unwrap(),
-                &template.compare_to.as_ref().unwrap(),
+                &compare_to,
             ))
         } else {
             None
         };
     Ok(
         if template.colors_to_compare.is_some() && template.compare_to.is_some() {
-            color::color_to_string(
-                &template.colors_to_compare.as_ref().unwrap(),
-                &template.compare_to.as_ref().unwrap(),
-            );
             let t = engine.compile(template.hook.as_ref().unwrap())?;
             let res = format_hook_text(render_data, compared_color.as_ref(), t);
             let mut command = shell(&res);

@@ -53,7 +53,7 @@ fn main() -> Result<(), Report> {
 
     setup_logging(log_level)?;
 
-    let config: ConfigFile = ConfigFile::read(&args)?;
+    let (config, config_path) = ConfigFile::read(&args)?;
 
     if config.config.version_check == Some(true) {
         check_version();
@@ -142,6 +142,7 @@ fn main() -> Result<(), Report> {
             &default_scheme,
             &config.config.custom_keywords,
             &args.prefix,
+            config_path
         )?;
 
         if config.config.reload_apps == Some(true) {

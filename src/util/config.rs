@@ -84,9 +84,9 @@ const DEFAULT_CONFIG: &str = r#"
 "#;
 
 impl ConfigFile {
-    pub fn read(args: &Cli) -> Result<ConfigFile, Report> {
+    pub fn read(args: &Cli) -> Result<(ConfigFile, Option<PathBuf>), Report> {
         match &args.config {
-            Some(config_file) => Ok(Self::read_from_custom_path(config_file)?),
+            Some(config_file) => Ok((Self::read_from_custom_path(config_file)?, Some(config_file.to_path_buf()))),
             None => Ok(Self::read_from_proj_path()?),
         }
     }
@@ -105,22 +105,22 @@ impl ConfigFile {
         }
     }
 
-    fn read_from_proj_path() -> Result<ConfigFile, Report> {
+    fn read_from_proj_path() -> Result<(ConfigFile, Option<PathBuf>), Report> {
         if let Some(proj_dirs) = ProjectDirs::from("com", "InioX", "matugen") {
             let proj_dir = proj_dirs.config_dir();
             let config_file = PathBuf::from(proj_dir).join("config.toml");
 
             if !config_file.exists() {
-                return Self::read_from_fallback_path();
+                return Ok((Self::read_from_fallback_path()?, None));
             }
 
-            let content: String = fs::read_to_string(config_file).unwrap();
+            let content: String = fs::read_to_string(&config_file).unwrap();
             match toml::from_str(&content) {
-                Ok(res) => Ok(res),
+                Ok(res) => Ok((res, Some(config_file))),
                 Err(e) => Err(Report::new(e).suggestion(ERROR_TEXT)),
             }
         } else {
-            Ok(Self::read_from_fallback_path()?)
+            Ok((Self::read_from_fallback_path()?, None))
         }
     }
 
