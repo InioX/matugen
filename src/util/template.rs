@@ -13,9 +13,13 @@ use upon::Value;
 use crate::util::color;
 use crate::util::color::color_to_string;
 use crate::util::filters::set_lightness;
-use crate::util::variables::replace_hook_keywords;
+use crate::util::variables::format_hook_text;
 
 use std::str;
+
+use std::process::{Command, Stdio};
+
+use execute::{Execute, shell};
 
 use std::collections::HashMap;
 use std::fs::create_dir_all;
@@ -110,7 +114,6 @@ impl Template {
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
         path_prefix: &Option<PathBuf>,
-        default_fill_value: &Option<String>,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -147,13 +150,12 @@ impl Template {
             }
         }
 
-        let render_data = upon::value! {
+        let mut render_data = upon::value! {
             colors: &colors, image: image, custom: &custom,
         };
 
-        let fill = String::from("-");
-        let default_fill_value = default_fill_value.as_ref().unwrap_or(&fill);
-
+        
+        // let default_fill_value = String::from("-");
         // debug!("render_data: {:#?}", &render_data);
 
         for (i, (name, template)) in templates.iter().enumerate() {
@@ -171,21 +173,36 @@ impl Template {
                         None
                     };
 
-                let parsed = replace_hook_keywords(
-                    &template.hook.as_ref().unwrap(),
-                    &default_fill_value,
-                    image,
-                    compared_color.as_ref(),
-                    source_color,
-                );
-                println!("{}", parsed);
-            }
+                // let parsed = replace_hook_keywords(
+                //     &template.hook.as_ref().unwrap(),
+                //     &default_fill_value,
+                //     image,
+                //     compared_color.as_ref(),
+                //     source_color,
+                // );
 
-            if template.colors_to_compare.is_some() && template.compare_to.is_some() {
-                color::color_to_string(
-                    &template.colors_to_compare.as_ref().unwrap(),
-                    &template.compare_to.as_ref().unwrap(),
-                );
+                if template.colors_to_compare.is_some() && template.compare_to.is_some() {
+                    color::color_to_string(
+                        &template.colors_to_compare.as_ref().unwrap(),
+                        &template.compare_to.as_ref().unwrap(),
+                    );
+                    let t = engine.compile(template.hook.as_ref().unwrap())?;
+                    let res = format_hook_text(&mut render_data, compared_color.as_ref(), t);
+                    let mut command = shell(&res);
+
+                    command.stdout(Stdio::inherit());
+
+                    let output = command.execute_output()?;
+
+                    
+                    if let Some(exit_code) = output.status.code() {
+                        if exit_code != 0 {
+                            error!("Failed executing command: {:?}", &res)
+                        }
+                    } else {
+                        eprintln!("Interrupted!");
+                    }
+                }
             }
 
             if !input_path_absolute.exists() {

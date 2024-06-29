@@ -59,7 +59,6 @@ pub struct Config {
     pub prefix: Option<String>,
     pub custom_keywords: Option<HashMap<String, String>>,
     pub custom_colors: Option<HashMap<String, CustomColor>>,
-    pub default_value: Option<String>
 }
 
 #[derive(Deserialize, Serialize, Debug)]
