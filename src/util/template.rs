@@ -110,7 +110,7 @@ impl Template {
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
         path_prefix: &Option<PathBuf>,
-        default_fill_value: Option<String>
+        default_fill_value: &Option<String>
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -151,7 +151,8 @@ impl Template {
             colors: &colors, image: image, custom: &custom,
         };
 
-        let default_fill_value = default_fill_value.unwrap_or(String::from("-"));
+        let fill = String::from("-");
+        let default_fill_value = default_fill_value.as_ref().unwrap_or(&fill);
 
         // debug!("render_data: {:#?}", &render_data);
 

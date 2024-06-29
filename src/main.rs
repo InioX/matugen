@@ -142,7 +142,7 @@ fn main() -> Result<(), Report> {
             &default_scheme,
             &config.config.custom_keywords,
             &args.prefix,
-            config.config.default_value,
+            &config.config.default_value,
         )?;
 
         if config.config.reload_apps == Some(true) {
