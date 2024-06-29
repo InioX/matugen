@@ -19,7 +19,7 @@ use std::str;
 
 use std::process::{Command, Stdio};
 
-use execute::{Execute, shell};
+use execute::{shell, Execute};
 
 use std::collections::HashMap;
 use std::fs::create_dir_all;
@@ -127,12 +127,7 @@ impl Template {
         let syntax = Syntax::builder().expr("{{", "}}").block("<*", "*>").build();
         let mut engine = Engine::with_syntax(syntax);
 
-        engine.add_filter("set_lightness", set_lightness);
-        engine.add_filter("to_upper", str::to_uppercase);
-        engine.add_filter("to_lower", str::to_lowercase);
-        engine.add_filter("replace", |s: String, from: String, to: String| {
-            s.replace(&from, &to)
-        });
+        add_engine_filters(&mut engine);
 
         let image = match &source {
             Source::Image { path } => Some(path),
@@ -154,7 +149,6 @@ impl Template {
             colors: &colors, image: image, custom: &custom,
         };
 
-        
         // let default_fill_value = String::from("-");
         // debug!("render_data: {:#?}", &render_data);
 
@@ -163,46 +157,7 @@ impl Template {
             let output_path_absolute = template.output_path.try_resolve()?;
 
             if template.hook.is_some() {
-                let compared_color: Option<String> =
-                    if template.colors_to_compare.is_some() && template.compare_to.is_some() {
-                        Some(color_to_string(
-                            &template.colors_to_compare.as_ref().unwrap(),
-                            &template.compare_to.as_ref().unwrap(),
-                        ))
-                    } else {
-                        None
-                    };
-
-                // let parsed = replace_hook_keywords(
-                //     &template.hook.as_ref().unwrap(),
-                //     &default_fill_value,
-                //     image,
-                //     compared_color.as_ref(),
-                //     source_color,
-                // );
-
-                if template.colors_to_compare.is_some() && template.compare_to.is_some() {
-                    color::color_to_string(
-                        &template.colors_to_compare.as_ref().unwrap(),
-                        &template.compare_to.as_ref().unwrap(),
-                    );
-                    let t = engine.compile(template.hook.as_ref().unwrap())?;
-                    let res = format_hook_text(&mut render_data, compared_color.as_ref(), t);
-                    let mut command = shell(&res);
-
-                    command.stdout(Stdio::inherit());
-
-                    let output = command.execute_output()?;
-
-                    
-                    if let Some(exit_code) = output.status.code() {
-                        if exit_code != 0 {
-                            error!("Failed executing command: {:?}", &res)
-                        }
-                    } else {
-                        eprintln!("Interrupted!");
-                    }
-                }
+                format_hook(template, &engine, &mut render_data)?;
             }
 
             if !input_path_absolute.exists() {
@@ -246,55 +201,121 @@ impl Template {
                 ));
             }
 
-            let data = engine
-                .template(name)
-                .render(&render_data)
-                .to_string()
-                .map_err(|error| {
-                    let message = format!(
-                        "[{} - {}]\n{:#}",
-                        name,
-                        input_path_absolute.display(),
-                        &error
-                    );
-
-                    Report::new(error).wrap_err(message)
-                })?;
-
-            let out = if path_prefix.is_some() && !cfg!(windows) {
-                let prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
-                rebase(output_path_absolute.as_ref(), &prefix_path, None)
-                    .expect("failed to rebase output path")
-            } else {
-                output_path_absolute.to_path_buf()
-            };
-
-            debug!("out: {:?}", out);
-
-            let mut output_file = OpenOptions::new()
-                .create(true)
-                .truncate(true)
-                .write(true)
-                .open(out)?;
-
-            if output_file.metadata()?.permissions().readonly() {
-                error!(
-                    "The <b><red>{}</> file is Read-Only",
-                    &output_path_absolute.display()
-                );
-            }
-
-            output_file.write_all(data.as_bytes())?;
-            success!(
-                "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
-                i + 1,
-                &templates.len(),
+            export_template(
+                &engine,
                 name,
-                output_path_absolute.display()
-            );
+                &render_data,
+                path_prefix,
+                output_path_absolute,
+                input_path_absolute,
+                i,
+                templates,
+            )?;
         }
         Ok(())
     }
+}
+
+fn export_template(
+    engine: &Engine,
+    name: &String,
+    render_data: &Value,
+    path_prefix: &Option<PathBuf>,
+    output_path_absolute: std::borrow::Cow<std::path::Path>,
+    input_path_absolute: std::borrow::Cow<std::path::Path>,
+    i: usize,
+    templates: &HashMap<String, Template>,
+) -> Result<(), Report> {
+    let data = engine
+        .template(name)
+        .render(render_data)
+        .to_string()
+        .map_err(|error| {
+            let message = format!(
+                "[{} - {}]\n{:#}",
+                name,
+                input_path_absolute.display(),
+                &error
+            );
+
+            Report::new(error).wrap_err(message)
+        })?;
+    let out = if path_prefix.is_some() && !cfg!(windows) {
+        let prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
+        rebase(output_path_absolute.as_ref(), &prefix_path, None)
+            .expect("failed to rebase output path")
+    } else {
+        output_path_absolute.to_path_buf()
+    };
+    debug!("out: {:?}", out);
+    let mut output_file = OpenOptions::new()
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open(out)?;
+    if output_file.metadata()?.permissions().readonly() {
+        error!(
+            "The <b><red>{}</> file is Read-Only",
+            &output_path_absolute.display()
+        );
+    }
+    output_file.write_all(data.as_bytes())?;
+    success!(
+        "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
+        i + 1,
+        &templates.len(),
+        name,
+        output_path_absolute.display()
+    );
+    Ok(())
+}
+
+fn add_engine_filters(engine: &mut Engine) {
+    engine.add_filter("set_lightness", set_lightness);
+    engine.add_filter("to_upper", str::to_uppercase);
+    engine.add_filter("to_lower", str::to_lowercase);
+    engine.add_filter("replace", |s: String, from: String, to: String| {
+        s.replace(&from, &to)
+    });
+}
+
+fn format_hook(
+    template: &Template,
+    engine: &Engine,
+    render_data: &mut Value,
+) -> Result<(), Report> {
+    let compared_color: Option<String> =
+        if template.colors_to_compare.is_some() && template.compare_to.is_some() {
+            Some(color_to_string(
+                &template.colors_to_compare.as_ref().unwrap(),
+                &template.compare_to.as_ref().unwrap(),
+            ))
+        } else {
+            None
+        };
+    Ok(
+        if template.colors_to_compare.is_some() && template.compare_to.is_some() {
+            color::color_to_string(
+                &template.colors_to_compare.as_ref().unwrap(),
+                &template.compare_to.as_ref().unwrap(),
+            );
+            let t = engine.compile(template.hook.as_ref().unwrap())?;
+            let res = format_hook_text(render_data, compared_color.as_ref(), t);
+            let mut command = shell(&res);
+
+            command.stdout(Stdio::inherit());
+
+            let output = command.execute_output()?;
+
+            if let Some(exit_code) = output.status.code() {
+                if exit_code != 0 {
+                    error!("Failed executing command: {:?}", &res)
+                }
+            } else {
+                eprintln!("Interrupted!");
+            }
+        },
+    )
 }
 
 fn generate_colors(
