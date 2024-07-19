@@ -4,11 +4,11 @@ matugen: {
   lib,
   config,
   ...
-} @ args: let
+} @ inputs: let
   cfg = config.programs.matugen;
-  osCfg = args.osConfig.programs.matugen or {};
+  osCfg = inputs.osConfig.programs.matugen or {};
 
-  configFormat = pkgs.formats.toml {};
+  tomlFormat = pkgs.formats.toml {};
 
   capitalize = str: let
     inherit (builtins) substring stringLength;
@@ -26,7 +26,7 @@ matugen: {
     })
     cfg.templates;
 
-  matugenConfig = configFormat.generate "matugen-config.toml" {
+  matugenConfig = tomlFormat.generate "matugen-config.toml" {
     config = {};
     templates = sanitizedTemplates;
   };
@@ -58,9 +58,10 @@ in {
     enable = lib.mkEnableOption "Matugen declarative theming";
 
     wallpaper = lib.mkOption {
-      description = "Path to `wallpaper` that matugen will generate the colorschemes from";
       type = lib.types.path;
       default = osCfg.wallpaper or "${pkgs.nixos-artwork.wallpapers.simple-blue}/share/backgrounds/nixos/nix-wallpaper-simple-blue.png";
+
+      description = "Path to `wallpaper` that matugen will generate the colorschemes from";
       defaultText = lib.literalExample ''
         "${pkgs.nixos-artwork.wallpapers.simple-blue}/share/backgrounds/nixos/nix-wallpaper-simple-blue.png"
       '';
@@ -72,17 +73,20 @@ in {
           options = {
             input_path = lib.mkOption {
               type = path;
-              description = "Path to the template";
+
               example = "./style.css";
+              description = "Path to the template";
             };
             output_path = lib.mkOption {
               type = str;
-              description = "Path where the generated file will be written to";
+
               example = "~/.config/sytle.css";
+              description = "Path where the generated file will be written to";
             };
           };
         });
       default = osCfg.templates or {};
+
       description = ''
         Templates that have `@{placeholders}` which will be replaced by the respective colors.
         See <https://github.com/InioX/matugen/wiki/Configuration#example-of-all-the-color-keywords> for a list of colors.
@@ -90,24 +94,27 @@ in {
     };
 
     type = lib.mkOption {
-      description = "Palette used when generating the colorschemes.";
       type = lib.types.enum ["scheme-content" "scheme-expressive" "scheme-fidelity" "scheme-fruit-salad" "scheme-monochrome" "scheme-neutral" "scheme-rainbow" "scheme-tonal-spot"];
       default = osCfg.palette or "scheme-tonal-spot";
+      
       example = "triadic";
+      description = "Palette used when generating the colorschemes.";
     };
 
     jsonFormat = lib.mkOption {
-      description = "Color format of the colorschemes.";
       type = lib.types.enum ["rgb" "rgba" "hsl" "hsla" "hex" "strip"];
       default = osCfg.jsonFormat or "strip";
+      
       example = "rgba";
+      description = "Color format of the colorschemes.";
     };
 
     variant = lib.mkOption {
-      description = "Colorscheme variant.";
       type = lib.types.enum ["light" "dark" "amoled"];
       default = osCfg.variant or "dark";
+      
       example = "light";
+      description = "Colorscheme variant.";
     };
 
     theme.files = lib.mkOption {
@@ -120,6 +127,7 @@ in {
           then themePackage
           else osCfg.theme.files
         else themePackage;
+      
       description = "Generated theme files. Including only the variant chosen.";
     };
 
@@ -133,6 +141,7 @@ in {
           then colors
           else osCfg.theme.colors
         else colors;
+      
       description = "Generated theme colors. Includes all variants.";
     };
   };
