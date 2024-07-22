@@ -89,7 +89,7 @@ fn main() -> Result<(), Report> {
             make_custom_color(
                 color
                     .to_custom_color(name.to_string())
-                    .expect("Failed to parse custom color"),
+                    .expect(&format!("Failed to parse custom color: {}, {:?}", name, color)),
                 &args.r#type,
                 source_color,
                 args.contrast,
