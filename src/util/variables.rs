@@ -73,17 +73,16 @@ use upon::{Engine, Syntax, Template, Value};
 //     return result.to_string();
 // }
 
-pub fn format_hook_text(render_data: &mut Value, closest_color: Option<&String>, template: Template<'_>) -> String {
+pub fn format_hook_text(render_data: &mut Value, closest_color: Option<String>, template: Template<'_>) -> String {
     let syntax = Syntax::builder().expr("{{", "}}").block("<*", "*>").build();
     let mut engine = Engine::with_syntax(syntax);
+    
     match render_data {
         Value::Map(ref mut map) => {
-            if closest_color.is_some() {
-                map.insert("closest_color".to_string(), Value::from(closest_color.unwrap().as_str()));
-            }
+                map.insert("closest_color".to_string(), Value::from(closest_color));
         },
         _ => {
-            println!("not")
+            debug!("not map")
         }
     }
 
