@@ -332,7 +332,7 @@ pub fn get_source_color(source: &Source) -> Result<Argb, Report> {
             ImageReader::extract_color(ImageReader::open(path)?.resize(
                 128,
                 128,
-                FilterType::Gaussian,
+                FilterType::Lanczos3,
             ))
         }
         Source::WebImage { url } => {
@@ -343,7 +343,7 @@ pub fn get_source_color(source: &Source) -> Result<Argb, Report> {
             ImageReader::extract_color(ImageReader::read(&bytes)?.resize(
                 128,
                 128,
-                FilterType::Gaussian,
+                FilterType::Lanczos3,
             ))
         }
         Source::Color(color) => match color {
