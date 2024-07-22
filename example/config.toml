@@ -32,6 +32,7 @@ colors_to_compare = [
 compare_to = "{{colors.primary.default.hex}}"
 hook = 'echo "source color {{colors.source_color.default.hex}}, source image {{image}}, closest color {{closest_color}}"'
 
+# Only hex values
 [config.custom_colors]
 green = "#00FF00"
 red = "#FF0000"
