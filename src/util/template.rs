@@ -325,25 +325,29 @@ fn format_hook(
         } else {
             None
         };
-    Ok(
-        if template.colors_to_compare.is_some() && template.compare_to.is_some() {
-            let t = engine.compile(template.hook.as_ref().unwrap())?;
-            let res = format_hook_text(render_data, closest_color.as_ref(), t);
-            let mut command = shell(&res);
 
-            command.stdout(Stdio::inherit());
+    let t = engine.compile(template.hook.as_ref().unwrap())?;
+    let res = if template.colors_to_compare.is_some() && template.compare_to.is_some() {
+        format_hook_text(render_data, closest_color, t)
+    } else {
+        format_hook_text(render_data, None, t)
+    };
 
-            let output = command.execute_output()?;
+    let mut command = shell(&res);
 
-            if let Some(exit_code) = output.status.code() {
-                if exit_code != 0 {
-                    error!("Failed executing command: {:?}", &res)
-                }
-            } else {
-                eprintln!("Interrupted!");
-            }
-        },
-    )
+    command.stdout(Stdio::inherit());
+
+    let output = command.execute_output()?;
+
+    if let Some(exit_code) = output.status.code() {
+        if exit_code != 0 {
+            error!("Failed executing command: {:?}", &res)
+        }
+    } else {
+        eprintln!("Interrupted!");
+    }
+    
+    Ok(())
 }
 
 fn generate_colors(
