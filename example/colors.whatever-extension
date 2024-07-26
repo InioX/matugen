@@ -23,3 +23,7 @@ source_color {{colors.source_color.default.hex}};
 <* for name, value in colors *>
     {{name | replace: "_", "-" }} {{value.default.hex}};
 <* endfor *>
+
+Only works with rgba and hsla
+{{ colors.source_color.default.rgba | set_alpha 0.5 }}
+Output: rgba(r, g, b, 0.5)
