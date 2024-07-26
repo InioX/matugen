@@ -186,6 +186,15 @@ impl Template {
                 (template.input_path.try_resolve()?.to_path_buf(), template.output_path.try_resolve()?.to_path_buf())
             };
 
+            let output_path = if path_prefix.is_some() && !cfg!(windows) {
+                let prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
+                rebase(&output_path_absolute, &prefix_path, None)
+                    .expect("failed to rebase output path")
+            } else {
+                output_path_absolute.to_path_buf()
+            };
+            debug!("out: {:?}", output_path);
+
             if template.hook.is_some() {
                 format_hook(template, &engine, &mut render_data)?;
             }
@@ -212,10 +221,10 @@ impl Template {
             debug!(
                 "Trying to write the {} template to {}",
                 name,
-                output_path_absolute.display()
+                output_path.display()
             );
 
-            let parent_folder = &output_path_absolute
+            let parent_folder = &output_path
                 .parent()
                 .wrap_err("Could not get the parent of the output path.")?;
 
@@ -227,7 +236,7 @@ impl Template {
                 debug!("{}", parent_folder.display());
                 let _ = create_dir_all(parent_folder).wrap_err(format!(
                     "Failed to create the {} folders.",
-                    &output_path_absolute.display()
+                    &output_path.display()
                 ));
             }
 
@@ -235,8 +244,7 @@ impl Template {
                 &engine,
                 name,
                 &render_data,
-                path_prefix,
-                output_path_absolute,
+                output_path,
                 input_path_absolute,
                 i,
                 templates,
@@ -250,8 +258,7 @@ fn export_template(
     engine: &Engine,
     name: &String,
     render_data: &Value,
-    path_prefix: &Option<PathBuf>,
-    output_path_absolute: PathBuf,
+    output_path: PathBuf,
     input_path_absolute: PathBuf,
     i: usize,
     templates: &HashMap<String, Template>,
@@ -270,23 +277,16 @@ fn export_template(
 
             Report::new(error).wrap_err(message)
         })?;
-    let out = if path_prefix.is_some() && !cfg!(windows) {
-        let prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
-        rebase(&output_path_absolute, &prefix_path, None)
-            .expect("failed to rebase output path")
-    } else {
-        output_path_absolute.to_path_buf()
-    };
-    debug!("out: {:?}", out);
+
     let mut output_file = OpenOptions::new()
         .create(true)
         .truncate(true)
         .write(true)
-        .open(out)?;
+        .open(&output_path)?;
     if output_file.metadata()?.permissions().readonly() {
         error!(
             "The <b><red>{}</> file is Read-Only",
-            &output_path_absolute.display()
+            &output_path.display()
         );
     }
     output_file.write_all(data.as_bytes())?;
@@ -295,7 +295,7 @@ fn export_template(
         i + 1,
         &templates.len(),
         name,
-        output_path_absolute.display()
+        output_path.display()
     );
     Ok(())
 }
