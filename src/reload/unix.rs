@@ -30,6 +30,10 @@ pub fn reload(args: &Cli, config: &ConfigFile) -> Result<(), Report> {
         reload_gtk_theme(args)?;
     }
 
+    if reload_apps_list.mako == Some(true) || reload_apps_list.waybar.is_none() {
+        reload_app("mako", "SIGUSR2")?;
+    }
+
     Ok(())
 }
 
