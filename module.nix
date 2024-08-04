@@ -39,7 +39,7 @@ matugen: {
     cd $out
     export HOME=$(pwd)
 
-    ${pkg}/bin/matugen \
+    ${cfg.package}/bin/matugen \
       image ${cfg.wallpaper} \
       ${
       if cfg.templates != {}
@@ -56,6 +56,10 @@ matugen: {
 in {
   options.programs.matugen = {
     enable = lib.mkEnableOption "Matugen declarative theming";
+
+    package = lib.mkPackageOption pkgs "matugen" {
+      default = pkg;
+    };
 
     wallpaper = lib.mkOption {
       description = "Path to `wallpaper` that matugen will generate the colorschemes from";
