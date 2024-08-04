@@ -67,6 +67,7 @@ pub struct Apps {
     pub waybar: Option<bool>,
     pub gtk_theme: Option<bool>,
     pub dunst: Option<bool>,
+    pub mako: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
