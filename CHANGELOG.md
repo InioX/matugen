@@ -6,6 +6,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0](https://github.com/InioX/matugen/compare/v2.3.0...v2.4.0) - 2024-08-05
+
+### Added
+- improve error message for color parsing
+- change resize filter to Lanczos3 ([#89](https://github.com/InioX/matugen/pull/89))
+- increase windows stack size to 8mb (fixes [#87](https://github.com/InioX/matugen/pull/87))
+- fix relative paths for templates, format `compare_to` ([#83](https://github.com/InioX/matugen/pull/83))
+- add template formatting for hook ([#83](https://github.com/InioX/matugen/pull/83))
+- add `hook` and variables inside it ([#83](https://github.com/InioX/matugen/pull/83))
+- add color comparsion ([#83](https://github.com/InioX/matugen/pull/83))
+- add `--prefix` argument
+- add `version_check` setting ([#78](https://github.com/InioX/matugen/pull/78))
+
+### Fixed
+- make hooks not depend on `colors_to_compare` ([#93](https://github.com/InioX/matugen/pull/93))
+- remove useless debugging
+- update arguments to remove borrow error ([#85](https://github.com/InioX/matugen/pull/85))
+- update syntax in example template ([#77](https://github.com/InioX/matugen/pull/77))
+
+### Other
+- Nix module: add package option
+- Merge branch 'main' of https://github.com/InioX/matugen
+- bump `material-colors` to 0.4.0
+- *(examples)* add note for `custom_colors`
+- rename `compared_color` to `closest_color` ([#83](https://github.com/InioX/matugen/pull/83))
+- separate some stuff into functions
+- format code
+- Merge branch 'main' of https://github.com/InioX/matugen
+- run `cargo fmt`
+- *(readme)* update version badges
+
 ## [2.3.0](https://github.com/InioX/matugen/compare/v2.2.0...v2.3.0) - 2024-05-29
 
 ### Added
