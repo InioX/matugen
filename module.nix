@@ -57,12 +57,11 @@ in {
   options.programs.matugen = {
     enable = lib.mkEnableOption "Matugen declarative theming";
 
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkg;
-      example = "pkgs.matugen";
-      description = "The matugen package to use.";
-    };
+    package =
+      lib.mkPackageOption pkgs "matugen" {}
+      // {
+        default = pkg;
+      };
 
     wallpaper = lib.mkOption {
       description = "Path to `wallpaper` that matugen will generate the colorschemes from";
