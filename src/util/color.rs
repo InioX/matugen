@@ -64,6 +64,16 @@ pub fn format_rgba(color: &Rgb) -> String {
     )
 }
 
+pub fn format_rgba_float(color: &Rgb) -> String {
+    format!(
+        "rgba({:?}, {:?}, {:?}, {:.1})",
+        color.red() as u8,
+        color.green() as u8,
+        color.blue() as u8,
+        color.alpha()
+    )
+}
+
 pub fn format_hsl(color: &Hsl) -> String {
     format!(
         "hsl({:?}, {:?}%, {:?}%)",
@@ -80,6 +90,16 @@ pub fn format_hsla(color: &Hsl) -> String {
         color.saturation() as u8,
         color.lightness() as u8,
         color.alpha() as u8
+    )
+}
+
+pub fn format_hsla_float(color: &Hsl) -> String {
+    format!(
+        "hsla({:?}, {:?}%, {:?}%, {:.1})",
+        color.hue() as u8,
+        color.saturation() as u8,
+        color.lightness() as u8,
+        color.alpha()
     )
 }
 

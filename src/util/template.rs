@@ -12,7 +12,7 @@ use upon::Value;
 
 use crate::util::color;
 use crate::util::color::color_to_string;
-use crate::util::filters::set_lightness;
+use crate::util::filters::{set_alpha, set_lightness};
 use crate::util::variables::format_hook_text;
 
 use std::fs::canonicalize;
@@ -302,6 +302,7 @@ fn export_template(
 
 fn add_engine_filters(engine: &mut Engine) {
     engine.add_filter("set_lightness", set_lightness);
+    engine.add_filter("set_alpha", set_alpha);
     engine.add_filter("to_upper", str::to_uppercase);
     engine.add_filter("to_lower", str::to_lowercase);
     engine.add_filter("replace", |s: String, from: String, to: String| {
