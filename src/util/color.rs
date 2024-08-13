@@ -61,7 +61,7 @@ pub fn format_rgba(color: &Rgb, float: bool) -> String {
             color.red() as u8,
             color.green() as u8,
             color.blue() as u8,
-            color.alpha()
+            color.alpha() / 255.
         )
     } else {
         format!(
@@ -100,7 +100,7 @@ pub fn format_hsla(color: &Hsl, float: bool) -> String {
             color.hue() as u8,
             color.saturation() as u8,
             color.lightness() as u8,
-            color.alpha()
+            color.alpha() / 255.
         )
     } else {
         format!(
