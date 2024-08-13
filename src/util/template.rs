@@ -54,7 +54,8 @@ pub struct Template {
     pub mode: Option<SchemesEnum>,
     pub colors_to_compare: Option<Vec<ColorDefinition>>,
     pub compare_to: Option<String>,
-    pub hook: Option<String>,
+    pub pre_hook: Option<String>,
+    pub post_hook: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -186,8 +187,8 @@ impl Template {
                 (template.input_path.try_resolve()?.to_path_buf(), template.output_path.try_resolve()?.to_path_buf())
             };
 
-            if template.hook.is_some() {
-                format_hook(template, &engine, &mut render_data)?;
+            if template.pre_hook.is_some() {
+                format_hook(template, &engine, &mut render_data, template.pre_hook.as_ref().unwrap())?;
             }
 
             if !input_path_absolute.exists() {
@@ -241,6 +242,10 @@ impl Template {
                 i,
                 templates,
             )?;
+
+            if template.post_hook.is_some() {
+                format_hook(template, &engine, &mut render_data, template.post_hook.as_ref().unwrap())?;
+            }
         }
         Ok(())
     }
@@ -314,6 +319,7 @@ fn format_hook(
     template: &Template,
     engine: &Engine,
     render_data: &mut Value,
+    hook: &String
 ) -> Result<(), Report> {
     let closest_color: Option<String> =
         if template.colors_to_compare.is_some() && template.compare_to.is_some() {
@@ -327,7 +333,7 @@ fn format_hook(
             None
         };
 
-    let t = engine.compile(template.hook.as_ref().unwrap())?;
+    let t = engine.compile(hook)?;
     let res = if template.colors_to_compare.is_some() && template.compare_to.is_some() {
         format_hook_text(render_data, closest_color, t)
     } else {
