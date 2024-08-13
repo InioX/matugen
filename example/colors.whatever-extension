@@ -25,5 +25,7 @@ source_color {{colors.source_color.default.hex}};
 <* endfor *>
 
 Only works with rgba and hsla
-{{ colors.source_color.default.rgba | set_alpha 0.5 }}
+
+{{ colors.source_color.default.rgba | set_alpha: 0.5 }}
+
 Output: rgba(r, g, b, 0.5)
