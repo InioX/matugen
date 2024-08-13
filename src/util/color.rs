@@ -54,14 +54,24 @@ pub fn format_rgb(color: &Rgb) -> String {
     )
 }
 
-pub fn format_rgba(color: &Rgb) -> String {
-    format!(
-        "rgba({:?}, {:?}, {:?}, {:?})",
-        color.red() as u8,
-        color.green() as u8,
-        color.blue() as u8,
-        color.alpha() as u8
-    )
+pub fn format_rgba(color: &Rgb, float: bool) -> String {
+    if float {
+        format!(
+            "rgba({:?}, {:?}, {:?}, {:?})",
+            color.red() as u8,
+            color.green() as u8,
+            color.blue() as u8,
+            color.alpha()
+        )
+    } else {
+        format!(
+            "rgba({:?}, {:?}, {:?}, {:?})",
+            color.red() as u8,
+            color.green() as u8,
+            color.blue() as u8,
+            color.alpha() as u8
+        )
+    }
 }
 
 pub fn format_rgba_float(color: &Rgb) -> String {
@@ -83,14 +93,24 @@ pub fn format_hsl(color: &Hsl) -> String {
     )
 }
 
-pub fn format_hsla(color: &Hsl) -> String {
-    format!(
-        "hsla({:?}, {:?}%, {:?}%, {:?})",
-        color.hue() as u8,
-        color.saturation() as u8,
-        color.lightness() as u8,
-        color.alpha() as u8
-    )
+pub fn format_hsla(color: &Hsl, float: bool) -> String {
+    if float {
+        format!(
+            "hsla({:?}, {:?}%, {:?}%, {:?})",
+            color.hue() as u8,
+            color.saturation() as u8,
+            color.lightness() as u8,
+            color.alpha()
+        )
+    } else {
+        format!(
+            "hsla({:?}, {:?}%, {:?}%, {:?})",
+            color.hue() as u8,
+            color.saturation() as u8,
+            color.lightness() as u8,
+            color.alpha() as u8
+        )
+    }
 }
 
 pub fn format_hsla_float(color: &Hsl) -> String {

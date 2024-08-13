@@ -50,7 +50,7 @@ pub fn set_lightness(value: &Value, amount: f64) -> Result<String, String> {
 
             color.lighten(amount);
 
-            Ok(format_rgba(&color))
+            Ok(format_rgba(&color, true))
         }
         "hsl" => {
             let mut color = Hsl::from_str(string).unwrap();
@@ -64,7 +64,7 @@ pub fn set_lightness(value: &Value, amount: f64) -> Result<String, String> {
 
             color.lighten(amount);
 
-            Ok(format_hsla(&color))
+            Ok(format_hsla(&color, true))
         }
         v => Ok(v.to_string()),
     }
@@ -92,13 +92,13 @@ pub fn set_alpha(value: &Value, amount: f64) -> Result<String, String> {
         "rgba" => {
             let mut color = Rgb::from_str(string).unwrap();
             color.set_alpha(amount);
-            Ok(format_rgba_float(&color))
+            Ok(format_rgba(&color, true))
         }
         "hsl" => Err("cannot set alpha on hsl color, use hsla".to_string()),
         "hsla" => {
             let mut color = Hsl::from_str(string).unwrap();
             color.set_alpha(amount);
-            Ok(format_hsla_float(&color))
+            Ok(format_hsla(&color, true))
         }
         v => Ok(v.to_string()),
     }
