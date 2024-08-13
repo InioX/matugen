@@ -92,13 +92,13 @@ pub fn set_alpha(value: &Value, amount: f64) -> Result<String, String> {
         "rgba" => {
             let mut color = Rgb::from_str(string).unwrap();
             color.set_alpha(amount);
-            Ok(format_rgba(&color, true))
+            Ok(format_rgba(&color, false))
         }
         "hsl" => Err("cannot set alpha on hsl color, use hsla".to_string()),
         "hsla" => {
             let mut color = Hsl::from_str(string).unwrap();
             color.set_alpha(amount);
-            Ok(format_hsla(&color, true))
+            Ok(format_hsla(&color, false))
         }
         v => Ok(v.to_string()),
     }
