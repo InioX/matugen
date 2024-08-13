@@ -54,10 +54,10 @@ pub fn format_rgb(color: &Rgb) -> String {
     )
 }
 
-pub fn format_rgba(color: &Rgb, float: bool) -> String {
-    if float {
+pub fn format_rgba(color: &Rgb, divide: bool) -> String {
+    if divide {
         format!(
-            "rgba({:?}, {:?}, {:?}, {:?})",
+            "rgba({:?}, {:?}, {:?}, {:.1})",
             color.red() as u8,
             color.green() as u8,
             color.blue() as u8,
@@ -65,11 +65,11 @@ pub fn format_rgba(color: &Rgb, float: bool) -> String {
         )
     } else {
         format!(
-            "rgba({:?}, {:?}, {:?}, {:?})",
+            "rgba({:?}, {:?}, {:?}, {:.1})",
             color.red() as u8,
             color.green() as u8,
             color.blue() as u8,
-            color.alpha() as u8
+            color.alpha()
         )
     }
 }
@@ -93,10 +93,10 @@ pub fn format_hsl(color: &Hsl) -> String {
     )
 }
 
-pub fn format_hsla(color: &Hsl, float: bool) -> String {
-    if float {
+pub fn format_hsla(color: &Hsl, divide: bool) -> String {
+    if divide {
         format!(
-            "hsla({:?}, {:?}%, {:?}%, {:?})",
+            "hsla({:?}, {:?}%, {:?}%, {:.1})",
             color.hue() as u8,
             color.saturation() as u8,
             color.lightness() as u8,
@@ -104,11 +104,11 @@ pub fn format_hsla(color: &Hsl, float: bool) -> String {
         )
     } else {
         format!(
-            "hsla({:?}, {:?}%, {:?}%, {:?})",
+            "hsla({:?}, {:?}%, {:?}%, {:.1})",
             color.hue() as u8,
             color.saturation() as u8,
             color.lightness() as u8,
-            color.alpha() as u8
+            color.alpha()
         )
     }
 }
