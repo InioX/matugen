@@ -131,7 +131,7 @@ pub fn get_color_distance_lab(c1: &str, c2: &str) -> f64 {
     let a: f64 = c1.a - c2.a;
     let b: f64 = c1.b - c2.b;
 
-    return f64::sqrt((l * l) + (a * a) + (b * b));
+    f64::sqrt((l * l) + (a * a) + (b * b))
 }
 
 // for rgb - useless but ill keep it here
@@ -153,7 +153,7 @@ pub fn color_to_string(colors_to_compare: &Vec<ColorDefinition>, compare_to: &St
     let mut closest_color: &str = "";
 
     for c in colors_to_compare {
-        let distance = get_color_distance_lab(&c.color, &compare_to);
+        let distance = get_color_distance_lab(&c.color, compare_to);
         if closest_distance.is_none() || closest_distance.unwrap() > distance {
             closest_distance = Some(distance);
             closest_color = &c.name;
@@ -164,7 +164,7 @@ pub fn color_to_string(colors_to_compare: &Vec<ColorDefinition>, compare_to: &St
         "closest distance: {:?}, closest color: {}",
         closest_distance, closest_color
     );
-    return closest_color.to_string();
+    closest_color.to_string()
 }
 
 pub fn generate_dynamic_scheme(
@@ -218,7 +218,10 @@ pub fn make_custom_color(
     let light = generate_dynamic_scheme(scheme_type, value, false, contrast_level);
     let dark = generate_dynamic_scheme(scheme_type, value, true, contrast_level);
 
-    let custom_color = CustomColorGroup {
+    
+
+    // debug!("custom_color: {:#?}", &custom_color);
+    CustomColorGroup {
         color,
         value,
         light: ColorGroup {
@@ -233,10 +236,7 @@ pub fn make_custom_color(
             color_container: MaterialDynamicColors::primary_container().get_argb(&dark),
             on_color_container: MaterialDynamicColors::on_primary_container().get_argb(&dark),
         },
-    };
-
-    // debug!("custom_color: {:#?}", &custom_color);
-    custom_color
+    }
 }
 
 pub fn show_color(schemes: &Schemes, source_color: &Argb) {

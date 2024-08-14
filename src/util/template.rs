@@ -10,16 +10,14 @@ use serde::{Deserialize, Serialize};
 
 use upon::Value;
 
-use crate::util::color;
 use crate::util::color::color_to_string;
 use crate::util::filters::{set_alpha, set_lightness};
 use crate::util::variables::format_hook_text;
 
-use std::fs::canonicalize;
 use std::path::Path;
 use std::str;
 
-use std::process::{Command, Stdio};
+use std::process::{Stdio};
 
 use execute::{shell, Execute};
 
@@ -84,7 +82,10 @@ struct ColorVariants {
 
 use super::color::rgb_from_argb;
 
-pub trait StripCanonicalization where Self: AsRef<Path> {
+pub trait StripCanonicalization
+where
+    Self: AsRef<Path>,
+{
     #[cfg(not(target_os = "windows"))]
     fn strip_canonicalization(&self) -> PathBuf {
         self.as_ref().to_path_buf()
@@ -137,7 +138,7 @@ impl Template {
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
         path_prefix: &Option<PathBuf>,
-        config_path: Option<PathBuf>
+        config_path: Option<PathBuf>,
     ) -> Result<(), Report> {
         let default_prefix = "@".to_string();
 
@@ -181,14 +182,33 @@ impl Template {
             let output_path_absolute = template.output_path.try_resolve()?;
 
             let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
-                let base = std::fs::canonicalize(&config_path.as_ref().unwrap())?;
-                (template.input_path.try_resolve_in(&base)?.to_path_buf().strip_canonicalization(), template.output_path.try_resolve_in(&base)?.to_path_buf().strip_canonicalization())
+                let base = std::fs::canonicalize(config_path.as_ref().unwrap())?;
+                (
+                    template
+                        .input_path
+                        .try_resolve_in(&base)?
+                        .to_path_buf()
+                        .strip_canonicalization(),
+                    template
+                        .output_path
+                        .try_resolve_in(&base)?
+                        .to_path_buf()
+                        .strip_canonicalization(),
+                )
             } else {
-                (template.input_path.try_resolve()?.to_path_buf(), template.output_path.try_resolve()?.to_path_buf())
+                (
+                    template.input_path.try_resolve()?.to_path_buf(),
+                    template.output_path.try_resolve()?.to_path_buf(),
+                )
             };
 
             if template.pre_hook.is_some() {
-                format_hook(template, &engine, &mut render_data, template.pre_hook.as_ref().unwrap())?;
+                format_hook(
+                    template,
+                    &engine,
+                    &mut render_data,
+                    template.pre_hook.as_ref().unwrap(),
+                )?;
             }
 
             if !input_path_absolute.exists() {
@@ -244,7 +264,12 @@ impl Template {
             )?;
 
             if template.post_hook.is_some() {
-                format_hook(template, &engine, &mut render_data, template.post_hook.as_ref().unwrap())?;
+                format_hook(
+                    template,
+                    &engine,
+                    &mut render_data,
+                    template.post_hook.as_ref().unwrap(),
+                )?;
             }
         }
         Ok(())
@@ -277,8 +302,7 @@ fn export_template(
         })?;
     let out = if path_prefix.is_some() && !cfg!(windows) {
         let prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
-        rebase(&output_path_absolute, &prefix_path, None)
-            .expect("failed to rebase output path")
+        rebase(&output_path_absolute, &prefix_path, None).expect("failed to rebase output path")
     } else {
         output_path_absolute.to_path_buf()
     };
@@ -319,14 +343,14 @@ fn format_hook(
     template: &Template,
     engine: &Engine,
     render_data: &mut Value,
-    hook: &String
+    hook: &String,
 ) -> Result<(), Report> {
     let closest_color: Option<String> =
         if template.colors_to_compare.is_some() && template.compare_to.is_some() {
             let s = engine.compile(template.compare_to.as_ref().unwrap())?;
-            let compare_to = s.render(&engine, &render_data).to_string()?;
+            let compare_to = s.render(engine, &render_data).to_string()?;
             Some(color_to_string(
-                &template.colors_to_compare.as_ref().unwrap(),
+                template.colors_to_compare.as_ref().unwrap(),
                 &compare_to,
             ))
         } else {
@@ -353,7 +377,7 @@ fn format_hook(
     } else {
         eprintln!("Interrupted!");
     }
-    
+
     Ok(())
 }
 
