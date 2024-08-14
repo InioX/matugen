@@ -1,6 +1,7 @@
 use clap::{arg, ArgAction, Parser, Subcommand};
 use std::path::PathBuf;
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Clone, clap::ValueEnum, Debug, Copy)]
 pub enum SchemeTypes {
     SchemeContent,

@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments)]
+
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate paris_log;
