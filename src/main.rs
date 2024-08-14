@@ -87,9 +87,8 @@ fn main() -> Result<(), Report> {
         .iter()
         .map(|(name, color)| {
             make_custom_color(
-                color
-                    .to_custom_color(name.to_string())
-                    .expect(&format!("Failed to parse custom color: {}, {:?}", name, color)),
+                color.to_custom_color(name.to_string()).unwrap_or_else(|_| panic!("Failed to parse custom color: {}, {:?}",
+                    name, color)),
                 &args.r#type,
                 source_color,
                 args.contrast,
@@ -142,7 +141,7 @@ fn main() -> Result<(), Report> {
             &default_scheme,
             &config.config.custom_keywords,
             &args.prefix,
-            config_path
+            config_path,
         )?;
 
         if config.config.reload_apps == Some(true) {
@@ -171,7 +170,7 @@ fn main() -> Result<(), Report> {
             };
 
             #[cfg(target_os = "windows")]
-            wallpaper::windows::set(&path)?;
+            wallpaper::windows::set(path)?;
 
             #[cfg(target_os = "macos")]
             wallpaper::macos::set(&path)?;

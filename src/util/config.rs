@@ -87,7 +87,10 @@ const DEFAULT_CONFIG: &str = r#"
 impl ConfigFile {
     pub fn read(args: &Cli) -> Result<(ConfigFile, Option<PathBuf>), Report> {
         match &args.config {
-            Some(config_file) => Ok((Self::read_from_custom_path(config_file)?, Some(config_file.to_path_buf()))),
+            Some(config_file) => Ok((
+                Self::read_from_custom_path(config_file)?,
+                Some(config_file.to_path_buf()),
+            )),
             None => Ok(Self::read_from_proj_path()?),
         }
     }
