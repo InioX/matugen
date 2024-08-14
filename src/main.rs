@@ -209,9 +209,10 @@ fn check_version() {
 fn setup_logging(log_level: LevelFilter) -> Result<(), Report> {
     let mut logger = pretty_env_logger::env_logger::builder();
     
-    logger.format_timestamp(None).filter_level(log_level);
+    logger.filter_level(log_level);
 
     if log_level != LevelFilter::Debug {
+        logger.format_timestamp(None);
         logger.format_module_path(false);
         logger.format(|buf, record| writeln!(buf, "{}", record.args()));
     }
