@@ -82,6 +82,7 @@ struct ColorVariants {
 
 use super::color::rgb_from_argb;
 
+#[allow(clippy::manual_strip)]
 pub trait StripCanonicalization
 where
     Self: AsRef<Path>,
@@ -112,7 +113,7 @@ pub fn check_string_value(value: &Value) -> Option<&String> {
     }
 }
 
-pub fn parse_color(string: &String) -> Option<&str> {
+pub fn parse_color(string: &str) -> Option<&str> {
     if let Some(_s) = string.strip_prefix('#') {
         return Some("hex");
     }
@@ -178,9 +179,6 @@ impl Template {
         // debug!("render_data: {:#?}", &render_data);
 
         for (i, (name, template)) in templates.iter().enumerate() {
-            let input_path_absolute = template.input_path.try_resolve()?;
-            let output_path_absolute = template.output_path.try_resolve()?;
-
             let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
                 let base = std::fs::canonicalize(config_path.as_ref().unwrap())?;
                 (
