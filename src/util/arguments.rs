@@ -1,18 +1,5 @@
-use clap::{arg, ArgAction, Parser, Subcommand};
+use clap::{arg, ArgAction, Parser};
 use std::path::PathBuf;
-
-#[allow(clippy::enum_variant_names)]
-#[derive(Clone, clap::ValueEnum, Debug, Copy)]
-pub enum SchemeTypes {
-    SchemeContent,
-    SchemeExpressive,
-    SchemeFidelity,
-    SchemeFruitSalad,
-    SchemeMonochrome,
-    SchemeNeutral,
-    SchemeRainbow,
-    SchemeTonalSpot,
-}
 
 use crate::SchemesEnum;
 
@@ -22,7 +9,7 @@ pub struct Cli {
     /// Optional name to operate on
     // name: Option<String>,
     #[command(subcommand)]
-    pub source: Source,
+    pub source: matugen::color::color::Source,
 
     /// Sets a custom color scheme type
     #[arg(
@@ -32,7 +19,7 @@ pub struct Cli {
         global = true,
         default_value = "scheme-tonal-spot"
     )]
-    pub r#type: Option<SchemeTypes>,
+    pub r#type: Option<matugen::scheme::scheme::SchemeTypes>,
 
     /// Sets a custom config file
     #[arg(short, long, value_name = "FILE", global = true)]
@@ -87,17 +74,6 @@ pub struct Cli {
         default_value = None,
     )]
     pub json: Option<Format>,
-}
-
-#[derive(Subcommand, Debug)]
-pub enum Source {
-    /// The image to use for generating a color scheme
-    Image { path: String },
-    /// The image to fetch from web and use for generating a color scheme
-    WebImage { url: String },
-    /// The source color to use for generating a color scheme
-    #[clap(subcommand)]
-    Color(ColorFormat),
 }
 
 #[derive(Parser, Debug)]
