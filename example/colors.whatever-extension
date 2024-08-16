@@ -28,4 +28,16 @@ Only works with rgba and hsla
 
 {{ colors.source_color.default.rgba | set_alpha: 0.5 }}
 
-Output: rgba(r, g, b, 0.5)
+- 180
+{{ colors.source_color.default.rgba | set_hue: -180.0 }}
+
++ 90
+{{ colors.source_color.default.rgba | set_hue: 90.0 }}
+
+grayscale
+{{ colors.source_color.default.rgba | grayscale }}
+
+invert
+{{ colors.source_color.default.rgba | invert }}
+
+chain together {{ colors.source_color.default.rgba | set_alpha: 0.7 | set_hue: -180.0 | invert }}
