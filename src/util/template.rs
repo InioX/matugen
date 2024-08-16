@@ -10,16 +10,11 @@ use serde::{Deserialize, Serialize};
 
 use upon::Value;
 
-use crate::util::color::color_to_string;
-use crate::util::filters::{set_alpha, set_lightness};
-use crate::util::variables::format_hook_text;
+use matugen::filters::{alpha::set_alpha, lightness::set_lightness};
+use matugen::exec::hook::format_hook;
 
 use std::path::Path;
 use std::str;
-
-use std::process::{Stdio};
-
-use execute::{shell, Execute};
 
 use std::collections::HashMap;
 use std::fs::create_dir_all;
@@ -28,11 +23,11 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 
-use crate::util::color::{
+use matugen::color::format::{
     format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
 };
 
-use crate::util::arguments::Source;
+use matugen::color::color::Source;
 use resolve_path::PathResolveExt;
 
 use crate::{Schemes, SchemesEnum};
@@ -40,17 +35,11 @@ use crate::{Schemes, SchemesEnum};
 use upon::{Engine, Syntax};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ColorDefinition {
-    pub name: String,
-    pub color: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub struct Template {
     pub input_path: PathBuf,
     pub output_path: PathBuf,
     pub mode: Option<SchemesEnum>,
-    pub colors_to_compare: Option<Vec<ColorDefinition>>,
+    pub colors_to_compare: Option<Vec<matugen::color::color::ColorDefinition>>,
     pub compare_to: Option<String>,
     pub pre_hook: Option<String>,
     pub post_hook: Option<String>,
@@ -80,7 +69,7 @@ struct ColorVariants {
     pub default: Colora,
 }
 
-use super::color::rgb_from_argb;
+use matugen::color::format::rgb_from_argb;
 
 #[allow(clippy::manual_strip)]
 pub trait StripCanonicalization
@@ -106,48 +95,17 @@ where
 
 impl StripCanonicalization for PathBuf {}
 
-pub fn check_string_value(value: &Value) -> Option<&String> {
-    match value {
-        Value::String(v) => Some(v),
-        _v => None,
-    }
-}
-
-pub fn parse_color(string: &str) -> Option<&str> {
-    if let Some(_s) = string.strip_prefix('#') {
-        return Some("hex");
-    }
-
-    if let (Some(i), Some(s)) = (string.find('('), string.strip_suffix(')')) {
-        let fname = s[..i].trim_end();
-        Some(fname)
-    } else if string.len() == 6 {
-        // Does not matter if it is actually a stripped hex or not, we handle it somewhere else.
-        return Some("hex_stripped");
-    } else {
-        None
-    }
-}
-
 impl Template {
     pub fn generate(
         schemes: &Schemes,
         templates: &HashMap<String, Template>,
         source: &Source,
-        prefix: &Option<String>,
         source_color: &Argb,
         default_scheme: &SchemesEnum,
         custom_keywords: &Option<HashMap<String, String>>,
         path_prefix: &Option<PathBuf>,
         config_path: Option<PathBuf>,
     ) -> Result<(), Report> {
-        let default_prefix = "@".to_string();
-
-        let _prefix: &String = match &prefix {
-            Some(prefix) => prefix,
-            None => &default_prefix,
-        };
-
         info!("Loaded <b><cyan>{}</> templates.", &templates.len());
 
         let syntax = Syntax::builder().expr("{{", "}}").block("<*", "*>").build();
@@ -175,38 +133,17 @@ impl Template {
             colors: &colors, image: image, custom: &custom,
         };
 
-        // let default_fill_value = String::from("-");
-        // debug!("render_data: {:#?}", &render_data);
-
         for (i, (name, template)) in templates.iter().enumerate() {
-            let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
-                let base = std::fs::canonicalize(config_path.as_ref().unwrap())?;
-                (
-                    template
-                        .input_path
-                        .try_resolve_in(&base)?
-                        .to_path_buf()
-                        .strip_canonicalization(),
-                    template
-                        .output_path
-                        .try_resolve_in(&base)?
-                        .to_path_buf()
-                        .strip_canonicalization(),
-                )
-            } else {
-                (
-                    template.input_path.try_resolve()?.to_path_buf(),
-                    template.output_path.try_resolve()?.to_path_buf(),
-                )
-            };
+            let (input_path_absolute, output_path_absolute) = get_absolute_paths(&config_path, template)?;
 
             if template.pre_hook.is_some() {
                 format_hook(
-                    template,
                     &engine,
                     &mut render_data,
                     template.pre_hook.as_ref().unwrap(),
-                )?;
+                    &template.colors_to_compare,
+                    &template.compare_to
+                ).unwrap();
             }
 
             if !input_path_absolute.exists() {
@@ -234,22 +171,6 @@ impl Template {
                 output_path_absolute.display()
             );
 
-            let parent_folder = &output_path_absolute
-                .parent()
-                .wrap_err("Could not get the parent of the output path.")?;
-
-            if !parent_folder.exists() {
-                error!(
-                    "The <b><yellow>{}</> folder doesnt exist, trying to create...",
-                    &parent_folder.display()
-                );
-                debug!("{}", parent_folder.display());
-                let _ = create_dir_all(parent_folder).wrap_err(format!(
-                    "Failed to create the {} folders.",
-                    &output_path_absolute.display()
-                ));
-            }
-
             export_template(
                 &engine,
                 name,
@@ -263,15 +184,57 @@ impl Template {
 
             if template.post_hook.is_some() {
                 format_hook(
-                    template,
                     &engine,
                     &mut render_data,
                     template.post_hook.as_ref().unwrap(),
-                )?;
+                    &template.colors_to_compare,
+                    &template.compare_to
+                ).unwrap();
             }
         }
         Ok(())
     }
+}
+
+fn create_missing_folders(output_path_absolute: &PathBuf) -> Result<(), Report> {
+    let parent_folder = &output_path_absolute
+        .parent()
+        .wrap_err("Could not get the parent of the output path.")?;
+    Ok(if !parent_folder.exists() {
+        error!(
+            "The <b><yellow>{}</> folder doesnt exist, trying to create...",
+            &parent_folder.display()
+        );
+        debug!("{}", parent_folder.display());
+        let _ = create_dir_all(parent_folder).wrap_err(format!(
+            "Failed to create the {} folders.",
+            &output_path_absolute.display()
+        ));
+    })
+}
+
+fn get_absolute_paths(config_path: &Option<PathBuf>, template: &Template) -> Result<(PathBuf, PathBuf), Report> {
+    let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
+        let base = std::fs::canonicalize(config_path.as_ref().unwrap())?;
+        (
+            template
+                .input_path
+                .try_resolve_in(&base)?
+                .to_path_buf()
+                .strip_canonicalization(),
+            template
+                .output_path
+                .try_resolve_in(&base)?
+                .to_path_buf()
+                .strip_canonicalization(),
+        )
+    } else {
+        (
+            template.input_path.try_resolve()?.to_path_buf(),
+            template.output_path.try_resolve()?.to_path_buf(),
+        )
+    };
+    Ok((input_path_absolute, output_path_absolute))
 }
 
 fn export_template(
@@ -298,24 +261,30 @@ fn export_template(
 
             Report::new(error).wrap_err(message)
         })?;
+
     let out = if path_prefix.is_some() && !cfg!(windows) {
         let prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
         rebase(&output_path_absolute, &prefix_path, None).expect("failed to rebase output path")
     } else {
         output_path_absolute.to_path_buf()
     };
+
+    create_missing_folders(&out)?;
+
     debug!("out: {:?}", out);
     let mut output_file = OpenOptions::new()
         .create(true)
         .truncate(true)
         .write(true)
         .open(out)?;
+
     if output_file.metadata()?.permissions().readonly() {
         error!(
             "The <b><red>{}</> file is Read-Only",
             &output_path_absolute.display()
         );
     }
+
     output_file.write_all(data.as_bytes())?;
     success!(
         "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
@@ -324,6 +293,7 @@ fn export_template(
         name,
         output_path_absolute.display()
     );
+    
     Ok(())
 }
 
@@ -335,48 +305,6 @@ fn add_engine_filters(engine: &mut Engine) {
     engine.add_filter("replace", |s: String, from: String, to: String| {
         s.replace(&from, &to)
     });
-}
-
-fn format_hook(
-    template: &Template,
-    engine: &Engine,
-    render_data: &mut Value,
-    hook: &String,
-) -> Result<(), Report> {
-    let closest_color: Option<String> =
-        if template.colors_to_compare.is_some() && template.compare_to.is_some() {
-            let s = engine.compile(template.compare_to.as_ref().unwrap())?;
-            let compare_to = s.render(engine, &render_data).to_string()?;
-            Some(color_to_string(
-                template.colors_to_compare.as_ref().unwrap(),
-                &compare_to,
-            ))
-        } else {
-            None
-        };
-
-    let t = engine.compile(hook)?;
-    let res = if template.colors_to_compare.is_some() && template.compare_to.is_some() {
-        format_hook_text(render_data, closest_color, t)
-    } else {
-        format_hook_text(render_data, None, t)
-    };
-
-    let mut command = shell(&res);
-
-    command.stdout(Stdio::inherit());
-
-    let output = command.execute_output()?;
-
-    if let Some(exit_code) = output.status.code() {
-        if exit_code != 0 {
-            error!("Failed executing command: {:?}", &res)
-        }
-    } else {
-        eprintln!("Interrupted!");
-    }
-
-    Ok(())
 }
 
 fn generate_colors(

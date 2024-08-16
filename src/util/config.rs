@@ -1,8 +1,7 @@
 use directories::ProjectDirs;
-use material_colors::color::Argb;
 use std::fs;
 use std::path::PathBuf;
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap};
 
 use color_eyre::{Help, Report};
 
@@ -20,33 +19,6 @@ pub enum WallpaperTool {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(untagged)]
-pub enum CustomColor {
-    Color(String),
-    Options { color: String, blend: bool },
-}
-
-impl CustomColor {
-    pub fn to_custom_color(
-        &self,
-        name: String,
-    ) -> Result<material_colors::theme::CustomColor, material_colors::error::Error> {
-        Ok(match self {
-            CustomColor::Color(color) => material_colors::theme::CustomColor {
-                value: Argb::from_str(color)?,
-                blend: true,
-                name,
-            },
-            CustomColor::Options { color, blend } => material_colors::theme::CustomColor {
-                value: Argb::from_str(color)?,
-                blend: *blend,
-                name,
-            },
-        })
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub reload_apps: Option<bool>,
     pub version_check: Option<bool>,
@@ -58,7 +30,7 @@ pub struct Config {
     pub feh_options: Option<Vec<String>>,
     pub prefix: Option<String>,
     pub custom_keywords: Option<HashMap<String, String>>,
-    pub custom_colors: Option<HashMap<String, CustomColor>>,
+    pub custom_colors: Option<HashMap<String, matugen::color::color::OwnCustomColor>>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
