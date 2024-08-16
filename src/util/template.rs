@@ -5,6 +5,9 @@ use color_eyre::{eyre::Result, Report};
 
 use colorsys::{ColorAlpha, Hsl};
 use material_colors::color::Argb;
+use matugen::filters::grayscale::grayscale;
+use matugen::filters::hue::set_hue;
+use matugen::filters::invert::invert;
 use proper_path_tools::path::rebase;
 use serde::{Deserialize, Serialize};
 
@@ -298,8 +301,14 @@ fn export_template(
 }
 
 fn add_engine_filters(engine: &mut Engine) {
+    // Color manipulation
     engine.add_filter("set_lightness", set_lightness);
     engine.add_filter("set_alpha", set_alpha);
+    engine.add_filter("set_hue", set_hue);
+    engine.add_filter("grayscale", grayscale);
+    engine.add_filter("invert", invert);
+
+    // String manipulation
     engine.add_filter("to_upper", str::to_uppercase);
     engine.add_filter("to_lower", str::to_lowercase);
     engine.add_filter("replace", |s: String, from: String, to: String| {
