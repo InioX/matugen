@@ -19,7 +19,7 @@ pub struct Cli {
         global = true,
         default_value = "scheme-tonal-spot"
     )]
-    pub r#type: Option<matugen::scheme::scheme::SchemeTypes>,
+    pub r#type: Option<matugen::scheme::SchemeTypes>,
 
     /// Sets a custom config file
     #[arg(short, long, value_name = "FILE", global = true)]
