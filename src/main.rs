@@ -4,13 +4,16 @@ extern crate pretty_env_logger;
 #[macro_use]
 extern crate paris_log;
 
-mod reload;
 mod helpers;
-mod wallpaper;
+mod reload;
 mod util;
+mod wallpaper;
 
 use helpers::{check_version, set_wallpaper, setup_logging};
-use matugen::{color::color::get_source_color, scheme::scheme::{get_custom_color_schemes, get_schemes}};
+use matugen::{
+    color::color::get_source_color,
+    scheme::scheme::{get_custom_color_schemes, get_schemes},
+};
 
 use crate::util::{
     arguments::Cli,
@@ -22,7 +25,7 @@ use crate::util::{
 use clap::Parser;
 use color_eyre::{eyre::Result, Report};
 
-use matugen::scheme::scheme::{SchemesEnum, Schemes};
+use matugen::scheme::scheme::{Schemes, SchemesEnum};
 
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
@@ -44,7 +47,14 @@ fn main() -> Result<(), Report> {
         .mode
         .expect("Something went wrong while parsing the mode");
 
-    let schemes = get_custom_color_schemes(source_color, scheme_dark, scheme_light, &config.config.custom_colors, &args.r#type, &args.contrast);
+    let schemes = get_custom_color_schemes(
+        source_color,
+        scheme_dark,
+        scheme_light,
+        &config.config.custom_colors,
+        &args.r#type,
+        &args.contrast,
+    );
 
     if args.show_colors == Some(true) {
         show_color(&schemes, &source_color);
@@ -72,7 +82,7 @@ fn main() -> Result<(), Report> {
         }
 
         if config.config.set_wallpaper == Some(true) {
-            set_wallpaper(&args.source)?;
+            set_wallpaper(&args.source, &config.config)?;
         }
     }
 
