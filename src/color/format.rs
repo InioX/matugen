@@ -1,5 +1,5 @@
-use material_colors::color::Argb;
 use colorsys::{ColorAlpha, Hsl, Rgb};
+use material_colors::color::Argb;
 
 pub fn rgb_from_argb(color: Argb) -> Rgb {
     Rgb::from([

@@ -1,2 +1,2 @@
-pub mod hook;
 pub mod command;
+pub mod hook;
