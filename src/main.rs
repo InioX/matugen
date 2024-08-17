@@ -12,7 +12,7 @@ mod wallpaper;
 use helpers::{check_version, set_wallpaper, setup_logging};
 use matugen::{
     color::color::get_source_color,
-    scheme::scheme::{get_custom_color_schemes, get_schemes},
+    scheme::{get_custom_color_schemes, get_schemes},
 };
 
 use crate::util::{
@@ -25,7 +25,7 @@ use crate::util::{
 use clap::Parser;
 use color_eyre::{eyre::Result, Report};
 
-use matugen::scheme::scheme::{Schemes, SchemesEnum};
+use matugen::scheme::{Schemes, SchemesEnum};
 
 fn main() -> Result<(), Report> {
     color_eyre::install()?;

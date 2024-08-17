@@ -14,7 +14,7 @@ use material_colors::{
 use colorsys::{Hsl, Rgb};
 use std::str::FromStr;
 
-use crate::{color::math::get_color_distance_lab, scheme::scheme::SchemeTypes};
+use crate::{color::math::get_color_distance_lab, scheme::SchemeTypes};
 
 #[derive(clap::Parser, Debug)]
 pub enum ColorFormat {
