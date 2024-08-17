@@ -22,13 +22,31 @@ pub struct Schemes {
     pub dark: IndexMap<String, material_colors::color::Argb, ahash::random_state::RandomState>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, clap::ValueEnum)]
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    clap::ValueEnum,
+)]
 pub enum SchemesEnum {
     Light,
     Dark,
 }
 
-pub fn get_custom_color_schemes(source_color: material_colors::color::Argb, scheme_dark: Scheme, scheme_light: Scheme, custom_colors: &Option<HashMap<String, OwnCustomColor, std::hash::RandomState>>, scheme_type: &Option<SchemeTypes>, contrast: &Option<f64>) -> Schemes {
+pub fn get_custom_color_schemes(
+    source_color: material_colors::color::Argb,
+    scheme_dark: Scheme,
+    scheme_light: Scheme,
+    custom_colors: &Option<HashMap<String, OwnCustomColor, std::hash::RandomState>>,
+    scheme_type: &Option<SchemeTypes>,
+    contrast: &Option<f64>,
+) -> Schemes {
     macro_rules! from_color {
         ($color: expr, $variant: ident) => {
             [
@@ -50,7 +68,7 @@ pub fn get_custom_color_schemes(source_color: material_colors::color::Argb, sche
             ]
         };
     }
-    
+
     let empty = HashMap::new();
     let custom_colors = custom_colors
         .as_ref()
@@ -58,8 +76,9 @@ pub fn get_custom_color_schemes(source_color: material_colors::color::Argb, sche
         .iter()
         .map(|(name, color)| {
             make_custom_color(
-                color.to_custom_color(name.to_string()).unwrap_or_else(|_| panic!("Failed to parse custom color: {}, {:?}",
-                    name, color)),
+                color.to_custom_color(name.to_string()).unwrap_or_else(|_| {
+                    panic!("Failed to parse custom color: {}, {:?}", name, color)
+                }),
                 &scheme_type,
                 source_color,
                 *contrast,
@@ -75,9 +94,12 @@ pub fn get_custom_color_schemes(source_color: material_colors::color::Argb, sche
     };
     schemes
 }
-    
-pub fn get_schemes(source_color: material_colors::color::Argb, scheme_type: &Option<SchemeTypes>
-    , contrast: &Option<f64>) -> (Scheme, Scheme) {
+
+pub fn get_schemes(
+    source_color: material_colors::color::Argb,
+    scheme_type: &Option<SchemeTypes>,
+    contrast: &Option<f64>,
+) -> (Scheme, Scheme) {
     let scheme_dark = Scheme::from(generate_dynamic_scheme(
         &scheme_type,
         source_color,
