@@ -9,7 +9,7 @@ mod reload;
 mod util;
 mod wallpaper;
 
-use helpers::{check_version, set_wallpaper, setup_logging};
+use helpers::{set_wallpaper, setup_logging};
 use matugen::{
     color::color::get_source_color,
     scheme::{get_custom_color_schemes, get_schemes},
@@ -35,7 +35,9 @@ fn main() -> Result<(), Report> {
 
     let (config, config_path) = ConfigFile::read(&args)?;
 
+    #[cfg(feature = "update-informer")]
     if config.config.version_check == Some(true) {
+        use crate::helpers::check_version;
         check_version();
     }
 

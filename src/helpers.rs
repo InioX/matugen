@@ -3,7 +3,6 @@ use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
 use matugen::color::color::Source;
 use std::io::Write;
-use update_informer::{registry, Check};
 
 use crate::util::arguments::Cli;
 
@@ -20,11 +19,12 @@ pub fn get_log_level(args: &Cli) -> LevelFilter {
     log_level
 }
 
+#[cfg(feature = "update-informer")]
 pub fn check_version() {
+    use update_informer::{registry, Check};
+
     let name = env!("CARGO_PKG_NAME");
     let current_version = env!("CARGO_PKG_VERSION");
-    // for testing
-    // let current_version = "2.2.0";
 
     let informer = update_informer::new(registry::Crates, name, current_version);
 
