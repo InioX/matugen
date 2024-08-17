@@ -79,7 +79,7 @@ pub fn get_custom_color_schemes(
                 color.to_custom_color(name.to_string()).unwrap_or_else(|_| {
                     panic!("Failed to parse custom color: {}, {:?}", name, color)
                 }),
-                &scheme_type,
+                scheme_type,
                 source_color,
                 *contrast,
             )
@@ -101,13 +101,13 @@ pub fn get_schemes(
     contrast: &Option<f64>,
 ) -> (Scheme, Scheme) {
     let scheme_dark = Scheme::from(generate_dynamic_scheme(
-        &scheme_type,
+        scheme_type,
         source_color,
         true,
         *contrast,
     ));
     let scheme_light = Scheme::from(generate_dynamic_scheme(
-        &scheme_type,
+        scheme_type,
         source_color,
         false,
         *contrast,
