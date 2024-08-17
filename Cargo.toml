@@ -34,7 +34,6 @@ colorsys = "0.6.7"
 
 resolve-path = "0.1.0"
 directories = "5.0"
-proper_path_tools = "0.7.0"
 
 ahash = "0.8.7"
 indexmap = "2.2.2"

@@ -8,13 +8,12 @@ use material_colors::color::Argb;
 use matugen::filters::grayscale::grayscale;
 use matugen::filters::hue::set_hue;
 use matugen::filters::invert::invert;
-use proper_path_tools::path::rebase;
 use serde::{Deserialize, Serialize};
 
 use upon::Value;
 
-use matugen::filters::{alpha::set_alpha, lightness::set_lightness};
 use matugen::exec::hook::format_hook;
+use matugen::filters::{alpha::set_alpha, lightness::set_lightness};
 
 use std::path::Path;
 use std::str;
@@ -137,7 +136,8 @@ impl Template {
         };
 
         for (i, (name, template)) in templates.iter().enumerate() {
-            let (input_path_absolute, output_path_absolute) = get_absolute_paths(&config_path, template)?;
+            let (input_path_absolute, output_path_absolute) =
+                get_absolute_paths(&config_path, template)?;
 
             if template.pre_hook.is_some() {
                 format_hook(
@@ -145,8 +145,9 @@ impl Template {
                     &mut render_data,
                     template.pre_hook.as_ref().unwrap(),
                     &template.colors_to_compare,
-                    &template.compare_to
-                ).unwrap();
+                    &template.compare_to,
+                )
+                .unwrap();
             }
 
             if !input_path_absolute.exists() {
@@ -191,8 +192,9 @@ impl Template {
                     &mut render_data,
                     template.post_hook.as_ref().unwrap(),
                     &template.colors_to_compare,
-                    &template.compare_to
-                ).unwrap();
+                    &template.compare_to,
+                )
+                .unwrap();
             }
         }
         Ok(())
@@ -216,7 +218,10 @@ fn create_missing_folders(output_path_absolute: &PathBuf) -> Result<(), Report> 
     })
 }
 
-fn get_absolute_paths(config_path: &Option<PathBuf>, template: &Template) -> Result<(PathBuf, PathBuf), Report> {
+fn get_absolute_paths(
+    config_path: &Option<PathBuf>,
+    template: &Template,
+) -> Result<(PathBuf, PathBuf), Report> {
     let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
         let base = std::fs::canonicalize(config_path.as_ref().unwrap())?;
         (
@@ -266,8 +271,16 @@ fn export_template(
         })?;
 
     let out = if path_prefix.is_some() && !cfg!(windows) {
-        let prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
-        rebase(&output_path_absolute, &prefix_path, None).expect("failed to rebase output path")
+        let mut prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
+
+        // remove the root from the output_path so that we can push it onto the prefix
+        let output_path = output_path_absolute
+            .strip_prefix("/")
+            .expect("output_path_absolute is not an absolute path.");
+
+        prefix_path.push(&output_path);
+
+        prefix_path
     } else {
         output_path_absolute.to_path_buf()
     };
@@ -296,7 +309,7 @@ fn export_template(
         name,
         output_path_absolute.display()
     );
-    
+
     Ok(())
 }
 
