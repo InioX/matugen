@@ -14,7 +14,7 @@ pub fn format_hook(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let closest_color: Option<String> = if colors_to_compare.is_some() && compare_to.is_some() {
         let s = engine.compile(compare_to.as_ref().unwrap())?;
-        let compare_to = s.render(engine, &render_data).to_string()?;
+        let compare_to = s.render(engine, &*render_data).to_string()?;
         Some(color_to_string(
             colors_to_compare.as_ref().unwrap(),
             &compare_to,
@@ -64,7 +64,7 @@ pub fn format_hook_text(
         }
     }
 
-    let data = template.render(&engine, &render_data).to_string().unwrap();
+    let data = template.render(&engine, render_data).to_string().unwrap();
 
     data
 }

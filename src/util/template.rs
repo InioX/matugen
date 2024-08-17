@@ -201,11 +201,11 @@ impl Template {
     }
 }
 
-fn create_missing_folders(output_path_absolute: &PathBuf) -> Result<(), Report> {
+fn create_missing_folders(output_path_absolute: &Path) -> Result<(), Report> {
     let parent_folder = &output_path_absolute
         .parent()
         .wrap_err("Could not get the parent of the output path.")?;
-    Ok(if !parent_folder.exists() {
+    if !parent_folder.exists() {
         error!(
             "The <b><yellow>{}</> folder doesnt exist, trying to create...",
             &parent_folder.display()
@@ -215,7 +215,8 @@ fn create_missing_folders(output_path_absolute: &PathBuf) -> Result<(), Report> 
             "Failed to create the {} folders.",
             &output_path_absolute.display()
         ));
-    })
+    };
+    Ok(())
 }
 
 fn get_absolute_paths(
@@ -278,7 +279,7 @@ fn export_template(
             .strip_prefix("/")
             .expect("output_path_absolute is not an absolute path.");
 
-        prefix_path.push(&output_path);
+        prefix_path.push(output_path);
 
         prefix_path
     } else {

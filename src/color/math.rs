@@ -25,9 +25,9 @@ pub fn get_color_distance(c1: &Rgb, c2: &Rgb) -> f64 {
     let weight_g: f64 = 4.0;
     let weight_b: f64 = 2.0 + (255.0 - rmean) / 256.0;
 
-    return f64::sqrt(
+    f64::sqrt(
         weight_r * i64::pow(r1 - r2, 2) as f64
             + weight_g * i64::pow(g1 - g2, 2) as f64
             + weight_b * i64::pow(b1 - b2, 2) as f64,
-    );
+    )
 }

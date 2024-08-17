@@ -37,7 +37,7 @@ pub fn check_version() {
 }
 
 pub fn setup_logging(args: &Cli) -> Result<(), Report> {
-    let log_level = get_log_level(&args);
+    let log_level = get_log_level(args);
 
     let mut logger = pretty_env_logger::env_logger::builder();
 
