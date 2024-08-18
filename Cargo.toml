@@ -27,7 +27,7 @@ color-eyre = { version = "0.6.2", default-features = false }
 pretty_env_logger = "0.5.0"
 paris-log = { version = "1.0.2", features = ["icons"] }
 log = "0.4.17"
-prettytable-rs = "0.10.0"
+prettytable-rs = { default-features = false, version = "0.10.0" }
 update-informer = { version = "1.1.0", optional = true }
 reqwest = { version = "0.11.23", default-features = false, features = [
   "blocking",
@@ -35,19 +35,19 @@ reqwest = { version = "0.11.23", default-features = false, features = [
 ], optional = true }
 
 owo-colors = "4.0.0"
-colorsys = "0.6.7"
+colorsys = { default-features = false, version = "0.6.7" }
 
 resolve-path = "0.1.0"
 directories = "5.0"
 
-ahash = "0.8.7"
-indexmap = "2.2.2"
+ahash = { default-features = false, version = "0.8.7" }
+indexmap = { default-features = false, version = "2.2.2" }
 
-image = "0.24.7"
-upon = "0.8.0"
-clap = { version = "4.2.4", features = ["derive"] }
-serde = { version = "1.0.160", features = ["derive"] }
+image = { default-features = false, version = "0.24.7" }
+upon = { features = ["filters", "serde"], default-features = false, version = "0.8.0" }
+clap = { version = "4.2.4", features = ["derive", "std"], default-features = false }
+serde = { version = "1.0.160", features = ["serde_derive", "std"], default-features = false }
 serde_json = { version = "1.0.107", optional = true }
-toml = "0.8.8"
+toml = { features = ["parse"], default-features = false, version = "0.8.8" }
 material-colors = { version = "0.4.0", features = ["image"] }
 execute = "0.2.13"
