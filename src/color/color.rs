@@ -27,8 +27,11 @@ pub enum ColorFormat {
 pub enum Source {
     /// The image to use for generating a color scheme
     Image { path: String },
+
+    #[cfg(feature = "web-image")]
     /// The image to fetch from web and use for generating a color scheme
     WebImage { url: String },
+
     /// The source color to use for generating a color scheme
     #[clap(subcommand)]
     Color(crate::color::color::ColorFormat),
@@ -68,19 +71,21 @@ impl OwnCustomColor {
 }
 
 pub fn get_source_color(source: &Source) -> Result<Argb, Box<dyn std::error::Error>> {
-    let source_color: Argb = match &source {
+    use crate::color::color;
+
+    let source_color: Argb = match source {
         Source::Image { path } => {
             // test
             info!("Opening image in <d><u>{}</>", path);
-            crate::color::color::get_source_color_from_image(path)
-                .expect("Could not get source color from image")
+            color::get_source_color_from_image(path).expect("Could not get source color from image")
         }
+        #[cfg(feature = "web-image")]
         Source::WebImage { url } => {
             info!("Fetching image from <d><u>{}</>", url);
-            crate::color::color::get_source_color_from_web_image(url)
+            color::get_source_color_from_web_image(url)
                 .expect("Could not get source color from web image")
         }
-        Source::Color(color) => crate::color::color::get_source_color_from_color(color)
+        Source::Color(color) => color::get_source_color_from_color(color)
             .expect("Could not get source color from color"),
     };
     Ok(source_color)
@@ -94,6 +99,7 @@ pub fn get_source_color_from_image(path: &str) -> Result<Argb, Box<dyn std::erro
     )))
 }
 
+#[cfg(feature = "web-image")]
 pub fn get_source_color_from_web_image(url: &str) -> Result<Argb, Box<dyn std::error::Error>> {
     let bytes = reqwest::blocking::get(url)?.bytes()?;
     Ok(ImageReader::extract_color(
