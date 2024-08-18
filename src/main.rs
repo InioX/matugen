@@ -15,12 +15,7 @@ use matugen::{
     scheme::{get_custom_color_schemes, get_schemes},
 };
 
-use crate::util::{
-    arguments::Cli,
-    color::{dump_json, show_color},
-    config::ConfigFile,
-    template::Template,
-};
+use crate::util::{arguments::Cli, color::show_color, config::ConfigFile, template::Template};
 
 use clap::Parser;
 use color_eyre::{eyre::Result, Report};
@@ -62,7 +57,9 @@ fn main() -> Result<(), Report> {
         show_color(&schemes, &source_color);
     }
 
+    #[cfg(feature = "dump-json")]
     if let Some(ref format) = args.json {
+        use crate::util::color::dump_json;
         dump_json(&schemes, &source_color, format);
     }
 
