@@ -14,15 +14,15 @@ edition = "2021"
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winuser"] }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+enquote = "1.1.0"
+
 [features]
 update-informer = ["dep:update-informer"]
 web-image = ["dep:reqwest"]
 dump-json = ["dep:serde_json"]
 
 [dependencies]
-# This is here because of #43
-enquote = "1.1.0"
-
 color-eyre = { version = "0.6.2", default-features = false }
 pretty_env_logger = "0.5.0"
 paris-log = { version = "1.0.2", features = ["icons"] }
