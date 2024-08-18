@@ -60,6 +60,7 @@ pub fn set_wallpaper(source: &Source, config: &Config) -> Result<(), Report> {
     let path = match &source {
         Source::Image { path } => path,
         Source::Color { .. } => return Ok(()),
+        #[cfg(feature = "web-image")]
         Source::WebImage { .. } => return Ok(()),
     };
     #[cfg(any(target_os = "linux", target_os = "netbsd"))]

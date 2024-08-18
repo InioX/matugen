@@ -117,6 +117,7 @@ impl Template {
 
         let image = match &source {
             Source::Image { path } => Some(path),
+            #[cfg(feature = "web-image")]
             Source::WebImage { .. } => None,
             Source::Color { .. } => None,
         };
