@@ -1,14 +1,20 @@
 use material_colors::{
-    blend::harmonize, color::Argb, dynamic_color::{DynamicScheme, MaterialDynamicColors}, hct::Hct, image::{FilterType, ImageReader}, scheme::variant::{
+    blend::harmonize,
+    color::Argb,
+    dynamic_color::{DynamicScheme, MaterialDynamicColors},
+    hct::Hct,
+    image::{FilterType, ImageReader},
+    scheme::variant::{
         SchemeContent, SchemeExpressive, SchemeFidelity, SchemeFruitSalad, SchemeMonochrome,
         SchemeNeutral, SchemeRainbow, SchemeTonalSpot,
-    }, theme::{ColorGroup, CustomColor, CustomColorGroup}
+    },
+    theme::{ColorGroup, CustomColor, CustomColorGroup},
 };
 
 use colorsys::{Hsl, Rgb};
 use std::str::FromStr;
 
-use crate::{color::math::get_color_distance_lab, scheme::scheme::SchemeTypes};
+use crate::{color::math::get_color_distance_lab, scheme::SchemeTypes};
 
 #[derive(clap::Parser, Debug)]
 pub enum ColorFormat {
@@ -21,8 +27,11 @@ pub enum ColorFormat {
 pub enum Source {
     /// The image to use for generating a color scheme
     Image { path: String },
+
+    #[cfg(feature = "web-image")]
     /// The image to fetch from web and use for generating a color scheme
     WebImage { url: String },
+
     /// The source color to use for generating a color scheme
     #[clap(subcommand)]
     Color(crate::color::color::ColorFormat),
@@ -62,19 +71,22 @@ impl OwnCustomColor {
 }
 
 pub fn get_source_color(source: &Source) -> Result<Argb, Box<dyn std::error::Error>> {
-    let source_color: Argb = match &source {
+    use crate::color::color;
+
+    let source_color: Argb = match source {
         Source::Image { path } => {
             // test
             info!("Opening image in <d><u>{}</>", path);
-            crate::color::color::get_source_color_from_image(path).expect("Could not get source color from image")
+            color::get_source_color_from_image(path).expect("Could not get source color from image")
         }
+        #[cfg(feature = "web-image")]
         Source::WebImage { url } => {
             info!("Fetching image from <d><u>{}</>", url);
-            crate::color::color::get_source_color_from_web_image(url).expect("Could not get source color from web image")
+            color::get_source_color_from_web_image(url)
+                .expect("Could not get source color from web image")
         }
-        Source::Color(color) => {
-            crate::color::color::get_source_color_from_color(color).expect("Could not get source color from color")
-        }
+        Source::Color(color) => color::get_source_color_from_color(color)
+            .expect("Could not get source color from color"),
     };
     Ok(source_color)
 }
@@ -87,16 +99,17 @@ pub fn get_source_color_from_image(path: &str) -> Result<Argb, Box<dyn std::erro
     )))
 }
 
+#[cfg(feature = "web-image")]
 pub fn get_source_color_from_web_image(url: &str) -> Result<Argb, Box<dyn std::error::Error>> {
     let bytes = reqwest::blocking::get(url)?.bytes()?;
-    Ok(ImageReader::extract_color(ImageReader::read(&bytes)?.resize(
-        128,
-        128,
-        FilterType::Lanczos3,
-    )))
+    Ok(ImageReader::extract_color(
+        ImageReader::read(&bytes)?.resize(128, 128, FilterType::Lanczos3),
+    ))
 }
 
-pub fn get_source_color_from_color(color: &ColorFormat) -> Result<Argb, Box<dyn std::error::Error>> {
+pub fn get_source_color_from_color(
+    color: &ColorFormat,
+) -> Result<Argb, Box<dyn std::error::Error>> {
     match color {
         ColorFormat::Hex { string } => {
             Ok(Argb::from_str(string).expect("Invalid hex color string provided"))
@@ -168,8 +181,6 @@ pub fn make_custom_color(
 
     let light = generate_dynamic_scheme(scheme_type, value, false, contrast_level);
     let dark = generate_dynamic_scheme(scheme_type, value, true, contrast_level);
-
-    
 
     // debug!("custom_color: {:#?}", &custom_color);
     CustomColorGroup {

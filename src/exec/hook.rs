@@ -5,7 +5,6 @@ use upon::{Engine, Syntax, Template, Value};
 
 use crate::color::color::color_to_string;
 
-
 pub fn format_hook(
     engine: &Engine,
     render_data: &mut Value,
@@ -13,17 +12,16 @@ pub fn format_hook(
     colors_to_compare: &Option<Vec<crate::color::color::ColorDefinition>>,
     compare_to: &Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let closest_color: Option<String> =
-        if colors_to_compare.is_some() && compare_to.is_some() {
-            let s = engine.compile(compare_to.as_ref().unwrap())?;
-            let compare_to = s.render(engine, &render_data).to_string()?;
-            Some(color_to_string(
-                colors_to_compare.as_ref().unwrap(),
-                &compare_to,
-            ))
-        } else {
-            None
-        };
+    let closest_color: Option<String> = if colors_to_compare.is_some() && compare_to.is_some() {
+        let s = engine.compile(compare_to.as_ref().unwrap())?;
+        let compare_to = s.render(engine, &*render_data).to_string()?;
+        Some(color_to_string(
+            colors_to_compare.as_ref().unwrap(),
+            &compare_to,
+        ))
+    } else {
+        None
+    };
 
     let t = engine.compile(hook)?;
     let res = if colors_to_compare.is_some() && compare_to.is_some() {
@@ -66,7 +64,7 @@ pub fn format_hook_text(
         }
     }
 
-    let data = template.render(&engine, &render_data).to_string().unwrap();
+    let data = template.render(&engine, render_data).to_string().unwrap();
 
     data
 }

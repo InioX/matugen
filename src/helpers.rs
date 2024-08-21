@@ -1,11 +1,10 @@
+use crate::{util::config::Config, wallpaper};
 use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
-use matugen::{color::color::Source, wallpaper};
-use update_informer::{registry, Check};
+use matugen::color::color::Source;
 use std::io::Write;
 
 use crate::util::arguments::Cli;
-
 
 pub fn get_log_level(args: &Cli) -> LevelFilter {
     let log_level: LevelFilter = if args.verbose == Some(true) {
@@ -20,11 +19,12 @@ pub fn get_log_level(args: &Cli) -> LevelFilter {
     log_level
 }
 
+#[cfg(feature = "update-informer")]
 pub fn check_version() {
+    use update_informer::{registry, Check};
+
     let name = env!("CARGO_PKG_NAME");
     let current_version = env!("CARGO_PKG_VERSION");
-    // for testing
-    // let current_version = "2.2.0";
 
     let informer = update_informer::new(registry::Crates, name, current_version);
 
@@ -37,10 +37,10 @@ pub fn check_version() {
 }
 
 pub fn setup_logging(args: &Cli) -> Result<(), Report> {
-    let log_level = get_log_level(&args);
+    let log_level = get_log_level(args);
 
     let mut logger = pretty_env_logger::env_logger::builder();
-    
+
     logger.filter_level(log_level);
 
     if log_level != LevelFilter::Debug {
@@ -56,14 +56,15 @@ pub fn setup_logging(args: &Cli) -> Result<(), Report> {
     Ok(())
 }
 
-pub fn set_wallpaper(source: &Source) -> Result<(), Report> {
+pub fn set_wallpaper(source: &Source, config: &Config) -> Result<(), Report> {
     let path = match &source {
         Source::Image { path } => path,
         Source::Color { .. } => return Ok(()),
+        #[cfg(feature = "web-image")]
         Source::WebImage { .. } => return Ok(()),
     };
     #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-    let wallpaper_tool = match &config.config.wallpaper_tool {
+    let wallpaper_tool = match &config.wallpaper_tool {
         Some(wallpaper_tool) => wallpaper_tool,
         None => {
             if cfg!(windows) {
@@ -82,8 +83,8 @@ pub fn set_wallpaper(source: &Source) -> Result<(), Report> {
     wallpaper::unix::set(
         path,
         wallpaper_tool,
-        &config.config.feh_options,
-        &config.config.swww_options,
+        &config.feh_options,
+        &config.swww_options,
     )?;
     Ok(())
 }

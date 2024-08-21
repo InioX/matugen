@@ -4,8 +4,8 @@ use colorsys::{ColorAlpha, Hsl, Rgb};
 use std::str::FromStr;
 
 use crate::color::{
-    parse::{parse_color, check_string_value},
-    format::{format_rgba, format_hsla},
+    format::{format_hsla, format_rgba},
+    parse::{check_string_value, parse_color},
 };
 
 pub fn set_alpha(value: &Value, amount: f64) -> Result<String, String> {
