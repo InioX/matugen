@@ -5,11 +5,10 @@ use prettytable::{format, Cell, Row, Table};
 
 use crate::Schemes;
 
+#[cfg(feature = "dump-json")]
 use super::arguments::Format;
-use colorsys::{ColorAlpha, Hsl, Rgb};
-use serde_json::json;
-use std::collections::HashMap;
 
+use colorsys::Rgb;
 use matugen::color::format::rgb_from_argb;
 
 pub fn show_color(schemes: &Schemes, source_color: &Argb) {
@@ -32,7 +31,12 @@ pub fn show_color(schemes: &Schemes, source_color: &Argb) {
     table.printstd();
 }
 
+#[cfg(feature = "dump-json")]
 pub fn dump_json(schemes: &Schemes, source_color: &Argb, format: &Format) {
+    use colorsys::{ColorAlpha, Hsl};
+    use serde_json::json;
+    use std::collections::HashMap;
+
     type F = Format;
     let fmt = match format {
         F::Rgb => |c: Rgb| format!("rgb({:?}, {:?}, {:?})", c.red(), c.green(), c.blue()),

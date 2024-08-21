@@ -4,8 +4,8 @@ use colorsys::{ColorTransform, Hsl, Rgb};
 use std::str::FromStr;
 
 use crate::color::{
-    parse::{parse_color, check_string_value},
-    format::{format_hex, format_hex_stripped, format_rgb, format_rgba, format_hsl, format_hsla},
+    format::{format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba},
+    parse::{check_string_value, parse_color},
 };
 
 pub fn set_hue(value: &Value, amount: f64) -> Result<String, String> {

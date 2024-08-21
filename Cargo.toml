@@ -14,37 +14,52 @@ edition = "2021"
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winuser"] }
 
-[dependencies]
-# This is here because of #43
+[target.'cfg(target_os = "macos")'.dependencies]
 enquote = "1.1.0"
 
-color-eyre = { version = "0.6.2", default-features = false }
-pretty_env_logger = "0.5.0"
-paris-log = { version = "1.0.2", features = ["icons"] }
+[features]
+update-informer = ["dep:update-informer"]
+web-image = ["dep:reqwest"]
+dump-json = ["dep:serde_json"]
+
+[dependencies]
+# logging
 log = "0.4.17"
-prettytable-rs = "0.10.0"
-update-informer = "1.1.0"
-reqwest = { version = "0.11.23", default_features = false, features = [
+paris-log = { version = "1.0.2", features = ["icons"] } # TODO replace with using paris directly?
+pretty_env_logger = "0.5.0"
+
+# terminal output
+prettytable-rs = { default-features = false, version = "0.10.0" } # TODO feature-gate? This should definitely be a default feature tho.
+color-eyre = { version = "0.6.2", default-features = false }
+colorsys = { default-features = false, version = "0.6.7" }
+owo-colors = "4.0.0"
+
+# templating engine
+upon = { features = ["filters", "serde"], default-features = false, version = "0.8.0" }
+
+# config
+serde = { version = "1.0.160", features = ["serde_derive", "std"], default-features = false }
+toml = { features = ["parse"], default-features = false, version = "0.8.8" }
+
+clap = { version = "4.2.4", features = ["derive", "std"], default-features = false }
+material-colors = { version = "0.4.0", features = ["image"] }
+image = { default-features = false, version = "0.25.2" }
+directories = "5.0"
+
+# should probably be removed
+indexmap = { default-features = false, version = "2.2.2" } # not sure yet
+ahash = { default-features = false, version = "0.8.7" }
+resolve-path = "0.1.0"
+execute = "0.2.13"
+
+# update-informer feature
+update-informer = { version = "1.1.0", optional = true }
+
+# dump-json feature
+serde_json = { version = "1.0.107", optional = true }
+
+# web-image feature
+reqwest = { version = "0.12.5", default-features = false, features = [
   "blocking",
   "rustls-tls",
-] }
-
-owo-colors = "4.0.0"
-colorsys = "0.6.7"
-
-resolve-path = "0.1.0"
-directories = "5.0"
-proper_path_tools = "0.7.0"
-
-ahash = "0.8.7"
-indexmap = "2.2.2"
-
-image = "0.24.7"
-upon = "0.8.0"
-clap = { version = "4.2.4", features = ["derive"] }
-serde = { version = "1.0.160", features = ["derive"] }
-serde_json = "1.0.107"
-toml = "0.8.8"
-material-colors = { version = "0.4.0", features = ["image"] }
-regex = "1.10.5"
-execute = "0.2.13"
+], optional = true }

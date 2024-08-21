@@ -19,7 +19,7 @@ pub struct Cli {
         global = true,
         default_value = "scheme-tonal-spot"
     )]
-    pub r#type: Option<matugen::scheme::scheme::SchemeTypes>,
+    pub r#type: Option<matugen::scheme::SchemeTypes>,
 
     /// Sets a custom config file
     #[arg(short, long, value_name = "FILE", global = true)]
@@ -64,15 +64,9 @@ pub struct Cli {
     #[arg(long, global = true, action=ArgAction::SetTrue, default_value = "false")]
     pub show_colors: Option<bool>,
 
+    #[cfg(feature = "dump-json")]
     /// Whether to dump json of colors
-    #[arg(
-        value_enum,
-        short,
-        long,
-        global = true,
-        value_name = "JSON",
-        default_value = None,
-    )]
+    #[arg(value_enum, short, long, global = true, value_name = "JSON")]
     pub json: Option<Format>,
 }
 
