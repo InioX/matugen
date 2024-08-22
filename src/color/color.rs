@@ -137,7 +137,7 @@ pub fn generate_dynamic_scheme(
     is_dark: bool,
     contrast_level: Option<f64>,
 ) -> DynamicScheme {
-    match scheme_type.unwrap() {
+    match scheme_type.unwrap_or(SchemeTypes::SchemeContent) {
         SchemeTypes::SchemeContent => {
             SchemeContent::new(Hct::new(source_color), is_dark, contrast_level).scheme
         }
