@@ -6,7 +6,7 @@ extern crate paris_log;
 
 mod helpers;
 mod reload;
-mod template;
+pub mod template;
 mod util;
 mod wallpaper;
 
