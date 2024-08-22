@@ -3,17 +3,15 @@ use color_eyre::eyre::WrapErr;
 use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
-use colorsys::{ColorAlpha, Hsl};
 use material_colors::color::Argb;
-use matugen::filters::grayscale::grayscale;
-use matugen::filters::hue::set_hue;
-use matugen::filters::invert::invert;
+use matugen::template_util::template::add_engine_filters;
+use matugen::template_util::template::get_render_data;
+use matugen::template_util::template::render_template;
 use serde::{Deserialize, Serialize};
 
 use upon::Value;
 
 use matugen::exec::hook::format_hook;
-use matugen::filters::{alpha::set_alpha, lightness::set_lightness};
 
 use std::path::Path;
 use std::str;
@@ -24,10 +22,6 @@ use std::fs::read_to_string;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
-
-use matugen::color::format::{
-    format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
-};
 
 use matugen::color::color::Source;
 use resolve_path::PathResolveExt;
@@ -46,32 +40,6 @@ pub struct Template {
     pub pre_hook: Option<String>,
     pub post_hook: Option<String>,
 }
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Colora {
-    hex: String,
-    hex_stripped: String,
-    rgb: String,
-    rgba: String,
-    hsl: String,
-    hsla: String,
-    red: String,
-    green: String,
-    blue: String,
-    alpha: String,
-    hue: String,
-    saturation: String,
-    lightness: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct ColorVariants {
-    pub light: Colora,
-    pub dark: Colora,
-    pub default: Colora,
-}
-
-use matugen::color::format::rgb_from_argb;
 
 #[allow(clippy::manual_strip)]
 pub trait StripCanonicalization
@@ -122,19 +90,7 @@ impl Template {
             Source::Color { .. } => None,
         };
 
-        let colors = generate_colors(schemes, source_color, default_scheme)?;
-
-        let mut custom: HashMap<String, String> = Default::default();
-
-        for entry in custom_keywords.iter() {
-            for (name, value) in entry {
-                custom.insert(name.to_string(), value.to_string());
-            }
-        }
-
-        let mut render_data = upon::value! {
-            colors: &colors, image: image, custom: &custom,
-        };
+        let mut render_data = get_render_data(schemes, source_color, default_scheme, custom_keywords, image)?;
 
         for (i, (name, template)) in templates.iter().enumerate() {
             let (input_path_absolute, output_path_absolute) =
@@ -257,20 +213,7 @@ fn export_template(
     i: usize,
     templates: &HashMap<String, Template>,
 ) -> Result<(), Report> {
-    let data = engine
-        .template(name)
-        .render(render_data)
-        .to_string()
-        .map_err(|error| {
-            let message = format!(
-                "[{} - {}]\n{:#}",
-                name,
-                input_path_absolute.display(),
-                &error
-            );
-
-            Report::new(error).wrap_err(message)
-        })?;
+    let data = render_template(engine, name, render_data, input_path_absolute.to_str())?;
 
     let out = if path_prefix.is_some() && !cfg!(windows) {
         let mut prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
@@ -313,86 +256,4 @@ fn export_template(
     );
 
     Ok(())
-}
-
-fn add_engine_filters(engine: &mut Engine) {
-    // Color manipulation
-    engine.add_filter("set_lightness", set_lightness);
-    engine.add_filter("set_alpha", set_alpha);
-    engine.add_filter("set_hue", set_hue);
-    engine.add_filter("grayscale", grayscale);
-    engine.add_filter("invert", invert);
-
-    // String manipulation
-    engine.add_filter("to_upper", str::to_uppercase);
-    engine.add_filter("to_lower", str::to_lowercase);
-    engine.add_filter("replace", |s: String, from: String, to: String| {
-        s.replace(&from, &to)
-    });
-}
-
-fn generate_colors(
-    schemes: &Schemes,
-    source_color: &Argb,
-    default_scheme: &SchemesEnum,
-) -> Result<HashMap<String, ColorVariants>, Report> {
-    let mut hashmap: HashMap<String, ColorVariants> = Default::default();
-    for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark) {
-        hashmap.insert(
-            field.to_string(),
-            generate_single_color(field, source_color, default_scheme, *color_light, *color_dark)?,
-        );
-    }
-    hashmap.insert(
-        String::from("source_color"),
-        generate_single_color("source_color", source_color, default_scheme, *source_color, *source_color)?,
-    );
-    Ok(hashmap)
-}
-
-fn generate_single_color(
-    field: &str,
-    source_color: &Argb,
-    default_scheme: &SchemesEnum,
-    color_light: Argb,
-    color_dark: Argb,
-) -> Result<ColorVariants, Report> {
-    let default_scheme_color = match default_scheme {
-        SchemesEnum::Light => color_light,
-        SchemesEnum::Dark => color_dark,
-    };
-
-    if field == "source_color" {
-        return Ok(ColorVariants {
-            default: generate_color_strings(*source_color),
-            light: generate_color_strings(*source_color),
-            dark: generate_color_strings(*source_color),
-        });
-    }
-
-    Ok(ColorVariants {
-        default: generate_color_strings(default_scheme_color),
-        light: generate_color_strings(color_light),
-        dark: generate_color_strings(color_dark),
-    })
-}
-
-fn generate_color_strings(color: Argb) -> Colora {
-    let base_color = rgb_from_argb(color);
-    let hsl_color = Hsl::from(&base_color);
-    Colora {
-        hex: format_hex(&base_color),
-        hex_stripped: format_hex_stripped(&base_color),
-        rgb: format_rgb(&base_color),
-        rgba: format_rgba(&base_color, true),
-        hsl: format_hsl(&hsl_color),
-        hsla: format_hsla(&hsl_color, true),
-        red: format!("{:?}", base_color.red() as u8),
-        green: format!("{:?}", base_color.green() as u8),
-        blue: format!("{:?}", base_color.blue() as u8),
-        alpha: format!("{:?}", base_color.alpha() as u8),
-        hue: format!("{:?}", &hsl_color.hue()),
-        lightness: format!("{:?}", &hsl_color.lightness()),
-        saturation: format!("{:?}", &hsl_color.saturation()),
-    }
 }
