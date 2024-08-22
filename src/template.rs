@@ -337,28 +337,29 @@ fn generate_colors(
     default_scheme: &SchemesEnum,
 ) -> Result<HashMap<String, ColorVariants>, Report> {
     let mut hashmap: HashMap<String, ColorVariants> = Default::default();
-    for (field, _color) in &schemes.dark {
+    for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark) {
         hashmap.insert(
             field.to_string(),
-            generate_single_color(field, schemes, source_color, default_scheme)?,
+            generate_single_color(field, source_color, default_scheme, *color_light, *color_dark)?,
         );
     }
     hashmap.insert(
         String::from("source_color"),
-        generate_single_color("source_color", schemes, source_color, default_scheme)?,
+        generate_single_color("source_color", source_color, default_scheme, *source_color, *source_color)?,
     );
     Ok(hashmap)
 }
 
 fn generate_single_color(
     field: &str,
-    schemes: &Schemes,
     source_color: &Argb,
     default_scheme: &SchemesEnum,
+    color_light: Argb,
+    color_dark: Argb,
 ) -> Result<ColorVariants, Report> {
-    let scheme = match default_scheme {
-        SchemesEnum::Light => &schemes.light,
-        SchemesEnum::Dark => &schemes.dark,
+    let default_scheme_color = match default_scheme {
+        SchemesEnum::Light => color_light,
+        SchemesEnum::Dark => color_dark,
     };
 
     if field == "source_color" {
@@ -370,9 +371,9 @@ fn generate_single_color(
     }
 
     Ok(ColorVariants {
-        default: generate_color_strings(scheme[field]),
-        light: generate_color_strings(schemes.light[field]),
-        dark: generate_color_strings(schemes.dark[field]),
+        default: generate_color_strings(default_scheme_color),
+        light: generate_color_strings(color_light),
+        dark: generate_color_strings(color_dark),
     })
 }
 

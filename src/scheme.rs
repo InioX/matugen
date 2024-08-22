@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use indexmap::IndexMap;
+use std::collections::BTreeSet;
 use material_colors::scheme::Scheme;
 
 use crate::color::color::{generate_dynamic_scheme, make_custom_color, OwnCustomColor};
@@ -18,8 +18,8 @@ pub enum SchemeTypes {
     SchemeTonalSpot,
 }
 pub struct Schemes {
-    pub light: IndexMap<String, material_colors::color::Argb, ahash::random_state::RandomState>,
-    pub dark: IndexMap<String, material_colors::color::Argb, ahash::random_state::RandomState>,
+    pub light: BTreeSet<(std::string::String, material_colors::color::Argb)>,
+    pub dark: BTreeSet<(std::string::String, material_colors::color::Argb)>,
 }
 
 #[derive(
@@ -89,8 +89,8 @@ pub fn get_custom_color_schemes(
     let custom_colors_light = custom_colors.flat_map(|c| from_color!(c, light));
 
     let schemes: Schemes = Schemes {
-        dark: IndexMap::from_iter(scheme_dark.into_iter().chain(custom_colors_dark)),
-        light: IndexMap::from_iter(scheme_light.into_iter().chain(custom_colors_light)),
+        dark: BTreeSet::from_iter(scheme_dark.into_iter().chain(custom_colors_dark)),
+        light: BTreeSet::from_iter(scheme_light.into_iter().chain(custom_colors_light)),
     };
     schemes
 }

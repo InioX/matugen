@@ -47,8 +47,6 @@ image = { default-features = false, version = "0.25.2" }
 directories = "5.0"
 
 # should probably be removed
-indexmap = { default-features = false, version = "2.2.2" } # not sure yet
-ahash = { default-features = false, version = "0.8.7" }
 resolve-path = "0.1.0"
 execute = "0.2.13"
 
