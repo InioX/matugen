@@ -6,6 +6,7 @@ extern crate paris_log;
 
 mod helpers;
 mod reload;
+mod template;
 mod util;
 mod wallpaper;
 
@@ -15,7 +16,8 @@ use matugen::{
     scheme::{get_custom_color_schemes, get_schemes},
 };
 
-use crate::util::{arguments::Cli, color::show_color, config::ConfigFile, template::Template};
+use crate::template::Template;
+use crate::util::{arguments::Cli, color::show_color, config::ConfigFile};
 
 use clap::Parser;
 use color_eyre::{eyre::Result, Report};
