@@ -114,3 +114,29 @@ pub fn get_schemes(
     ));
     (scheme_dark, scheme_light)
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use material_colors::color::Argb;
+
+    #[test]
+    fn schemes_eq() {
+        let source_color = material_colors::color::Argb::new(255, 255, 0, 0);
+        assert_eq!(
+            Scheme::from(generate_dynamic_scheme(
+                &None,
+                source_color,
+                true,
+                None,
+            )).primary,
+            Argb {
+                alpha: 255,
+                red: 255,
+                green: 180,
+                blue: 168,
+            }
+        );
+    }
+}
