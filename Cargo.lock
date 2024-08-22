@@ -1079,7 +1079,6 @@ dependencies = [
 name = "matugen"
 version = "2.3.0"
 dependencies = [
- "ahash",
  "clap",
  "color-eyre",
  "colorsys",
@@ -1087,7 +1086,6 @@ dependencies = [
  "enquote",
  "execute",
  "image",
- "indexmap",
  "log",
  "material-colors",
  "owo-colors 4.0.0",
