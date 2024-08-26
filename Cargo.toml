@@ -22,6 +22,13 @@ update-informer = ["dep:update-informer"]
 web-image = ["dep:reqwest"]
 dump-json = ["dep:serde_json"]
 
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "template"
+harness = false
+
 [dependencies]
 # logging
 log = "0.4.17"
