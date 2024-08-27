@@ -90,7 +90,13 @@ impl Template {
             Source::Color { .. } => None,
         };
 
-        let mut render_data = get_render_data(schemes, source_color, default_scheme, custom_keywords, image)?;
+        let mut render_data = get_render_data(
+            schemes,
+            source_color,
+            default_scheme,
+            custom_keywords,
+            image,
+        )?;
 
         for (i, (name, template)) in templates.iter().enumerate() {
             let (input_path_absolute, output_path_absolute) =
