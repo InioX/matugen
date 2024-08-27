@@ -57,10 +57,10 @@ pub fn dump_json(schemes: &Schemes, source_color: &Argb, format: &Format) {
 
     let mut colors_normal_light: HashMap<&str, String> = HashMap::new();
     let mut colors_normal_dark: HashMap<&str, String> = HashMap::new();
-
-    for (field, _color) in &schemes.dark {
-        let color_light: Rgb = rgb_from_argb(schemes.light[field]);
-        let color_dark: Rgb = rgb_from_argb(schemes.dark[field]);
+    
+    for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark) {
+        let color_light: Rgb = rgb_from_argb(*color_light);
+        let color_dark: Rgb = rgb_from_argb(*color_dark);
 
         colors_normal_light.insert(field, fmt(color_light));
         colors_normal_dark.insert(field, fmt(color_dark));
