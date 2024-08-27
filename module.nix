@@ -40,7 +40,7 @@ matugen: {
   matugenConfig = configFormat.generate "matugen-config.toml" {
     config = {
       custom_colors = cfg.custom_colors;
-    };
+    } // cfg.config;
     templates = sanitizedTemplates;
   };
 
@@ -155,6 +155,17 @@ in {
       type = lib.types.enum ["light" "dark" "amoled"];
       default = osCfg.variant or "dark";
       example = "light";
+    };
+
+    config = lib.mkOption {
+      description = "Add things to the config not covered by other options.";
+      type = lib.types.attrs;
+      default = osCfg.config or {};
+      example = ''
+        {
+          custom_keywords.font1 = "Google Sans";
+        }
+      '';
     };
 
     theme.files = lib.mkOption {
