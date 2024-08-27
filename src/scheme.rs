@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use std::collections::BTreeSet;
 use material_colors::scheme::Scheme;
+use std::collections::BTreeSet;
 
 use crate::color::color::{generate_dynamic_scheme, make_custom_color, OwnCustomColor};
 
@@ -115,7 +115,6 @@ pub fn get_schemes(
     (scheme_dark, scheme_light)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -125,12 +124,7 @@ mod tests {
     fn schemes_eq() {
         let source_color = material_colors::color::Argb::new(255, 255, 0, 0);
         assert_eq!(
-            Scheme::from(generate_dynamic_scheme(
-                &None,
-                source_color,
-                true,
-                None,
-            )).primary,
+            Scheme::from(generate_dynamic_scheme(&None, source_color, true, None,)).primary,
             Argb {
                 alpha: 255,
                 red: 255,

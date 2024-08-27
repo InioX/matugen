@@ -5,13 +5,16 @@ use colorsys::{ColorAlpha, Hsl};
 use material_colors::color::Argb;
 use upon::{Engine, Value};
 
+use crate::color::format::{
+    format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
+    rgb_from_argb,
+};
 use crate::filters::alpha::set_alpha;
 use crate::filters::grayscale::grayscale;
 use crate::filters::hue::set_hue;
 use crate::filters::invert::invert;
 use crate::filters::lightness::set_lightness;
 use crate::scheme::{Schemes, SchemesEnum};
-use crate::color::format::{format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba, rgb_from_argb};
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct Color {
@@ -53,7 +56,12 @@ pub fn add_engine_filters(engine: &mut Engine) {
     });
 }
 
-pub fn render_template(engine: &Engine, name: &String, render_data: &Value, path: Option<&str>) -> Result<String, Report> {
+pub fn render_template(
+    engine: &Engine,
+    name: &String,
+    render_data: &Value,
+    path: Option<&str>,
+) -> Result<String, Report> {
     let data = engine
         .template(name)
         .render(render_data)
@@ -71,7 +79,13 @@ pub fn render_template(engine: &Engine, name: &String, render_data: &Value, path
     Ok(data)
 }
 
-pub fn get_render_data(schemes: &Schemes, source_color: &Argb, default_scheme: &SchemesEnum, custom_keywords: &Option<HashMap<String, String>>, image: Option<&String>) -> Result<Value, Report> {
+pub fn get_render_data(
+    schemes: &Schemes,
+    source_color: &Argb,
+    default_scheme: &SchemesEnum,
+    custom_keywords: &Option<HashMap<String, String>>,
+    image: Option<&String>,
+) -> Result<Value, Report> {
     let colors = generate_colors(schemes, source_color, default_scheme)?;
     let mut custom: HashMap<String, String> = Default::default();
     for entry in custom_keywords.iter() {
@@ -93,12 +107,24 @@ pub fn generate_colors(
     for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark) {
         hashmap.insert(
             field.to_string(),
-            generate_single_color(field, source_color, default_scheme, *color_light, *color_dark)?,
+            generate_single_color(
+                field,
+                source_color,
+                default_scheme,
+                *color_light,
+                *color_dark,
+            )?,
         );
     }
     hashmap.insert(
         String::from("source_color"),
-        generate_single_color("source_color", source_color, default_scheme, *source_color, *source_color)?,
+        generate_single_color(
+            "source_color",
+            source_color,
+            default_scheme,
+            *source_color,
+            *source_color,
+        )?,
     );
     Ok(hashmap)
 }
