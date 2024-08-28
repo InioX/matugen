@@ -8,16 +8,22 @@ matugen: {
   cfg = config.programs.matugen;
   osCfg = args.osConfig.programs.matugen or {};
 
-  hexColor = lib.types.strMatching "#([0-9a-fA-F]{3}){1,2}";
-  hexStrippedColor = lib.types.strMatching "([0-9a-fA-F]{3}){1,2}";
-  rgbColor = lib.types.strMatching "rgb\(\d{1,3}, ?\d{1,3}, ?\d{1,3}\)";
-  rgbaColor = lib.types.strMatching "rgba\(\d{1,3}, ?\d{1,3}, ?\d{1,3}, ?\d{1,3}\)";
-  hslColor = lib.types.strMatching "hsl\(\d{1,3}, ?\d{1,3}%, ?\d{1,3}%\)";
-  hslaColor = lib.types.strMatching "hsla\(\d{1,3}, ?\d{1,3}%, ?\d{1,3}%, ?[0,1](\.\d*)\)";
+  hexColorRegex = ''#([0-9a-fA-F]{3}){1,2}'';
+  hexStrippedColorRegex = ''([0-9a-fA-F]{3}){1,2}'';
+  rgbColorRegex = ''rgb\([0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}\)'';
+  rgbaColorRegex = ''rgba\([0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}\)'';
+  hslColorRegex = ''hsl\([0-9]{1,3}(\.[0-9]*)?, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0-9]{1,3}(\.[0-9]*)?%\)'';
+  hslaColorRegex = ''hsla\([0-9]{1,3}(\.[0-9]*)?, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0,1](\.[0-9]*)?\)'';
+  
+  hexColor = lib.types.strMatching hexColorRegex;
+  hexStrippedColor = lib.types.strMatching hexStrippedColorRegex;
+  rgbColor = lib.types.strMatching rgbColorRegex;
+  rgbaColor = lib.types.strMatching rgbaColorRegex;
+  hslColor = lib.types.strMatching hslColorRegex;
+  hslaColor = lib.types.strMatching hslaColorRegex;
 
-  # Only hexColor is currently supported for custom_colors.
-  colorType = hexColor;
-  # colorType = lib.types.oneOf [hexColor hexStrippedColor rgbColor rgbaColor hslColor hslaColor];
+  sourceColorType = lib.types.oneOf [hexColor rgbColor hslColor];
+  customColorType = hexColor; # Only hexColor is currently supported for custom_colors.
 
   configFormat = pkgs.formats.toml {};
 
@@ -47,20 +53,32 @@ matugen: {
   # get matugen package
   pkg = matugen.packages.${pkgs.system}.default;
 
-  themePackage = pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {} ''
+  # takes in a source color string and returns the subcommand needed to generate
+  # a color scheme using that color type.
+  sourceColorTypeMatcher = color: (lib.lists.findSingle (p: null != builtins.match p.regex color) {} {} [
+    { regex = hexColorRegex; code = "hex"; }
+    { regex = rgbColorRegex; code = "rgb"; }
+    { regex = hslColorRegex; code = "hsl"; }
+  ]).code;
+
+  command = if (builtins.isNull cfg.source_color) then
+    "image ${cfg.wallpaper}" else
+    "color ${sourceColorTypeMatcher cfg.source_color} \"${cfg.source_color}\"";
+
+  themePackage = builtins.trace command (pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {} ''
     mkdir -p $out
     cd $out
     export HOME=$(pwd)
 
     ${cfg.package}/bin/matugen \
-      image ${cfg.wallpaper} \
+      ${command} \
       --config ${matugenConfig} \
       --mode ${cfg.variant} \
       --type ${cfg.type} \
       --json ${cfg.jsonFormat} \
       --quiet \
       > $out/theme.json
-  '';
+  '');
   colors = (builtins.fromJSON (builtins.readFile "${themePackage}/theme.json")).colors;
 in {
   options.programs.matugen = {
@@ -71,6 +89,13 @@ in {
       // {
         default = pkg;
       };
+
+    source_color = lib.mkOption {
+      description = "Hex color to generate the colorschemes from. If this and wallpaper are defined, will use this.";
+      type = lib.types.nullOr sourceColorType;
+      default = osCfg.source_color or null;
+      example = "#ff1243";
+    };
 
     wallpaper = lib.mkOption {
       description = "Path to `wallpaper` that matugen will generate the colorschemes from";
@@ -111,7 +136,7 @@ in {
           options = {
             color = lib.mkOption {
               description = "Color value for this custom color.";
-              type = colorType;
+              type = customColorType;
               example = "#d03e3e";
             };
             blend = lib.mkOption {
