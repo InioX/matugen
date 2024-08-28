@@ -76,6 +76,7 @@ matugen: {
       --mode ${cfg.variant} \
       --type ${cfg.type} \
       --json ${cfg.jsonFormat} \
+      --contrast ${lib.strings.floatToString cfg.contrast} \
       --quiet \
       > $out/theme.json
   '');
@@ -180,6 +181,13 @@ in {
       type = lib.types.enum ["light" "dark" "amoled"];
       default = osCfg.variant or "dark";
       example = "light";
+    };
+
+    contrast = lib.mkOption {
+      description = "Value from -1 to 1. -1 represents minimum contrast, 0 represents standard (i.e. the design as spec'd), and 1 represents maximum contrast.";
+      type = lib.types.numbers.between (-1) 1;
+      default = 0;
+      example = "0.2";   
     };
 
     config = lib.mkOption {
