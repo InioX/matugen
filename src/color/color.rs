@@ -115,7 +115,13 @@ pub fn get_source_color_from_color(
             Ok(Argb::from_str(string).expect("Invalid hex color string provided"))
         }
         ColorFormat::Rgb { string } => {
-            Ok(string.parse().expect("Invalid rgb color string provided"))
+            let rgb = Rgb::from_str(string).expect("Invalid rgb color string provided");
+            Ok(Argb {
+                red: rgb.red() as u8,
+                green: rgb.green() as u8,
+                blue: rgb.blue() as u8,
+                alpha: 255,
+            })
         }
         ColorFormat::Hsl { string } => {
             let rgb: Rgb = Hsl::from_str(string)
