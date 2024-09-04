@@ -9,6 +9,10 @@ exclude = ["default.nix", "flake.nix", "shell.nix", "example/*"]
 license = "GPL-2.0"
 edition = "2021"
 
+[workspace]
+
+members = ["matugen-parser"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [target.'cfg(windows)'.dependencies]
@@ -32,7 +36,9 @@ harness = false
 [dependencies]
 # logging
 log = "0.4.17"
-paris-log = { version = "1.0.2", features = ["icons"] } # TODO replace with using paris directly?
+paris-log = { version = "1.0.2", features = [
+  "icons",
+] } # TODO replace with using paris directly?
 pretty_env_logger = "0.5.0"
 
 # terminal output
@@ -42,13 +48,19 @@ colorsys = { default-features = false, version = "0.6.7" }
 owo-colors = "4.0.0"
 
 # templating engine
-upon = { features = ["filters", "serde"], default-features = false, version = "0.8.0" }
+upon = { features = [
+  "filters",
+  "serde",
+], default-features = false, version = "0.8.0" }
 
 # config
 serde = { version = "1.0.160", features = ["serde_derive", "std"], default-features = false }
 toml = { features = ["parse"], default-features = false, version = "0.8.8" }
 
-clap = { version = "4.2.4", features = ["derive", "std"], default-features = false }
+clap = { version = "4.2.4", features = [
+  "derive",
+  "std",
+], default-features = false }
 material-colors = { version = "0.4.0", features = ["image"] }
 image = { default-features = false, version = "0.25.2" }
 directories = "5.0"
