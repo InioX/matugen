@@ -11,7 +11,7 @@ pub enum Kind {
     Bar,
     Space,
     Colon,
-    Sof,
+    NewLine,
     Eof,
     Identifier,
 }
@@ -110,8 +110,10 @@ impl<'a> Lexer<'a> {
                 (Kind::Number, TokenValue::Number(number))
             }
             _ => {
-                if !next_char.unwrap().is_alphanumeric() || next_char.unwrap() == '_' {
-                    (Kind::Identifier, TokenValue::None)
+                if next_char.unwrap() == 0xA as char || next_char.unwrap() == '\n' {
+                    (Kind::NewLine, TokenValue::None)
+                } else if !next_char.unwrap().is_alphanumeric() || next_char.unwrap() == '_' {
+                    (Kind::Identifier, TokenValue::String(String::from(next_char.unwrap()).into()))
                 } else {
                     let start = self.offset() - 1;
                     let mut string = String::from(next_char.unwrap());

@@ -27,8 +27,15 @@ pub enum Statement {
 }
 
 #[derive(Debug)]
+pub struct FilterDefinition {
+    pub node: Node,
+    pub filter_name: TokenValue,
+    pub arguments: Vec<TokenValue>,
+}
+
+#[derive(Debug)]
 pub struct KeywordDefinition {
     pub node: Node,
     pub keywords: Vec<TokenValue>,
-    pub filters: Option<Vec<String>>,
+    pub filters: Option<Vec<FilterDefinition>>,
 }

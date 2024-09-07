@@ -1,51 +1,100 @@
 #![allow(unused_variables)]
 
 #[derive(Debug)]
-struct MyError(String);
+pub struct ParseError<'a> {
+    pub err_type: ParseErrorTypes,
+    pub start: usize,
+    pub end: usize,
+    pub source: &'a str,
+    pub filename: &'a str,
+}
 
-impl fmt::Display for MyError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "There is an error: {}", self.0)
+impl<'a> fmt::Display for ParseError<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let err_msg = match self.err_type {
+            ParseErrorTypes::UnexpectedFilterArgumentToken => {
+                "Unexpected character in filter argument"
+            }
+            ParseErrorTypes::UnclosedBracket => "Unclosed bracket",
+            ParseErrorTypes::DoubleDot => "Double dot",
+        };
+        let mut str = "".to_string();
+
+        let span = self.source.get(self.start..self.end).unwrap_or("");
+
+        for line in span.lines() {
+            str.push_str(&format!(" \x1b[94m|\x1b[0m {}\n", line))
+        }
+
+        write!(
+            f,
+            "\n\u{1b}[2;30;41m ERROR \u{1b}[0m\u{1b}[2;30;47m {} \u{1b}[0m\n\x1b[94m-->\x1b[0m {}:{}..{}:\n{}\n",
+            err_msg, self.filename, self.start, self.end, str,
+        )
+
+        // write!(
+        // f,
+        // "\n\u{1b}[1;31m[ERROR] {} {}..{}: {}:\u{1b}[0m\n{}\n",
+        // self.filename, self.start, self.end, err_msg, span,
+        // )
     }
 }
 
-impl Error for MyError {}
+#[derive(Debug)]
+pub enum ParseErrorTypes {
+    UnclosedBracket,
+    DoubleDot,
+    UnexpectedFilterArgumentToken,
+}
 
-use std::{error::Error, fmt};
+use std::fmt;
+use std::iter::Filter;
 
 use crate::lexer::{Kind, Lexer, Token, TokenValue};
-use crate::node::{KeywordDefinition, Node, Program, Statement};
+use crate::node::{FilterDefinition, KeywordDefinition, Node, Program, Statement};
 /// A parser for turning a stream of tokens into a Abstract Syntax Tree.
 #[derive(Debug)]
 pub struct Parser<'a> {
     source: &'a str,
+    filename: &'a str,
+    line_number: i64,
     lexer: Lexer<'a>,
+
     /// Current Token consumed from the lexer
     cur_token: Token,
-
     /// The end range of the previous token
     prev_token_end: usize,
+
+    opened: bool,
+    closed: bool,
+    seen_dot: bool,
+
+    last_bracket_start: usize,
 }
 
 impl<'a> Parser<'a> {
     /// Create a new parser.
-    pub fn new(source: &'a str) -> Parser<'a> {
+    pub fn new(source: &'a str, filename: &'a str) -> Parser<'a> {
         let mut lexer = Lexer::new(&source);
         Parser {
             source,
+            filename,
             cur_token: lexer.next_token(), // There should always be at least one token, Eof
             lexer,
             prev_token_end: 0,
+            opened: false,
+            closed: false,
+            seen_dot: false,
+            last_bracket_start: 0,
+            line_number: 0,
         }
     }
 
     pub fn parse(&mut self) -> Program {
+        let end = self.source.len();
         let statments = self.get_keywords();
         Program {
-            node: Node {
-                start: 0,
-                end: self.source.len(),
-            },
+            node: Node { start: 0, end },
             body: statments,
         }
     }
@@ -80,16 +129,20 @@ impl<'a> Parser<'a> {
         Node::new(node.start, self.prev_token_end)
     }
 
-    fn cur_token(&mut self) -> &Token {
+    fn cur_token(&self) -> &Token {
         &self.cur_token
     }
 
-    fn cur_kind(&mut self) -> &Kind {
+    fn cur_kind(&self) -> &Kind {
         &self.cur_token.kind
     }
 
+    fn cur_val(&self) -> &TokenValue {
+        &self.cur_token.value
+    }
+
     /// Checks if the current index has token `Kind`
-    fn at(&mut self, kind: Kind) -> bool {
+    fn at(&self, kind: Kind) -> bool {
         self.cur_kind() == &kind
     }
 
@@ -105,10 +158,16 @@ impl<'a> Parser<'a> {
         self.advance();
     }
 
+    fn bump_until_not_at(&mut self, kind: Kind) {
+        while self.cur_kind() == &kind && !self.at(Kind::Eof) {
+            self.bump_any()
+        }
+    }
+
     /// Advance any token
     fn bump_while_not(&mut self, kind: Kind) {
         while self.cur_kind() != &kind && !self.at(Kind::Eof) {
-            self.advance()
+            self.advance();
         }
     }
 
@@ -121,34 +180,66 @@ impl<'a> Parser<'a> {
         false
     }
 
+    /// Advance and return true if we are at `Kind`, return false otherwise
+    fn eat_ignore_spaces(&mut self, kind: Kind) -> bool {
+        self.bump_until_not_at(Kind::Space);
+
+        if self.at(kind) {
+            self.advance();
+            return true;
+        }
+        false
+    }
+
     /// Move to the next token
     fn advance(&mut self) {
         let token = self.lexer.next_token();
         self.prev_token_end = self.cur_token.end;
         self.cur_token = token;
+        if self.at(Kind::NewLine) {
+            self.line_number += 1
+        }
+        println!("self at : {:?}", self.cur_token());
+    }
+
+    pub fn get_closing(&mut self) -> Result<(), ParseError> {
+        self.bump_any();
+        if self.eat(Kind::RBracket) {
+            self.closed = true;
+            self.opened = false;
+            println!(
+                "{}..{}: closed fine without filter",
+                self.last_bracket_start, self.prev_token_end
+            );
+            Ok(())
+        } else {
+            Err(ParseError {
+                err_type: ParseErrorTypes::UnclosedBracket,
+                start: self.last_bracket_start,
+                end: self.prev_token_end,
+                source: self.source,
+                filename: &self.filename,
+            })
+        }
     }
 
     pub fn get_keywords(&mut self) -> Vec<Statement> {
-        let mut opened = false;
-        let mut closed = false;
-        let mut seen_dot = false;
         let mut vec: Vec<Statement> = vec![];
 
         while !self.at(Kind::Eof) {
+            self.bump_until_not_at(Kind::Lbracket);
+            // println!("getting opening, {:?}", self.cur_kind());
+            self.last_bracket_start = self.get_opening().unwrap_or(0);
             let start = self.start_node();
-            println!("getting opening, {:?}", self.cur_kind());
-            println!("is_closed: {}, is_open: {}", closed, opened);
-            self.get_opening(&mut opened, &mut closed);
 
             let mut strings: Vec<TokenValue> = vec![];
 
-            self.collect_strings(&mut closed, &mut opened, &mut seen_dot, &mut strings);
+            let res = self.collect_strings(&mut strings);
 
-            println!("is_closed: {}, is_open: {}", closed, opened);
-
-            for string in &strings {
-                println!("{:?}", string);
+            if let Err(e) = res {
+                panic!("{}", format!("{}", e));
             }
+
             vec.push(Statement::KeywordDefinition(Box::new(KeywordDefinition {
                 node: self.finish_node(start),
                 keywords: strings,
@@ -158,68 +249,187 @@ impl<'a> Parser<'a> {
         vec
     }
 
-    fn collect_strings(
-        &mut self,
-        closed: &mut bool,
-        opened: &mut bool,
-        seen_dot: &mut bool,
-        strings: &mut Vec<TokenValue>,
-    ) {
+    fn get_filter(&mut self) -> Result<Option<FilterDefinition>, ParseError> {
+        if self.eat(Kind::Bar) {
+            println!("ok");
+        } else {
+            // return Err(ParseError {
+            //     err_type: ParseErrorTypes::UnclosedBracket,
+            //     start: self.last_bracket_start,
+            //     end: self.prev_token_end,
+            //     source: self.source,
+            // });
+        }
+        let start = self.start_node();
+
+        // FilterDefinition {
+        //     node: self.finish_node(start),
+        //     filter_name: todo!(),
+        //     arguments: todo!(),
+        // };
+        self.bump_while_not(Kind::String);
+        let name = self.cur_token().clone().value;
+
+        self.advance();
+
+        if self.eat(Kind::RBracket) {
+            println!("no filter args");
+            self.get_closing();
+            return Ok(None);
+        }
+
+        let node = self.finish_node(start);
+
+        let res = self.collect_filter_args();
+        if let Err(ref e) = res {
+            eprintln!("{}", e);
+        }
+
+        Ok(Some(FilterDefinition {
+            node,
+            filter_name: name,
+            arguments: res.unwrap(),
+        }))
+        // self.bump_while_not(Kind::RBracket);
+    }
+
+    fn collect_filter_args(&mut self) -> Result<Vec<TokenValue>, ParseError> {
+        let mut arguments: Vec<TokenValue> = vec![];
+
+        if !self.eat_ignore_spaces(Kind::Colon) {
+            println!("not: {:?}", self.cur_token());
+            self.bump_while_not(Kind::RBracket)
+        } else {
+            // while !self.at(Kind::RBracket) {
+            //     match self.cur_kind() {
+            //         Kind::String => arguments.push(&self.cur_token.value),
+            //         Kind::Number => todo!(),
+            //         _ => {}
+            //     }
+            // }
+            loop {
+                match self.cur_kind() {
+                    Kind::Space => {
+                        self.bump_until_not_at(Kind::Space);
+                    }
+                    Kind::String => {
+                        arguments.push(self.cur_token.value.clone());
+                        self.bump(Kind::String)
+                    }
+                    Kind::Number => {
+                        arguments.push(self.cur_token.value.clone());
+                        self.bump(Kind::Number)
+                    }
+                    Kind::RBracket => {
+                        println!("herer");
+                        break;
+                    }
+                    _ => {
+                        return Err(ParseError {
+                            err_type: ParseErrorTypes::UnexpectedFilterArgumentToken,
+                            start: self.last_bracket_start,
+                            end: self.prev_token_end,
+                            source: self.source,
+                            filename: &self.filename,
+                        })
+                    }
+                }
+            }
+            // return Err(ParseError {
+            //     err_type: ParseErrorTypes::MissingFilterColon,
+            //     start: self.last_bracket_start,
+            //     end: self.prev_token_end,
+            //     source: &self.source,
+            // });
+        }
+        println!("arguments: {:?}", arguments);
+        Ok(arguments)
+    }
+
+    // Returns true if filter is used
+    fn collect_strings(&mut self, strings: &mut Vec<TokenValue>) -> Result<(), ParseError> {
         // Always first string, what comes after we cant know
         self.bump_while_not(Kind::String);
         strings.push(self.cur_token.clone().value);
 
         self.bump_any();
 
-        while !*closed {
+        while !self.closed && !self.at(Kind::Eof) {
             match self.cur_kind() {
                 Kind::Dot => {
-                    if *seen_dot {
-                        println!("double dot");
-                        break;
+                    if self.seen_dot && self.eat(Kind::Dot) {
+                        self.seen_dot = false;
+                        return Err(ParseError {
+                            err_type: ParseErrorTypes::DoubleDot,
+                            start: self.last_bracket_start,
+                            end: self.prev_token_end + 1,
+                            source: self.source,
+                            filename: &self.filename,
+                        });
                     } else {
-                        *seen_dot = true;
+                        self.seen_dot = true;
                         self.bump(Kind::Dot);
                     }
                 }
                 Kind::String => {
-                    if *seen_dot {
+                    if self.seen_dot {
                         strings.push(self.cur_token.clone().value);
                         self.bump(Kind::String);
-                        *seen_dot = false;
+                        self.seen_dot = false;
                     } else {
                         println!("double string");
                         break;
                     }
                 }
-                Kind::RBracket => {
-                    if self.eat(Kind::RBracket) {
-                        *closed = true;
-                        *opened = false;
+                Kind::Bar => {
+                    let res = self.get_filter();
+                    if let Err(e) = res {
+                        eprintln!("{}", e)
+                    }
+                    if self.eat_ignore_spaces(Kind::RBracket) {
+                        return self.get_closing();
                     } else {
-                        println!("fucked the closing");
-                        break;
+                        self.bump_until_not_at(Kind::RBracket);
+                        return self.get_closing();
                     }
                 }
+                Kind::RBracket => {
+                    return self.get_closing();
+                    // if self.eat(Kind::RBracket) {
+                    //     self.closed = true;
+                    //     self.opened = false;
+                    //     println!("closed without filter")
+                    // } else {
+                    //     println!("fucked the closing");
+                    //     break;
+                    // }
+                }
                 Kind::Space => self.bump(Kind::Space),
-                // Kind::Bar => todo!(),
+                Kind::NewLine => self.bump(Kind::NewLine),
+                Kind::Identifier => self.bump(Kind::Identifier),
                 _ => {
                     println!("{:?}", self.cur_token());
                 }
             }
         }
+        Ok(())
     }
 
-    fn get_opening(&mut self, opened: &mut bool, closed: &mut bool) {
-        self.bump_while_not(Kind::Lbracket);
+    fn get_opening(&mut self) -> Option<usize> {
+        let mut start = self.cur_token().start;
 
-        while !*opened {
+        self.bump_any();
+
+        while !self.opened {
             if self.eat(Kind::Lbracket) {
-                *opened = true;
-                *closed = false;
+                self.opened = true;
+                self.closed = false;
             } else if self.eat(Kind::Eof) {
-                break;
+                return None;
             }
+            self.bump_while_not(Kind::Lbracket);
+            start = self.cur_token().start;
         }
+        Some(start)
     }
 }
