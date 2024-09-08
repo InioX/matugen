@@ -7,6 +7,7 @@ pub struct ParseError<'a> {
     pub end: usize,
     pub source: &'a str,
     pub filename: &'a str,
+    pub line_number: u64,
 }
 
 impl<'a> fmt::Display for ParseError<'a> {
@@ -17,13 +18,14 @@ impl<'a> fmt::Display for ParseError<'a> {
             }
             ParseErrorTypes::UnclosedBracket => "Unclosed bracket",
             ParseErrorTypes::DoubleDot => "Double dot",
+            ParseErrorTypes::DoubleString => "Double string",
         };
         let mut str = "".to_string();
 
         let span = self.source.get(self.start..self.end).unwrap_or("");
 
         for line in span.lines() {
-            str.push_str(&format!(" \x1b[94m|\x1b[0m {}\n", line))
+            str.push_str(&format!("{} \x1b[94m|\x1b[0m {}\n", self.line_number, line))
         }
 
         write!(
@@ -44,6 +46,7 @@ impl<'a> fmt::Display for ParseError<'a> {
 pub enum ParseErrorTypes {
     UnclosedBracket,
     DoubleDot,
+    DoubleString,
     UnexpectedFilterArgumentToken,
 }
 
@@ -57,7 +60,6 @@ use crate::node::{FilterDefinition, KeywordDefinition, Node, Program, Statement}
 pub struct Parser<'a> {
     source: &'a str,
     filename: &'a str,
-    line_number: i64,
     lexer: Lexer<'a>,
 
     /// Current Token consumed from the lexer
@@ -79,14 +81,13 @@ impl<'a> Parser<'a> {
         Parser {
             source,
             filename,
-            cur_token: lexer.next_token(), // There should always be at least one token, Eof
+            cur_token: lexer.start(),
             lexer,
             prev_token_end: 0,
             opened: false,
             closed: false,
             seen_dot: false,
             last_bracket_start: 0,
-            line_number: 0,
         }
     }
 
@@ -196,9 +197,7 @@ impl<'a> Parser<'a> {
         let token = self.lexer.next_token();
         self.prev_token_end = self.cur_token.end;
         self.cur_token = token;
-        if self.at(Kind::NewLine) {
-            self.line_number += 1
-        }
+
         println!("self at : {:?}", self.cur_token());
     }
 
@@ -219,6 +218,7 @@ impl<'a> Parser<'a> {
                 end: self.prev_token_end,
                 source: self.source,
                 filename: &self.filename,
+                line_number: self.lexer.cur_line,
             })
         }
     }
@@ -227,9 +227,11 @@ impl<'a> Parser<'a> {
         let mut vec: Vec<Statement> = vec![];
 
         while !self.at(Kind::Eof) {
-            self.bump_until_not_at(Kind::Lbracket);
+            if !self.at(Kind::Lbracket) {
+                self.bump_until_not_at(Kind::Lbracket);
+            }
             // println!("getting opening, {:?}", self.cur_kind());
-            self.last_bracket_start = self.get_opening().unwrap_or(0);
+            self.last_bracket_start = self.get_opening().unwrap();
             let start = self.start_node();
 
             let mut strings: Vec<TokenValue> = vec![];
@@ -331,6 +333,8 @@ impl<'a> Parser<'a> {
                             end: self.prev_token_end,
                             source: self.source,
                             filename: &self.filename,
+                line_number: self.lexer.cur_line,
+
                         })
                     }
                 }
@@ -354,8 +358,8 @@ impl<'a> Parser<'a> {
 
         self.bump_any();
 
-        while !self.closed && !self.at(Kind::Eof) {
-            match self.cur_kind() {
+        while !&self.closed && !self.at(Kind::Eof) {
+            match &self.cur_kind() {
                 Kind::Dot => {
                     if self.seen_dot && self.eat(Kind::Dot) {
                         self.seen_dot = false;
@@ -365,6 +369,8 @@ impl<'a> Parser<'a> {
                             end: self.prev_token_end + 1,
                             source: self.source,
                             filename: &self.filename,
+                line_number: self.lexer.cur_line,
+
                         });
                     } else {
                         self.seen_dot = true;
@@ -377,8 +383,15 @@ impl<'a> Parser<'a> {
                         self.bump(Kind::String);
                         self.seen_dot = false;
                     } else {
-                        println!("double string");
-                        break;
+                        self.bump_while_not(Kind::RBracket);
+                        return Err(ParseError {
+                            err_type: ParseErrorTypes::DoubleString,
+                            start: self.last_bracket_start,
+                            end: self.prev_token_end + 1,
+                            source: self.source,
+                            filename: &self.filename,
+                            line_number: self.lexer.cur_line,
+                        });
                     }
                 }
                 Kind::Bar => {

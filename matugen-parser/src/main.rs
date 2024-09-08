@@ -27,8 +27,8 @@ fn main() {
     // {{ colors.aaa.default.hex | thingy: aaaa }}
     // "#;
 
-    let source = r#"
-    
+    let source = r#"{{ colors colors }}
+
 {{ colors.source_color.default.hex }}
 
 {{ image }}"#;

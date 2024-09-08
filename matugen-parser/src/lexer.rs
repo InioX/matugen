@@ -13,6 +13,7 @@ pub enum Kind {
     Colon,
     NewLine,
     Eof,
+    Sof,
     Identifier,
 }
 
@@ -35,6 +36,7 @@ pub enum TokenValue {
 pub struct Lexer<'a> {
     source: &'a str,
     chars: Chars<'a>,
+    pub cur_line: u64,
 }
 
 impl<'a> Lexer<'a> {
@@ -42,11 +44,21 @@ impl<'a> Lexer<'a> {
         Lexer {
             source: &input,
             chars: input.chars(),
+            cur_line: 0,
         }
     }
 
     fn offset(&self) -> usize {
         self.source.len() - self.chars.as_str().len()
+    }
+
+    pub fn start(&self) -> Token {
+        Token {
+            kind: Kind::Sof,
+            start: 0,
+            end: 0,
+            value: TokenValue::None,
+        }
     }
 
     // pub fn tokenize(&mut self) -> Vec<Token> {
@@ -72,14 +84,14 @@ impl<'a> Lexer<'a> {
 
     pub fn next_token(&mut self) -> Token {
         let start = self.offset();
-        let res = self.read_next_kind();
+        let (kind, value) = self.read_next_kind();
         let end = self.offset();
 
         Token {
-            kind: res.0,
+            kind,
             start,
             end,
-            value: res.1,
+            value,
         }
     }
 
@@ -111,6 +123,7 @@ impl<'a> Lexer<'a> {
             }
             _ => {
                 if next_char.unwrap() == 0xA as char || next_char.unwrap() == '\n' {
+                    self.cur_line += 1;
                     (Kind::NewLine, TokenValue::None)
                 } else if !next_char.unwrap().is_alphanumeric() || next_char.unwrap() == '_' {
                     (Kind::Identifier, TokenValue::String(String::from(next_char.unwrap()).into()))
