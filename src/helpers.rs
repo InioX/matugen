@@ -63,18 +63,11 @@ pub fn set_wallpaper(source: &Source, config: &Config) -> Result<(), Report> {
         #[cfg(feature = "web-image")]
         Source::WebImage { .. } => return Ok(()),
     };
-    #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-    let wallpaper_tool = match &config.wallpaper_tool {
-        Some(wallpaper_tool) => wallpaper_tool,
-        None => {
-            if cfg!(windows) {
-                return Ok(());
-            }
-            return Ok(warn!(
-                "<d>Wallpaper tool not set, not setting wallpaper...</>"
-            ));
-        }
-    };
+    if config.wallpaper.is_none() {
+        return Ok(warn!(
+            "<d>Wallpaper setting disabled, not setting wallpaper...</>"
+        ));
+    }
     #[cfg(target_os = "windows")]
     wallpaper::windows::set(path)?;
     #[cfg(target_os = "macos")]
@@ -82,9 +75,9 @@ pub fn set_wallpaper(source: &Source, config: &Config) -> Result<(), Report> {
     #[cfg(any(target_os = "linux", target_os = "netbsd"))]
     wallpaper::unix::set(
         path,
-        wallpaper_tool,
-        &config.feh_options,
-        &config.swww_options,
+        &(config.wallpaper).clone().unwrap().command,
+        &(config.wallpaper).clone().unwrap().pre_hook,
+        &(config.wallpaper).clone().unwrap().arguments
     )?;
     Ok(())
 }

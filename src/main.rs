@@ -5,7 +5,7 @@ extern crate pretty_env_logger;
 extern crate paris_log;
 
 mod helpers;
-mod reload;
+// mod reload;
 pub mod template;
 mod util;
 mod wallpaper;
@@ -77,12 +77,7 @@ fn main() -> Result<(), Report> {
             config_path,
         )?;
 
-        if config.config.reload_apps == Some(true) {
-            #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-            reload::unix::reload(&args, &config)?;
-        }
-
-        if config.config.set_wallpaper == Some(true) {
+        if config.config.wallpaper.is_some() {
             set_wallpaper(&args.source, &config.config)?;
         }
     }

@@ -1,0 +1,10 @@
+`nix
+  config.wallpaper = {
+    set = true;
+    command = "swww"; 
+    arguments = [ 
+      "{{image}}" 
+      "--transition-type" "center" 
+    ]; 
+  }
+`

@@ -9,25 +9,27 @@ use serde::{Deserialize, Serialize};
 
 use super::arguments::Cli;
 use crate::Template;
+use crate::wallpaper::Wallpaper;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub enum WallpaperTool {
-    Swaybg,
-    Swww,
-    Nitrogen,
-    Feh,
-}
+// #[derive(Serialize, Deserialize, Debug)]
+// pub enum WallpaperTool {
+//     Swaybg,
+//     Swww,
+//     Nitrogen,
+//     Feh,
+// }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub reload_apps: Option<bool>,
     pub version_check: Option<bool>,
     pub reload_apps_list: Option<Apps>,
-    pub set_wallpaper: Option<bool>,
-    pub wallpaper_tool: Option<WallpaperTool>,
-    // TODO: Add a `Command` struct
-    pub swww_options: Option<Vec<String>>,
+    pub wallpaper: Option<Wallpaper>,
+    // pub set_wallpaper: Option<bool>,
+    // pub wallpaper_tool: Option<WallpaperTool>,
+    // pub swww_options: Option<Vec<String>>,
     pub feh_options: Option<Vec<String>>,
+    // TODO: Add a `Command` struct
     pub prefix: Option<String>,
     pub custom_keywords: Option<HashMap<String, String>>,
     pub custom_colors: Option<HashMap<String, matugen::color::color::OwnCustomColor>>,
