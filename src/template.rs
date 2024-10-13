@@ -39,6 +39,10 @@ pub struct Template {
     pub compare_to: Option<String>,
     pub pre_hook: Option<String>,
     pub post_hook: Option<String>,
+    pub expr_prefix: Option<String>,
+    pub expr_postfix: Option<String>,
+    pub block_prefix: Option<String>,
+    pub block_postfix: Option<String>,
 }
 
 #[allow(clippy::manual_strip)]
@@ -78,11 +82,6 @@ impl Template {
     ) -> Result<(), Report> {
         info!("Loaded <b><cyan>{}</> templates.", &templates.len());
 
-        let syntax = Syntax::builder().expr("{{", "}}").block("<*", "*>").build();
-        let mut engine = Engine::with_syntax(syntax);
-
-        add_engine_filters(&mut engine);
-
         let image = match &source {
             Source::Image { path } => Some(path),
             #[cfg(feature = "web-image")]
@@ -99,6 +98,19 @@ impl Template {
         )?;
 
         for (i, (name, template)) in templates.iter().enumerate() {
+            let expr_prefix = template.expr_prefix.as_deref().unwrap_or("{{");
+            let expr_postfix = template.expr_postfix.as_deref().unwrap_or("}}");
+            let block_prefix = template.block_prefix.as_deref().unwrap_or("<*");
+            let block_postfix = template.block_postfix.as_deref().unwrap_or("*>");
+
+            let syntax = Syntax::builder()
+                .expr(expr_prefix, expr_postfix)
+                .block(block_prefix, block_postfix)
+                .build();
+            let mut engine = Engine::with_syntax(syntax);
+
+            add_engine_filters(&mut engine);
+
             let (input_path_absolute, output_path_absolute) =
                 get_absolute_paths(&config_path, template)?;
 
