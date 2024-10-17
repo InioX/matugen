@@ -5,7 +5,6 @@ extern crate pretty_env_logger;
 extern crate paris_log;
 
 mod helpers;
-// mod reload;
 pub mod template;
 mod util;
 mod wallpaper;
@@ -77,8 +76,8 @@ fn main() -> Result<(), Report> {
             config_path,
         )?;
 
-        if config.config.wallpaper.is_some() {
-            set_wallpaper(&args.source, &config.config)?;
+        if let Some(wallpaper_cfg) = config.config.wallpaper {
+            set_wallpaper(&args.source, wallpaper_cfg)?;
         }
     }
 

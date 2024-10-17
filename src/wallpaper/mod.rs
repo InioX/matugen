@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Wallpaper {
     pub set: bool,
     /// Useful for, for example, killing the wallpaper daemon
@@ -9,7 +9,6 @@ pub struct Wallpaper {
     /// The last argument will be the image path
     pub arguments: Option<Vec<String>>,
 }
-
 
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
 pub mod unix;
