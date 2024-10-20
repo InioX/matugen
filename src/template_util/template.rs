@@ -10,6 +10,7 @@ use crate::color::format::{
     rgb_from_argb,
 };
 use crate::filters::alpha::set_alpha;
+use crate::filters::camel::camel_case;
 use crate::filters::grayscale::grayscale;
 use crate::filters::hue::set_hue;
 use crate::filters::invert::invert;
@@ -54,6 +55,7 @@ pub fn add_engine_filters(engine: &mut Engine) {
     engine.add_filter("replace", |s: String, from: String, to: String| {
         s.replace(&from, &to)
     });
+    engine.add_filter("camel_case", camel_case);
 }
 
 pub fn render_template(
