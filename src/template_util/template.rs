@@ -14,7 +14,7 @@ use crate::filters::camel::camel_case;
 use crate::filters::grayscale::grayscale;
 use crate::filters::hue::set_hue;
 use crate::filters::invert::invert;
-use crate::filters::lightness::set_lightness;
+use crate::filters::lightness::{auto_lightness, set_lightness};
 use crate::scheme::{Schemes, SchemesEnum};
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
@@ -44,6 +44,7 @@ pub struct ColorVariants {
 pub fn add_engine_filters(engine: &mut Engine) {
     // Color manipulation
     engine.add_filter("set_lightness", set_lightness);
+    engine.add_filter("auto_lightness", auto_lightness);
     engine.add_filter("set_alpha", set_alpha);
     engine.add_filter("set_hue", set_hue);
     engine.add_filter("grayscale", grayscale);
