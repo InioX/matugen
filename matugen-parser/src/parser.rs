@@ -230,8 +230,11 @@ impl<'a> Parser<'a> {
             if !self.at(Kind::Lbracket) {
                 self.bump_until_not_at(Kind::Lbracket);
             }
-            // println!("getting opening, {:?}", self.cur_kind());
-            self.last_bracket_start = self.get_opening().unwrap();
+
+            // We would only get the second bracket at the start without the -1,
+            // the opening will ALWAYS have two brackets unlike the closing, which
+            // might have an error inside of it (so we dont look ahead for the closing).
+            self.last_bracket_start = self.get_opening().unwrap() - 1;
             let start = self.start_node();
 
             let mut strings: Vec<TokenValue> = vec![];
@@ -333,8 +336,7 @@ impl<'a> Parser<'a> {
                             end: self.prev_token_end,
                             source: self.source,
                             filename: &self.filename,
-                line_number: self.lexer.cur_line,
-
+                            line_number: self.lexer.cur_line,
                         })
                     }
                 }
@@ -369,8 +371,7 @@ impl<'a> Parser<'a> {
                             end: self.prev_token_end + 1,
                             source: self.source,
                             filename: &self.filename,
-                line_number: self.lexer.cur_line,
-
+                            line_number: self.lexer.cur_line,
                         });
                     } else {
                         self.seen_dot = true;
