@@ -1,35 +1,39 @@
-use color_eyre::Report;
-use std::process::{Command, Stdio};
 use crate::wallpaper::Wallpaper;
+use color_eyre::Report;
 use execute::Execute;
+use std::process::{Command, Stdio};
 
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
 pub fn set(
     path: &String,
-    Wallpaper { pre_hook, command, arguments, .. }: Wallpaper,
+    Wallpaper {
+        pre_hook,
+        command,
+        arguments,
+        ..
+    }: Wallpaper,
 ) -> Result<(), Report> {
     info!("Setting wallpaper...");
 
     if let Some(hook) = pre_hook {
-      spawn_hook(hook)?
+        spawn_hook(hook)?
     }
 
     let mut binding = Command::new(&command);
-    let cmd = binding
-      .stdout(Stdio::null())
-      .stderr(Stdio::null());
+    let cmd = binding.stdout(Stdio::null()).stderr(Stdio::null());
 
     if let Some(args) = arguments {
-      cmd.args(args);
+        cmd.args(args);
     }
     cmd.arg(path);
-
 
     match cmd.spawn() {
         Ok(_) => info!("Successfully set the wallpaper with <blue>{command}</>"),
         Err(e) => {
             if let std::io::ErrorKind::NotFound = e.kind() {
-                error!("Failed to set wallpaper, the program <red>{command}</> was not found in PATH!")
+                error!(
+                    "Failed to set wallpaper, the program <red>{command}</> was not found in PATH!"
+                )
             } else {
                 error!("Some error(s) occured while setting wallpaper!");
             }
@@ -37,8 +41,6 @@ pub fn set(
     };
     Ok(())
 }
-
-
 
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
 fn spawn_hook(hook: String) -> Result<(), Report> {
