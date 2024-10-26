@@ -73,9 +73,6 @@ pub fn set_wallpaper(source: &Source, wallpaper_cfg: wallpaper::Wallpaper) -> Re
     #[cfg(target_os = "macos")]
     wallpaper::macos::set(&path)?;
     #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-    wallpaper::unix::set(
-        path,
-        wallpaper_cfg
-    )?;
+    wallpaper::unix::set(path, wallpaper_cfg)?;
     Ok(())
 }
