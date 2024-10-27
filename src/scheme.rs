@@ -1,3 +1,4 @@
+use core::fmt;
 use std::collections::HashMap;
 
 use material_colors::scheme::Scheme;
@@ -37,6 +38,17 @@ pub struct Schemes {
 pub enum SchemesEnum {
     Light,
     Dark,
+}
+
+impl fmt::Display for SchemesEnum {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let str = match self {
+            SchemesEnum::Light => "light",
+            SchemesEnum::Dark => "dark",
+        };
+
+        write!(f, "{str}")
+    }
 }
 
 pub fn get_custom_color_schemes(

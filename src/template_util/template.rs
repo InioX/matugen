@@ -96,8 +96,9 @@ pub fn get_render_data(
             custom.insert(name.to_string(), value.to_string());
         }
     }
+
     Ok(upon::value! {
-        colors: &colors, image: image, custom: &custom,
+        colors: &colors, image: image, custom: &custom, mode: default_scheme,
     })
 }
 
