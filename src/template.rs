@@ -159,6 +159,9 @@ impl Template {
                 input_path_absolute,
                 i,
                 templates,
+                schemes,
+                source_color,
+                default_scheme,
             )?;
 
             if template.post_hook.is_some() {
@@ -230,8 +233,11 @@ fn export_template(
     input_path_absolute: PathBuf,
     i: usize,
     templates: &HashMap<String, Template>,
+    schemes: &Schemes,
+    source_color: &Argb,
+    default_scheme: &SchemesEnum,
 ) -> Result<(), Report> {
-    let data = render_template(engine, name, render_data, input_path_absolute.to_str())?;
+    let data = render_template(engine, name, render_data, input_path_absolute.to_str(), schemes, source_color, default_scheme)?;
 
     let out = if path_prefix.is_some() && !cfg!(windows) {
         let mut prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use color_eyre::{eyre::Result, Report};
-use colorsys::{ColorAlpha, Hsl};
+use colorsys::{ColorAlpha, Hsl, Rgb};
 use material_colors::color::Argb;
 use upon::{Engine, Value};
 
@@ -34,11 +34,23 @@ pub struct Color {
     lightness: String,
 }
 
+#[derive(Debug)]
+pub struct ColorBase {
+    rgba: Rgb,
+    hsla: Hsl,
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct ColorVariants {
     pub light: Color,
     pub dark: Color,
     pub default: Color,
+}
+
+#[derive(Debug)]
+pub struct ColorVariantss {
+    pub light: ColorBase,
+    pub dark: ColorBase,
 }
 
 pub fn add_engine_filters(engine: &mut Engine) {
@@ -59,12 +71,84 @@ pub fn add_engine_filters(engine: &mut Engine) {
     engine.add_filter("camel_case", camel_case);
 }
 
+fn renderer(
+    a: &[upon::ValueMember<'_>],
+    color_map: &HashMap<String, ColorVariantss>,
+) -> Result<Value, String> {
+    let first_word = &a[0].access;
+
+    match first_word {
+        upon::ValueAccess::Index(i) => {
+            println!("index")
+        }
+        upon::ValueAccess::Key(k) => match *k {
+            "colors" => renderer_colors(a, color_map, k),
+            "custom" => {}
+            _ => {}
+        },
+    }
+
+    println!("\n--------\n");
+    Ok(Value::from("a"))
+}
+
+// TODO: Maybe change to indexmap
+fn find_color_in_hasmap(
+    a: &upon::ValueAccess,
+    hashmap: &HashMap<String, ColorVariantss>,
+) {
+    // TODO: add searchup by index and by key
+    match a {
+        upon::ValueAccess::Index(i) => {},
+        upon::ValueAccess::Key(k) => match *k {
+            _ => println!("a"),
+        },
+    }
+}
+
+fn renderer_colors(
+    a: &[upon::ValueMember<'_>],
+    color_map: &HashMap<String, ColorVariantss>,
+    key: &&str,
+) {
+    // TODO: Check if array isnt out of bound
+    let color_name = a[1].access;
+    let color_scheme = a[2].access;
+    let color_format = a[3].access;
+    let bleh = find_color_in_hasmap(&color_name, &color_map);
+    // let color = color_map.get(&key.to_string());
+    // println!("color: {:?}", color);
+
+    for (i, key) in a.into_iter().skip(1).enumerate() {
+        println!("[{}]: {:#?}", i, key);
+    }
+}
+
 pub fn render_template(
     engine: &Engine,
     name: &String,
     render_data: &Value,
     path: Option<&str>,
+    schemes: &Schemes,
+    source_color: &Argb,
+    default_scheme: &SchemesEnum,
 ) -> Result<String, Report> {
+    let color_map = generate_colors_2(schemes, source_color, default_scheme)?;
+    let data1 = engine
+        .template(name)
+        .render_from_fn(|a: &[upon::ValueMember<'_>]| (renderer(a, &color_map)))
+        .to_string()
+        .map_err(|error| {
+            let message = format!(
+                "[{} - {}]\n{:#}",
+                name,
+                path.unwrap_or(&"".to_string()),
+                &error
+            );
+
+            Report::new(error).wrap_err(message)
+        })?;
+
     let data = engine
         .template(name)
         .render(render_data)
@@ -133,6 +217,57 @@ pub fn generate_colors(
     Ok(hashmap)
 }
 
+pub fn generate_colors_2(
+    schemes: &Schemes,
+    source_color: &Argb,
+    default_scheme: &SchemesEnum,
+) -> Result<HashMap<String, ColorVariantss>, Report> {
+    let mut hashmap: HashMap<String, ColorVariantss> = Default::default();
+    for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark) {
+        hashmap.insert(
+            field.to_string(),
+            generate_single_color2(
+                field,
+                source_color,
+                default_scheme,
+                *color_light,
+                *color_dark,
+            )?,
+        );
+    }
+    hashmap.insert(
+        String::from("source_color"),
+        generate_single_color2(
+            "source_color",
+            source_color,
+            default_scheme,
+            *source_color,
+            *source_color,
+        )?,
+    );
+    Ok(hashmap)
+}
+
+pub fn generate_single_color2(
+    field: &str,
+    source_color: &Argb,
+    default_scheme: &SchemesEnum,
+    color_light: Argb,
+    color_dark: Argb,
+) -> Result<ColorVariantss, Report> {
+    if field == "source_color" {
+        return Ok(ColorVariantss {
+            light: generate_color_bases(*source_color),
+            dark: generate_color_bases(*source_color),
+        });
+    }
+
+    Ok(ColorVariantss {
+        light: generate_color_bases(color_light),
+        dark: generate_color_bases(color_dark),
+    })
+}
+
 pub fn generate_single_color(
     field: &str,
     source_color: &Argb,
@@ -177,5 +312,14 @@ fn generate_color_strings(color: Argb) -> Color {
         hue: format!("{:?}", &hsl_color.hue()),
         lightness: format!("{:?}", &hsl_color.lightness()),
         saturation: format!("{:?}", &hsl_color.saturation()),
+    }
+}
+
+fn generate_color_bases(color: Argb) -> ColorBase {
+    let rgb_color = rgb_from_argb(color);
+    let hsl_color = Hsl::from(&rgb_color);
+    ColorBase {
+        rgba: rgb_from_argb(color),
+        hsla: hsl_color,
     }
 }
