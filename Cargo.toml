@@ -48,7 +48,7 @@ upon = { features = ["filters", "serde"], default-features = false, version = "0
 serde = { version = "1.0.160", features = ["serde_derive", "std"], default-features = false }
 toml = { features = ["parse"], default-features = false, version = "0.8.8" }
 
-clap = { version = "4.2.4", features = ["derive", "std"], default-features = false }
+clap = { version = "4.2.4", features = ["derive", "std"], default-features = true }
 material-colors = { version = "0.4.0", features = ["image"] }
 image = { default-features = false, version = "0.25.2" }
 directories = "5.0"
