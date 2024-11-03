@@ -1,6 +1,6 @@
 [package]
 name = "matugen"
-version = "2.3.0"
+version = "2.4.0"
 authors = ["InioX"]
 description = "A material you color generation tool with templates"
 repository = "https://github.com/InioX/matugen"
