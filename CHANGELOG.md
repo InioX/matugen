@@ -6,6 +6,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0](https://github.com/InioX/matugen/compare/v2.3.0...v2.4.0) - 2024-11-03
+
+### Added
+
+- add `mode` keyword
+- *(filter)* add auto_lightness filter
+- *(filter)* add camel_case filter
+- custom expr and block prefix, postfix
+- feature-gated web-image
+- feature-gated dumping json
+- feature-gated update-informer
+- *(filters)* add `invert`, `grayscale and `set_hue`
+- add timestamp to debug logs
+- add more info to debug mode
+- add `pre_hook` and `post_hook` ([#100](https://github.com/InioX/matugen/pull/100))
+- improve error message for color parsing
+- change resize filter to Lanczos3 ([#89](https://github.com/InioX/matugen/pull/89))
+- increase windows stack size to 8mb (fixes [#87](https://github.com/InioX/matugen/pull/87))
+- fix relative paths for templates, format `compare_to` ([#83](https://github.com/InioX/matugen/pull/83))
+- add template formatting for hook ([#83](https://github.com/InioX/matugen/pull/83))
+- add `hook` and variables inside it ([#83](https://github.com/InioX/matugen/pull/83))
+- add color comparsion ([#83](https://github.com/InioX/matugen/pull/83))
+- add `--prefix` argument
+- add `version_check` setting ([#78](https://github.com/InioX/matugen/pull/78))
+
+### Fixed
+
+- `--help` flag not recognized ([#112](https://github.com/InioX/matugen/pull/112))
+- parse color bug for rgb ([#107](https://github.com/InioX/matugen/pull/107))
+- *(nix)* add dump-json feature build flag
+- dump_json BTreeSet index
+- apply more aggressive clippy lints
+- removed deprecated default_features
+- removed unused dependency
+- cargo fmt & alejandra (nix formatter)
+- made unix version compile
+- wrong display of alpha channel for `set_alpha` ([#95](https://github.com/InioX/matugen/pull/95))
+- divide all alpha values by 255 for output ([#95](https://github.com/InioX/matugen/pull/95))
+- make hooks not depend on `colors_to_compare` ([#93](https://github.com/InioX/matugen/pull/93))
+- remove useless debugging
+- update arguments to remove borrow error ([#85](https://github.com/InioX/matugen/pull/85))
+
+### Other
+
+- run `cargo fmt`
+- made contrast configurable in nix module
+- make nix module able to generate from color or wallpaper.
+- add backup config option to add in anything that isn't explicitly supported
+- add custom colors option to nix module.
+- format code
+- add criterion bench
+- move some stuff into template_util (prepare for criterion)
+- add schemes_eq test
+- use `BTreeSet`, remove `ahash` and `IndexMap`
+- move template into src/
+- Create rustfmt.yml
+- update dependencies with breaking changes
+- sorted dependencies
+- removed unused dependency features
+- made enquote only required for builds targeting macOS
+- moved scheme out of module with only 1 file
+- cargo update
+- removed dependency proper-path-tools
+- move some stuff into lib instead
+- remove useless stuff, add clippy rules
+- run cargo fmt + clippy fix
+- oops bad merge ([#95](https://github.com/InioX/matugen/pull/95))
+- Merge branch 'main' of https://github.com/InioX/matugen
+- add float parameter for `format_hsla` and `format_rgba` ([#95](https://github.com/InioX/matugen/pull/95))
+- update CHANGELOG.md
+- add the set_alpha filter to the engine
+- add format_rgba_float and format_hsla_float functions to format the alpha value as a float instead of u8
+- add set_alpha filter
+- Nix module: add package option
+- bump `material-colors` to 0.4.0
+- rename `compared_color` to `closest_color` ([#83](https://github.com/InioX/matugen/pull/83))
+- separate some stuff into functions
+- format code
+- run `cargo fmt`
+- *(readme)* update version badges
+
 ### Added
 - add `set_alpha` filter
 
