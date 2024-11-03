@@ -1,12 +1,11 @@
 [config]
 # version_check = true
-set_wallpaper = true
-wallpaper_tool = 'Swww'
-prefix = '@'
-swww_options = [
-    "--transition-type",
-    "center",
-]
+
+[config.wallpaper]
+command = "swww"
+arguments = ["img", "--transition-type", "center"]
+set = true
+# pre_hook = ""
 
 [config.custom_keywords]
 test = "aaaa"
