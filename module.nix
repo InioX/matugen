@@ -84,8 +84,18 @@ in {
   };
 
   config = let
-    package = matugen.packages.${pkgs.system}.default;
-
+    package =
+    if cfg.extraPackages == []
+    then cfg.package
+    else pkgs.symlinkJoin {
+      name = "matugen-wrapped";
+      paths = [cfg.package];
+      buildInputs = [pkgs.makeWrapper];
+      postBuild = ''
+        wrapProgram $out/bin/matugen \
+          --prefix "PATH" ":" "${lib.makeBinPath cfg.extraPackages}"
+      '';
+    };
     mergedCfg =
       cfg.settings
       // (
