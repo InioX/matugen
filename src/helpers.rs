@@ -63,11 +63,7 @@ pub fn set_wallpaper(source: &Source, wallpaper_cfg: wallpaper::Wallpaper) -> Re
         #[cfg(feature = "web-image")]
         Source::WebImage { .. } => return Ok(()),
     };
-    if !wallpaper_cfg.set {
-        return Ok(warn!(
-            "<d>Wallpaper setting disabled, not setting wallpaper...</>"
-        ));
-    };
+    
     #[cfg(target_os = "windows")]
     wallpaper::windows::set(path)?;
     #[cfg(target_os = "macos")]
