@@ -4,7 +4,6 @@
 [config.wallpaper]
 command = "swww"
 arguments = ["img", "--transition-type", "center"]
-set = true
 # pre_hook = ""
 
 [config.custom_keywords]

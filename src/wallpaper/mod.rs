@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Wallpaper {
-    pub set: bool,
     /// Useful for, for example, killing the wallpaper daemon
     pub pre_hook: Option<String>,
     pub command: String,
