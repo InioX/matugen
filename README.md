@@ -13,11 +13,18 @@
     ·
     <a href="https://github.com/InioX/matugen/wiki">Wiki</a>
     ·
-    <a href="#-------------------------themes">Themes</a>
+    <a href="#--------------------themes">Themes</a>
 </div>
 
 <div align="center">
   <sub>A cross-platform material you color generation tool
+</div>
+
+<div align="center">
+     <a href="https://discord.gg/JA3C2U9EcC">
+          <br>
+          <img src="https://github.com/user-attachments/assets/84f4e3a2-73ac-4112-8633-c02164c2c02c">
+     </a>
 </div>
 
 <div align="center">
