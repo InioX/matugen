@@ -3,6 +3,7 @@
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate paris_log;
+use material_colors::theme::ThemeBuilder;
 
 mod helpers;
 pub mod template;
@@ -37,7 +38,10 @@ fn main() -> Result<(), Report> {
         check_version();
     }
 
+    
     let source_color = get_source_color(&args.source).unwrap();
+    
+    let theme = ThemeBuilder::with_source(source_color).build();
 
     let (scheme_dark, scheme_light) = get_schemes(source_color, &args.r#type, &args.contrast);
 
@@ -61,7 +65,7 @@ fn main() -> Result<(), Report> {
     #[cfg(feature = "dump-json")]
     if let Some(ref format) = args.json {
         use crate::util::color::dump_json;
-        dump_json(&schemes, &source_color, format);
+        dump_json(&schemes, &source_color, format, theme.palettes);
     }
 
     if args.dry_run == Some(false) {

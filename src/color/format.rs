@@ -10,6 +10,14 @@ pub fn rgb_from_argb(color: Argb) -> Rgb {
     ])
 }
 
+pub fn hsl_from_argb(color: Argb) -> Hsl {
+    rgb_from_argb(color).as_ref().into()
+}
+
+pub fn hsl_from_rgb(color: Rgb) -> Hsl {
+    color.as_ref().into()
+}
+
 pub fn format_hex(color: &Rgb) -> String {
     color.to_hex_string()
 }
