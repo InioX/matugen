@@ -1,9 +1,9 @@
 use material_colors::color::Argb;
 use owo_colors::{OwoColorize, Style};
 
-use prettytable::{format, Cell, Row, Table};
-use material_colors::theme::Palettes;
 use material_colors::palette::TonalPalette;
+use material_colors::theme::Palettes;
+use prettytable::{format, Cell, Row, Table};
 
 use colorsys::Rgb;
 
@@ -13,6 +13,10 @@ use crate::Schemes;
 use super::arguments::Format;
 
 use matugen::color::format::rgb_from_argb;
+
+const DEFAULT_TONES: [i32; 18] = [
+    0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100,
+];
 
 pub fn show_color(schemes: &Schemes, source_color: &Argb) {
     let mut table: Table = generate_table_format();
@@ -49,7 +53,10 @@ pub fn dump_json(schemes: &Schemes, source_color: &Argb, format: &Format, palett
         colors_normal_dark.insert(field, format_single_color(color_dark, format));
     }
 
-    colors_normal_light.insert("source_color", format_single_color(rgb_from_argb(*source_color), format));
+    colors_normal_light.insert(
+        "source_color",
+        format_single_color(rgb_from_argb(*source_color), format),
+    );
 
     println!(
         "{}",
@@ -67,8 +74,8 @@ pub fn dump_json(schemes: &Schemes, source_color: &Argb, format: &Format, palett
 fn format_palettes(palettes: Palettes, format: &Format) -> serde_json::Value {
     let primary = format_single_palette(palettes.primary, format);
     let secondary = format_single_palette(palettes.secondary, format);
-    let tertiary = format_single_palette(palettes.tertiary, format);  
-    let neutral = format_single_palette(palettes.neutral, format); 
+    let tertiary = format_single_palette(palettes.tertiary, format);
+    let neutral = format_single_palette(palettes.neutral, format);
     let neutral_variant = format_single_palette(palettes.neutral_variant, format);
     let error = format_single_palette(palettes.error, format);
     serde_json::json!({
@@ -83,34 +90,35 @@ fn format_palettes(palettes: Palettes, format: &Format) -> serde_json::Value {
 
 #[cfg(feature = "dump-json")]
 fn format_single_palette(palette: TonalPalette, format: &Format) -> serde_json::Value {
-    serde_json::json!({
-        "0": format_single_color(rgb_from_argb(palette.tone(0)), format),
-        "5": format_single_color(rgb_from_argb(palette.tone(5)), format),
-        "10": format_single_color(rgb_from_argb(palette.tone(10)), format),
-        "15": format_single_color(rgb_from_argb(palette.tone(15)), format),
-        "20": format_single_color(rgb_from_argb(palette.tone(20)), format),
-        "25": format_single_color(rgb_from_argb(palette.tone(25)), format),
-        "30": format_single_color(rgb_from_argb(palette.tone(30)), format),
-        "35": format_single_color(rgb_from_argb(palette.tone(35)), format),
-        "40": format_single_color(rgb_from_argb(palette.tone(40)), format),
-        "45": format_single_color(rgb_from_argb(palette.tone(45)), format),
-        "50": format_single_color(rgb_from_argb(palette.tone(50)), format),
-        "55": format_single_color(rgb_from_argb(palette.tone(55)), format),
-        "60": format_single_color(rgb_from_argb(palette.tone(60)), format),
-        "65": format_single_color(rgb_from_argb(palette.tone(65)), format),
-        "70": format_single_color(rgb_from_argb(palette.tone(70)), format),
-        "75": format_single_color(rgb_from_argb(palette.tone(75)), format),
-        "80": format_single_color(rgb_from_argb(palette.tone(80)), format),
-        "85": format_single_color(rgb_from_argb(palette.tone(85)), format),
-        "90": format_single_color(rgb_from_argb(palette.tone(90)), format),
-        "95": format_single_color(rgb_from_argb(palette.tone(95)), format),
-        "100": format_single_color(rgb_from_argb(palette.tone(100)), format),
-    })
+    let mut tones: String = "".to_string();
+
+    for (i, tone) in DEFAULT_TONES.into_iter().enumerate() {
+        if i == 0 {
+            tones.push_str("{\n");
+        }
+
+        tones.push_str(&format!(
+            "\"{}\": \"{}\"",
+            &format!("{}", tone),
+            format_single_color(rgb_from_argb(palette.tone(tone)), format),
+        ));
+
+        if i != DEFAULT_TONES.len() - 1 {
+            tones.push_str(",\n");
+        } else {
+            tones.push_str("\n}");
+        }
+    }
+
+    serde_json::from_str(&tones).unwrap()
 }
 
 #[cfg(feature = "dump-json")]
 fn format_single_color(color: Rgb, format: &Format) -> String {
-    use matugen::color::format::{format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba, hsl_from_rgb};
+    use matugen::color::format::{
+        format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
+        hsl_from_rgb,
+    };
 
     let fmt = match format {
         Format::Rgb => |c: Rgb| format_rgb(&c),
