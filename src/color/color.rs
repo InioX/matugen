@@ -16,14 +16,14 @@ use std::str::FromStr;
 
 use crate::{color::math::get_color_distance_lab, scheme::SchemeTypes};
 
-#[derive(clap::Parser, Debug)]
+#[derive(clap::Parser, Debug, Clone)]
 pub enum ColorFormat {
     Hex { string: String },
     Rgb { string: String },
     Hsl { string: String },
 }
 
-#[derive(clap::Subcommand, Debug)]
+#[derive(clap::Subcommand, Debug, Clone)]
 pub enum Source {
     /// The image to use for generating a color scheme
     Image { path: String },
@@ -37,13 +37,13 @@ pub enum Source {
     Color(crate::color::color::ColorFormat),
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct ColorDefinition {
     pub name: String,
     pub color: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum OwnCustomColor {
     Color(String),

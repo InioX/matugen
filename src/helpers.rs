@@ -56,7 +56,7 @@ pub fn setup_logging(args: &Cli) -> Result<(), Report> {
     Ok(())
 }
 
-pub fn set_wallpaper(source: &Source, wallpaper_cfg: wallpaper::Wallpaper) -> Result<(), Report> {
+pub fn set_wallpaper(source: &Source) -> Result<(), Report> {
     let path = match &source {
         Source::Image { path } => path,
         Source::Color { .. } => return Ok(()),
