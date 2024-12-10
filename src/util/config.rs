@@ -11,7 +11,7 @@ use super::arguments::Cli;
 use crate::wallpaper::Wallpaper;
 use crate::Template;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     pub version_check: Option<bool>,
     pub wallpaper: Option<Wallpaper>,
@@ -19,9 +19,13 @@ pub struct Config {
     pub prefix: Option<String>,
     pub custom_keywords: Option<HashMap<String, String>>,
     pub custom_colors: Option<HashMap<String, matugen::color::color::OwnCustomColor>>,
+    pub expr_prefix: Option<String>,
+    pub expr_postfix: Option<String>,
+    pub block_prefix: Option<String>,
+    pub block_postfix: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ConfigFile {
     pub config: Config,
     pub templates: HashMap<String, Template>,

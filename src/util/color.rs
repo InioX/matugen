@@ -39,7 +39,7 @@ pub fn show_color(schemes: &Schemes, source_color: &Argb) {
 }
 
 #[cfg(feature = "dump-json")]
-pub fn dump_json(schemes: &Schemes, source_color: &Argb, format: &Format, palettes: Palettes) {
+pub fn dump_json(schemes: &Schemes, source_color: &Argb, format: &Format, palettes: &Palettes) {
     use std::collections::HashMap;
 
     let mut colors_normal_light: HashMap<&str, String> = HashMap::new();
@@ -71,7 +71,7 @@ pub fn dump_json(schemes: &Schemes, source_color: &Argb, format: &Format, palett
 }
 
 #[cfg(feature = "dump-json")]
-fn format_palettes(palettes: Palettes, format: &Format) -> serde_json::Value {
+fn format_palettes(palettes: &Palettes, format: &Format) -> serde_json::Value {
     let primary = format_single_palette(palettes.primary, format);
     let secondary = format_single_palette(palettes.secondary, format);
     let tertiary = format_single_palette(palettes.tertiary, format);
