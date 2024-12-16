@@ -77,7 +77,10 @@ pub fn get_source_color(source: &Source) -> Result<Argb, Box<dyn std::error::Err
         Source::Image { path } => {
             // test
             info!("Opening image in <d><u>{}</>", path);
-            color::get_source_color_from_image(path).expect("Could not get source color from image")
+            color::get_source_color_from_image(path).expect(&format!(
+                "Could not get source color from image {:#?}",
+                path
+            ))
         }
         #[cfg(feature = "web-image")]
         Source::WebImage { url } => {
