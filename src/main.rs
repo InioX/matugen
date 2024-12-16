@@ -15,7 +15,7 @@ mod wallpaper;
 use helpers::{set_wallpaper, setup_logging};
 use matugen::{
     color::color::{get_source_color, Source},
-    scheme::{get_custom_color_schemes, get_schemes},
+    scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
     template_util::template::get_render_data,
 };
 use template::{build_engine_syntax, TemplateFile};
@@ -24,7 +24,7 @@ use crate::template::Template;
 use crate::util::{arguments::Cli, color::show_color, config::ConfigFile};
 
 use clap::Parser;
-use color_eyre::{eyre::Result, Report};
+use color_eyre::Report;
 
 use matugen::scheme::{Schemes, SchemesEnum};
 
@@ -72,6 +72,33 @@ impl State {
         }
     }
 
+    fn update_themes(&mut self) {
+        let source_color = get_source_color(&self.args.source).unwrap();
+        let _theme = ThemeBuilder::with_source(source_color).build();
+        let (scheme_dark, scheme_light) =
+            get_schemes(source_color, &self.args.r#type, &self.args.contrast);
+        self.schemes = get_custom_color_schemes(
+            source_color,
+            scheme_dark,
+            scheme_light,
+            &self.config_file.config.custom_colors,
+            &self.args.r#type,
+            &self.args.contrast,
+        );
+    }
+
+    #[cfg(feature = "ui")]
+    fn run_gui(self) -> Result<(), Report> {
+        setup_logging(&self.args)?;
+        eframe::run_native(
+            "Matugen",
+            eframe::NativeOptions::default(),
+            Box::new(|ctx| Ok(Box::new(MyApp::new(ctx, Box::new(self.args))))),
+        )
+        .unwrap();
+        Ok(())
+    }
+
     fn init_in_term(&self) -> Result<(), Report> {
         color_eyre::install()?;
         setup_logging(&self.args)?;
@@ -113,19 +140,8 @@ impl State {
 
         template.generate()?;
 
-        // Template::generate(
-        //     &self.schemes,
-        //     &self.config_file.templates,
-        //     &self.args.source,
-        //     &self.source_color,
-        //     &self.default_scheme,
-        //     &self.config_file.config.custom_keywords,
-        //     &self.args.prefix,
-        //     &self.config_path,
-        // )?;
-
         if let Some(_wallpaper_cfg) = &self.config_file.config.wallpaper {
-            set_wallpaper(&self.args.source)?;
+            set_wallpaper(&self.args.source, _wallpaper_cfg)?;
         }
 
         Ok(())
@@ -154,10 +170,49 @@ impl State {
     }
 }
 
+#[cfg(feature = "ui")]
+mod gui;
+
+#[cfg(feature = "ui")]
+use gui::init::MyApp;
+
+#[allow(unreachable_code)]
 fn main() -> Result<(), Report> {
-    let args = Cli::parse();
+    color_eyre::install()?;
 
-    let prog = State::new(args.clone());
+    let args_unparsed: Vec<String> = std::env::args().collect();
 
-    prog.run_in_term()
+    let default_args = Cli {
+        source: crate::Source::Color(matugen::color::color::ColorFormat::Hex {
+            string: String::from("#ffffff"),
+        }),
+        r#type: Some(SchemeTypes::SchemeContent),
+        config: None,
+        prefix: None,
+        contrast: Some(0.0),
+        verbose: Some(true),
+        quiet: None,
+        debug: Some(true),
+        mode: Some(SchemesEnum::Dark),
+        dry_run: None,
+        show_colors: None,
+        json: None,
+    };
+
+    if args_unparsed.len() > 1 && args_unparsed[1] == "ui" {
+        #[cfg(feature = "ui")]
+        {
+            let prog = State::new(default_args);
+            prog.run_gui()?;
+            return Ok(());
+        }
+
+        error!("Tried to run gui mode without the <red>--ui</> compilation flag")
+    } else {
+        let args = Cli::parse();
+        let prog = State::new(args.clone());
+        prog.run_in_term()?;
+    }
+
+    Ok(())
 }

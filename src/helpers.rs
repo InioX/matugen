@@ -1,4 +1,4 @@
-use crate::wallpaper;
+use crate::wallpaper::{self, Wallpaper};
 use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
 use matugen::color::color::Source;
@@ -56,7 +56,7 @@ pub fn setup_logging(args: &Cli) -> Result<(), Report> {
     Ok(())
 }
 
-pub fn set_wallpaper(source: &Source) -> Result<(), Report> {
+pub fn set_wallpaper(source: &Source, _wallpaper_cfg: &Wallpaper) -> Result<(), Report> {
     let path = match &source {
         Source::Image { path } => path,
         Source::Color { .. } => return Ok(()),
@@ -69,6 +69,6 @@ pub fn set_wallpaper(source: &Source) -> Result<(), Report> {
     #[cfg(target_os = "macos")]
     wallpaper::macos::set(&path)?;
     #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-    wallpaper::unix::set(path, wallpaper_cfg)?;
+    wallpaper::unix::set(path, _wallpaper_cfg)?;
     Ok(())
 }

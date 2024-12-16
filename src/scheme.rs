@@ -7,7 +7,7 @@ use std::collections::BTreeSet;
 use crate::color::color::{generate_dynamic_scheme, make_custom_color, OwnCustomColor};
 
 #[allow(clippy::enum_variant_names)]
-#[derive(Clone, clap::ValueEnum, Debug, Copy)]
+#[derive(Clone, clap::ValueEnum, Debug, Copy, PartialEq)]
 pub enum SchemeTypes {
     SchemeContent,
     SchemeExpressive,
@@ -18,6 +18,7 @@ pub enum SchemeTypes {
     SchemeRainbow,
     SchemeTonalSpot,
 }
+#[derive(Debug)]
 pub struct Schemes {
     pub light: BTreeSet<(std::string::String, material_colors::color::Argb)>,
     pub dark: BTreeSet<(std::string::String, material_colors::color::Argb)>,
