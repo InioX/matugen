@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0](https://github.com/InioX/matugen/compare/v2.4.1...v2.5.0) - 2024-12-16
+
+### Added
+
+- add ui
+- add palettes to `dump_json`
+
+### Fixed
+
+- wrong tones in `dump_json` (#116)
+
+### Other
+
+- refactor
+- *(readme)* improve discord link
+
 ## [2.4.1](https://github.com/InioX/matugen/compare/v2.4.0...v2.4.1) - 2024-11-13
 
 ### Fixed
