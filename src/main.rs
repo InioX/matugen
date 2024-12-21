@@ -100,7 +100,6 @@ impl State {
     }
 
     fn init_in_term(&self) -> Result<(), Report> {
-        color_eyre::install()?;
         setup_logging(&self.args)?;
 
         #[cfg(feature = "update-informer")]
