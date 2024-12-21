@@ -11,12 +11,12 @@ pub fn set(
         command,
         arguments,
         ..
-    }: Wallpaper,
+    }: &Wallpaper,
 ) -> Result<(), Report> {
     info!("Setting wallpaper...");
 
     if let Some(hook) = pre_hook {
-        spawn_hook(hook)?
+        spawn_hook(hook.to_string())?
     }
 
     let mut binding = Command::new(&command);
