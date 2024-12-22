@@ -8,6 +8,23 @@ matugen: {
   cfg = config.programs.matugen;
   osCfg = args.osConfig.programs.matugen or {};
 
+  hexColorRegex = ''#([0-9a-fA-F]{3}){1,2}'';
+  hexStrippedColorRegex = ''([0-9a-fA-F]{3}){1,2}'';
+  rgbColorRegex = ''rgb\([0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}\)'';
+  rgbaColorRegex = ''rgba\([0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}\)'';
+  hslColorRegex = ''hsl\([0-9]{1,3}(\.[0-9]*)?, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0-9]{1,3}(\.[0-9]*)?%\)'';
+  hslaColorRegex = ''hsla\([0-9]{1,3}(\.[0-9]*)?, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0,1](\.[0-9]*)?\)'';
+  
+  hexColor = lib.types.strMatching hexColorRegex;
+  hexStrippedColor = lib.types.strMatching hexStrippedColorRegex;
+  rgbColor = lib.types.strMatching rgbColorRegex;
+  rgbaColor = lib.types.strMatching rgbaColorRegex;
+  hslColor = lib.types.strMatching hslColorRegex;
+  hslaColor = lib.types.strMatching hslaColorRegex;
+
+  sourceColorType = lib.types.oneOf [hexColor rgbColor hslColor];
+  customColorType = hexColor; # Only hexColor is currently supported for custom_colors.
+
   configFormat = pkgs.formats.toml {};
 
   capitalize = str: let
@@ -27,32 +44,43 @@ matugen: {
     cfg.templates;
 
   matugenConfig = configFormat.generate "matugen-config.toml" {
-    config = {};
+    config = {
+      custom_colors = cfg.custom_colors;
+    } // cfg.config;
     templates = sanitizedTemplates;
   };
 
   # get matugen package
   pkg = matugen.packages.${pkgs.system}.default;
 
-  themePackage = pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {} ''
+  # takes in a source color string and returns the subcommand needed to generate
+  # a color scheme using that color type.
+  sourceColorTypeMatcher = color: (lib.lists.findSingle (p: null != builtins.match p.regex color) {} {} [
+    { regex = hexColorRegex; code = "hex"; }
+    { regex = rgbColorRegex; code = "rgb"; }
+    { regex = hslColorRegex; code = "hsl"; }
+  ]).code;
+
+  command = if (builtins.isNull cfg.source_color) then
+    "image ${cfg.wallpaper}" else
+    "color ${sourceColorTypeMatcher cfg.source_color} \"${cfg.source_color}\"";
+
+  themePackage = builtins.trace command (pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {} ''
     mkdir -p $out
     cd $out
     export HOME=$(pwd)
 
     ${cfg.package}/bin/matugen \
-      image ${cfg.wallpaper} \
-      ${
-      if cfg.templates != {}
-      then "--config ${matugenConfig}"
-      else ""
-    } \
+      ${command} \
+      --config ${matugenConfig} \
       --mode ${cfg.variant} \
       --type ${cfg.type} \
       --json ${cfg.jsonFormat} \
+      --contrast ${lib.strings.floatToString cfg.contrast} \
       --quiet \
       > $out/theme.json
-  '';
-  colors = builtins.fromJSON (builtins.readFile "${themePackage}/theme.json");
+  '');
+  colors = (builtins.fromJSON (builtins.readFile "${themePackage}/theme.json")).colors;
 in {
   options.programs.matugen = {
     enable = lib.mkEnableOption "Matugen declarative theming";
@@ -62,6 +90,13 @@ in {
       // {
         default = pkg;
       };
+
+    source_color = lib.mkOption {
+      description = "Hex color to generate the colorschemes from. If this and wallpaper are defined, will use this.";
+      type = lib.types.nullOr sourceColorType;
+      default = osCfg.source_color or null;
+      example = "#ff1243";
+    };
 
     wallpaper = lib.mkOption {
       description = "Path to `wallpaper` that matugen will generate the colorschemes from";
@@ -95,11 +130,43 @@ in {
       '';
     };
 
+    custom_colors = lib.mkOption {
+      description = "Other colors that should be included in the colorsheme.";
+      type = with lib.types;
+        attrsOf (submodule {
+          options = {
+            color = lib.mkOption {
+              description = "Color value for this custom color.";
+              type = customColorType;
+              example = "#d03e3e";
+            };
+            blend = lib.mkOption {
+              description = "Whether to pick a color close to the given value, or to pass the value through to the final colorscheme unchanged.";
+              type = bool;
+              default = true;
+            };
+          };
+        });
+      default = osCfg.custom_colors or {};
+      example = ''
+        {
+          light-red.color = "#d03e3e";
+          light-orange.color = "#d7691d";
+          light-yellow.color = "#ad8200";
+
+          red = {
+            color = "#ff0000";
+            blend = false;
+          };
+        }
+      '';
+    };
+
     type = lib.mkOption {
       description = "Palette used when generating the colorschemes.";
       type = lib.types.enum ["scheme-content" "scheme-expressive" "scheme-fidelity" "scheme-fruit-salad" "scheme-monochrome" "scheme-neutral" "scheme-rainbow" "scheme-tonal-spot"];
       default = osCfg.palette or "scheme-tonal-spot";
-      example = "triadic";
+      example = "scheme-content";
     };
 
     jsonFormat = lib.mkOption {
@@ -114,6 +181,24 @@ in {
       type = lib.types.enum ["light" "dark" "amoled"];
       default = osCfg.variant or "dark";
       example = "light";
+    };
+
+    contrast = lib.mkOption {
+      description = "Value from -1 to 1. -1 represents minimum contrast, 0 represents standard (i.e. the design as spec'd), and 1 represents maximum contrast.";
+      type = lib.types.numbers.between (-1) 1;
+      default = 0;
+      example = "0.2";   
+    };
+
+    config = lib.mkOption {
+      description = "Add things to the config not covered by other options.";
+      type = lib.types.attrs;
+      default = osCfg.config or {};
+      example = ''
+        {
+          custom_keywords.font1 = "Google Sans";
+        }
+      '';
     };
 
     theme.files = lib.mkOption {

@@ -3,7 +3,6 @@ use color_eyre::eyre::WrapErr;
 use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
-use material_colors::color::Argb;
 use matugen::template_util::template::add_engine_filters;
 use matugen::template_util::template::get_render_data;
 use matugen::template_util::template::render_template;
@@ -16,7 +15,6 @@ use matugen::exec::hook::format_hook;
 use std::path::Path;
 use std::str;
 
-use std::collections::HashMap;
 use std::fs::create_dir_all;
 use std::fs::read_to_string;
 use std::fs::OpenOptions;
@@ -26,11 +24,12 @@ use std::path::PathBuf;
 use matugen::color::color::Source;
 use resolve_path::PathResolveExt;
 
-use crate::{Schemes, SchemesEnum};
+use crate::SchemesEnum;
+use crate::State;
 
 use upon::{Engine, Syntax};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Template {
     pub input_path: PathBuf,
     pub output_path: PathBuf,
@@ -39,6 +38,149 @@ pub struct Template {
     pub compare_to: Option<String>,
     pub pre_hook: Option<String>,
     pub post_hook: Option<String>,
+}
+
+pub struct TemplateFile<'a> {
+    state: &'a State,
+    engine: &'a mut Engine<'a>,
+    render_data: &'a mut Value,
+}
+
+impl TemplateFile<'_> {
+    pub fn new<'a>(
+        state: &'a State,
+        engine: &'a mut Engine<'a>,
+        render_data: &'a mut Value,
+    ) -> TemplateFile<'a> {
+        TemplateFile {
+            state,
+            engine,
+            render_data,
+        }
+    }
+
+    pub fn generate(&mut self) -> Result<(), Report> {
+        info!(
+            "Loaded <b><cyan>{}</> templates.",
+            &self.state.config_file.templates.len()
+        );
+
+        for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
+            add_engine_filters(self.engine);
+
+            let (input_path_absolute, output_path_absolute) =
+                get_absolute_paths(&self.state.config_path, template)?;
+
+            if template.pre_hook.is_some() {
+                format_hook(
+                    self.engine,
+                    self.render_data,
+                    template.pre_hook.as_ref().unwrap(),
+                    &template.colors_to_compare,
+                    &template.compare_to,
+                )
+                .unwrap();
+            }
+
+            if !input_path_absolute.exists() {
+                warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesnt exist, skipping...</>", name, input_path_absolute.display());
+                continue;
+            }
+
+            let data = read_to_string(&input_path_absolute)
+                .wrap_err(format!("Could not read the {} template.", name))
+                .suggestion("Try converting the file to use UTF-8 encoding.")?;
+
+            self.engine.add_template(name, data).map_err(|error| {
+                let message = format!(
+                    "[{} - {}]\n{:#}",
+                    name,
+                    input_path_absolute.display(),
+                    error
+                );
+                Report::new(error).wrap_err(message)
+            })?;
+
+            debug!(
+                "Trying to write the {} template to {}",
+                name,
+                output_path_absolute.display()
+            );
+
+            self.export_template(
+                name,
+                self.render_data,
+                output_path_absolute,
+                input_path_absolute,
+                i,
+            )?;
+
+            if template.post_hook.is_some() {
+                format_hook(
+                    self.engine,
+                    self.render_data,
+                    template.post_hook.as_ref().unwrap(),
+                    &template.colors_to_compare,
+                    &template.compare_to,
+                )
+                .unwrap();
+            }
+        }
+        Ok(())
+    }
+
+    fn export_template(
+        &self,
+        name: &String,
+        render_data: &Value,
+        output_path_absolute: PathBuf,
+        input_path_absolute: PathBuf,
+        i: usize,
+    ) -> Result<(), Report> {
+        let data = render_template(self.engine, name, render_data, input_path_absolute.to_str())?;
+
+        let out = if self.state.args.prefix.is_some() && !cfg!(windows) {
+            let mut prefix_path = PathBuf::from(self.state.args.prefix.as_ref().unwrap());
+
+            // remove the root from the output_path so that we can push it onto the prefix
+            let output_path = output_path_absolute
+                .strip_prefix("/")
+                .expect("output_path_absolute is not an absolute path.");
+
+            prefix_path.push(output_path);
+
+            prefix_path
+        } else {
+            output_path_absolute.to_path_buf()
+        };
+
+        create_missing_folders(&out)?;
+
+        debug!("out: {:?}", out);
+        let mut output_file = OpenOptions::new()
+            .create(true)
+            .truncate(true)
+            .write(true)
+            .open(out)?;
+
+        if output_file.metadata()?.permissions().readonly() {
+            error!(
+                "The <b><red>{}</> file is Read-Only",
+                &output_path_absolute.display()
+            );
+        }
+
+        output_file.write_all(data.as_bytes())?;
+        success!(
+            "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
+            i + 1,
+            &self.state.config_file.templates.len(),
+            name,
+            output_path_absolute.display()
+        );
+
+        Ok(())
+    }
 }
 
 #[allow(clippy::manual_strip)]
@@ -64,105 +206,6 @@ where
 }
 
 impl StripCanonicalization for PathBuf {}
-
-impl Template {
-    pub fn generate(
-        schemes: &Schemes,
-        templates: &HashMap<String, Template>,
-        source: &Source,
-        source_color: &Argb,
-        default_scheme: &SchemesEnum,
-        custom_keywords: &Option<HashMap<String, String>>,
-        path_prefix: &Option<PathBuf>,
-        config_path: Option<PathBuf>,
-    ) -> Result<(), Report> {
-        info!("Loaded <b><cyan>{}</> templates.", &templates.len());
-
-        let syntax = Syntax::builder().expr("{{", "}}").block("<*", "*>").build();
-        let mut engine = Engine::with_syntax(syntax);
-
-        add_engine_filters(&mut engine);
-
-        let image = match &source {
-            Source::Image { path } => Some(path),
-            #[cfg(feature = "web-image")]
-            Source::WebImage { .. } => None,
-            Source::Color { .. } => None,
-        };
-
-        let mut render_data = get_render_data(
-            schemes,
-            source_color,
-            default_scheme,
-            custom_keywords,
-            image,
-        )?;
-
-        for (i, (name, template)) in templates.iter().enumerate() {
-            let (input_path_absolute, output_path_absolute) =
-                get_absolute_paths(&config_path, template)?;
-
-            if template.pre_hook.is_some() {
-                format_hook(
-                    &engine,
-                    &mut render_data,
-                    template.pre_hook.as_ref().unwrap(),
-                    &template.colors_to_compare,
-                    &template.compare_to,
-                )
-                .unwrap();
-            }
-
-            if !input_path_absolute.exists() {
-                warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesnt exist, skipping...</>", name, input_path_absolute.display());
-                continue;
-            }
-
-            let data = read_to_string(&input_path_absolute)
-                .wrap_err(format!("Could not read the {} template.", name))
-                .suggestion("Try converting the file to use UTF-8 encoding.")?;
-
-            engine.add_template(name, data).map_err(|error| {
-                let message = format!(
-                    "[{} - {}]\n{:#}",
-                    name,
-                    input_path_absolute.display(),
-                    error
-                );
-                Report::new(error).wrap_err(message)
-            })?;
-
-            debug!(
-                "Trying to write the {} template to {}",
-                name,
-                output_path_absolute.display()
-            );
-
-            export_template(
-                &engine,
-                name,
-                &render_data,
-                path_prefix,
-                output_path_absolute,
-                input_path_absolute,
-                i,
-                templates,
-            )?;
-
-            if template.post_hook.is_some() {
-                format_hook(
-                    &engine,
-                    &mut render_data,
-                    template.post_hook.as_ref().unwrap(),
-                    &template.colors_to_compare,
-                    &template.compare_to,
-                )
-                .unwrap();
-            }
-        }
-        Ok(())
-    }
-}
 
 fn create_missing_folders(output_path_absolute: &Path) -> Result<(), Report> {
     let parent_folder = &output_path_absolute
@@ -209,57 +252,35 @@ fn get_absolute_paths(
     Ok((input_path_absolute, output_path_absolute))
 }
 
-fn export_template(
-    engine: &Engine,
-    name: &String,
-    render_data: &Value,
-    path_prefix: &Option<PathBuf>,
-    output_path_absolute: PathBuf,
-    input_path_absolute: PathBuf,
-    i: usize,
-    templates: &HashMap<String, Template>,
-) -> Result<(), Report> {
-    let data = render_template(engine, name, render_data, input_path_absolute.to_str())?;
-
-    let out = if path_prefix.is_some() && !cfg!(windows) {
-        let mut prefix_path = PathBuf::from(path_prefix.as_ref().unwrap());
-
-        // remove the root from the output_path so that we can push it onto the prefix
-        let output_path = output_path_absolute
-            .strip_prefix("/")
-            .expect("output_path_absolute is not an absolute path.");
-
-        prefix_path.push(output_path);
-
-        prefix_path
-    } else {
-        output_path_absolute.to_path_buf()
-    };
-
-    create_missing_folders(&out)?;
-
-    debug!("out: {:?}", out);
-    let mut output_file = OpenOptions::new()
-        .create(true)
-        .truncate(true)
-        .write(true)
-        .open(out)?;
-
-    if output_file.metadata()?.permissions().readonly() {
-        error!(
-            "The <b><red>{}</> file is Read-Only",
-            &output_path_absolute.display()
-        );
-    }
-
-    output_file.write_all(data.as_bytes())?;
-    success!(
-        "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
-        i + 1,
-        &templates.len(),
-        name,
-        output_path_absolute.display()
-    );
-
-    Ok(())
+pub fn build_engine_syntax(state: &State) -> Syntax {
+    Syntax::builder()
+        .expr(
+            state
+                .config_file
+                .config
+                .expr_prefix
+                .as_deref()
+                .unwrap_or("{{"),
+            state
+                .config_file
+                .config
+                .expr_postfix
+                .as_deref()
+                .unwrap_or("}}"),
+        )
+        .block(
+            state
+                .config_file
+                .config
+                .block_prefix
+                .as_deref()
+                .unwrap_or("<*"),
+            state
+                .config_file
+                .config
+                .block_postfix
+                .as_deref()
+                .unwrap_or("*>"),
+        )
+        .build()
 }

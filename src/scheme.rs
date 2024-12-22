@@ -1,3 +1,4 @@
+use core::fmt;
 use std::collections::HashMap;
 
 use material_colors::scheme::Scheme;
@@ -6,7 +7,7 @@ use std::collections::BTreeSet;
 use crate::color::color::{generate_dynamic_scheme, make_custom_color, OwnCustomColor};
 
 #[allow(clippy::enum_variant_names)]
-#[derive(Clone, clap::ValueEnum, Debug, Copy)]
+#[derive(Clone, clap::ValueEnum, Debug, Copy, PartialEq)]
 pub enum SchemeTypes {
     SchemeContent,
     SchemeExpressive,
@@ -17,6 +18,7 @@ pub enum SchemeTypes {
     SchemeRainbow,
     SchemeTonalSpot,
 }
+#[derive(Debug)]
 pub struct Schemes {
     pub light: BTreeSet<(std::string::String, material_colors::color::Argb)>,
     pub dark: BTreeSet<(std::string::String, material_colors::color::Argb)>,
@@ -37,6 +39,17 @@ pub struct Schemes {
 pub enum SchemesEnum {
     Light,
     Dark,
+}
+
+impl fmt::Display for SchemesEnum {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let str = match self {
+            SchemesEnum::Light => "light",
+            SchemesEnum::Dark => "dark",
+        };
+
+        write!(f, "{str}")
+    }
 }
 
 pub fn get_custom_color_schemes(

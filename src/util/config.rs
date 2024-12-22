@@ -8,41 +8,24 @@ use color_eyre::{Help, Report};
 use serde::{Deserialize, Serialize};
 
 use super::arguments::Cli;
+use crate::wallpaper::Wallpaper;
 use crate::Template;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub enum WallpaperTool {
-    Swaybg,
-    Swww,
-    Nitrogen,
-    Feh,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
-    pub reload_apps: Option<bool>,
     pub version_check: Option<bool>,
-    pub reload_apps_list: Option<Apps>,
-    pub set_wallpaper: Option<bool>,
-    pub wallpaper_tool: Option<WallpaperTool>,
+    pub wallpaper: Option<Wallpaper>,
     // TODO: Add a `Command` struct
-    pub swww_options: Option<Vec<String>>,
-    pub feh_options: Option<Vec<String>>,
     pub prefix: Option<String>,
     pub custom_keywords: Option<HashMap<String, String>>,
     pub custom_colors: Option<HashMap<String, matugen::color::color::OwnCustomColor>>,
+    pub expr_prefix: Option<String>,
+    pub expr_postfix: Option<String>,
+    pub block_prefix: Option<String>,
+    pub block_postfix: Option<String>,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
-pub struct Apps {
-    pub kitty: Option<bool>,
-    pub waybar: Option<bool>,
-    pub gtk_theme: Option<bool>,
-    pub dunst: Option<bool>,
-    pub mako: Option<bool>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ConfigFile {
     pub config: Config,
     pub templates: HashMap<String, Template>,

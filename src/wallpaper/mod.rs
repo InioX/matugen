@@ -1,3 +1,14 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Wallpaper {
+    /// Useful for, for example, killing the wallpaper daemon
+    pub pre_hook: Option<String>,
+    pub command: String,
+    /// The last argument will be the image path
+    pub arguments: Option<Vec<String>>,
+}
+
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
 pub mod unix;
 

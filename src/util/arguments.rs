@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use crate::SchemesEnum;
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 #[command(version, long_about = None)]
 pub struct Cli {
     /// Optional name to operate on

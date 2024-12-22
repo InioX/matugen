@@ -2,6 +2,8 @@ red #FF0000;
 green #00FF00;
 blue #0000FF;
 
+mode: {{ mode }}
+
 test {{ colors.source_color.default.rgb | set_lightness: 20.0 }}
 test {{ colors.source_color.default.rgb | set_lightness: -20.0 }}
 test {{ colors.source_color.default.rgb }}

@@ -1,4 +1,4 @@
-use crate::{util::config::Config, wallpaper};
+use crate::wallpaper::{self, Wallpaper};
 use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
 use matugen::color::color::Source;
@@ -56,35 +56,19 @@ pub fn setup_logging(args: &Cli) -> Result<(), Report> {
     Ok(())
 }
 
-pub fn set_wallpaper(source: &Source, config: &Config) -> Result<(), Report> {
+pub fn set_wallpaper(source: &Source, _wallpaper_cfg: &Wallpaper) -> Result<(), Report> {
     let path = match &source {
         Source::Image { path } => path,
         Source::Color { .. } => return Ok(()),
         #[cfg(feature = "web-image")]
         Source::WebImage { .. } => return Ok(()),
     };
-    #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-    let wallpaper_tool = match &config.wallpaper_tool {
-        Some(wallpaper_tool) => wallpaper_tool,
-        None => {
-            if cfg!(windows) {
-                return Ok(());
-            }
-            return Ok(warn!(
-                "<d>Wallpaper tool not set, not setting wallpaper...</>"
-            ));
-        }
-    };
+
     #[cfg(target_os = "windows")]
     wallpaper::windows::set(path)?;
     #[cfg(target_os = "macos")]
     wallpaper::macos::set(&path)?;
     #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-    wallpaper::unix::set(
-        path,
-        wallpaper_tool,
-        &config.feh_options,
-        &config.swww_options,
-    )?;
+    wallpaper::unix::set(path, _wallpaper_cfg)?;
     Ok(())
 }
