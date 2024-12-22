@@ -1,0 +1,5 @@
+{{ colors colors }}
+
+{{ colors.source_color.default.hex }}
+
+{{ image }}

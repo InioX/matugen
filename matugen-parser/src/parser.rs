@@ -30,7 +30,7 @@ impl<'a> fmt::Display for ParseError<'a> {
 
         write!(
             f,
-            "\n\u{1b}[2;30;41m ERROR \u{1b}[0m\u{1b}[2;30;47m {} \u{1b}[0m\n\x1b[94m-->\x1b[0m {}:{}..{}:\n{}\n",
+            "\n\u{1b}[2;30;41m ERROR \u{1b}[0m\u{1b}[2;30;47m {} \u{1b}[0m\n\x1b[94m-->\x1b[0m {}:{}:{}\n{}\n",
             err_msg, self.filename, self.start, self.end, str,
         )
 
