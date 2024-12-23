@@ -1,4 +1,6 @@
-{{ colors colors }}
+{{ colors.colors | a }}
+
+{{ colors.colors | b: c }}
 
 {{ colors.source_color.default.hex }}
 

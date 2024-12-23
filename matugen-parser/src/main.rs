@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use lexer::Lexer;
 use parser::Parser;
 
+mod errors;
 mod lexer;
 mod node;
 mod parser;
