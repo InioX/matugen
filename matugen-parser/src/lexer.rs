@@ -5,6 +5,7 @@ use string_cache::DefaultAtom as Atom;
 pub enum Kind {
     String,
     Number,
+    Float,
     Lbracket,
     RBracket,
     Dot,
@@ -15,7 +16,12 @@ pub enum Kind {
     Eof,
     Sof,
     Identifier,
+    LessThan,
+    GreaterThan,
+    Asterisk,
 }
+
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 pub struct Token {
@@ -30,6 +36,7 @@ pub enum TokenValue {
     None,
     Number(i32),
     String(Atom),
+    Float(f32),
 }
 
 #[derive(Debug)]
@@ -48,11 +55,20 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    // pub fn init_tokens(&mut self) {
+    //     for (i, line) in self.source.lines().enumerate() {
+    //         if i < self.source.lines().count() - 1 {
+    //             self.tokens.push((Kind::NewLine, TokenValue::None));
+    //         }
+    //     }
+    // }
+
     fn offset(&self) -> usize {
         self.source.len() - self.chars.as_str().len()
     }
 
     pub fn start(&self) -> Token {
+        println!("{:#?}\n\n", self.source);
         Token {
             kind: Kind::Sof,
             start: 0,
@@ -105,28 +121,87 @@ impl<'a> Lexer<'a> {
         match next_char.unwrap() {
             '{' => (Kind::Lbracket, TokenValue::None),
             '}' => (Kind::RBracket, TokenValue::None),
+            ':' => (Kind::Colon, TokenValue::None),
+            '<' => (Kind::LessThan, TokenValue::None),
+            '>' => (Kind::GreaterThan, TokenValue::None),
+            '*' => (Kind::Asterisk, TokenValue::None),
             '|' => (Kind::Bar, TokenValue::None),
             '.' => (Kind::Dot, TokenValue::None),
             ' ' => (Kind::Space, TokenValue::None),
-            ':' => (Kind::Colon, TokenValue::None),
             '0'..='9' => {
-                let mut number = next_char.unwrap().to_digit(10).unwrap() as i32;
+                let mut str = String::from(next_char.unwrap());
+                let mut is_float = false;
+
                 while let Some(next_char) = self.peek() {
-                    if let Some(digit) = next_char.to_digit(10) {
-                        number = number * 10 + digit as i32;
+                    if next_char == '.' {
+                        is_float = true;
+                        str.push(next_char);
+                        self.chars.next();
+                        continue;
+                    }
+                    if next_char.is_ascii_digit() {
+                        str.push(next_char);
                         self.chars.next();
                     } else {
+                        println!("{}", str);
                         break;
                     }
                 }
-                (Kind::Number, TokenValue::Number(number))
+                if is_float {
+                    (
+                        Kind::Float,
+                        TokenValue::Float(
+                            f32::from_str(&str)
+                                .expect(&format!("Couldn't make f32 from {:?}", str)),
+                        ),
+                    )
+                } else {
+                    (
+                        Kind::Number,
+                        TokenValue::Number(
+                            i32::from_str(&str)
+                                .expect(&format!("Couldn't make i32 from {:?}", str)),
+                        ),
+                    )
+                }
+
+                // let mut number = next_char.unwrap().to_digit(10).unwrap() as i32;
+                // let mut number_float = next_char.unwrap().to_digit(10).unwrap() as f32;
+                // let mut is_float = false;
+                // while let Some(next_char) = self.peek() {
+                //     if next_char == '.' {
+                //         is_float = true;
+                //     }
+                //     if let Some(digit) = next_char.to_digit(10) {
+                //         if is_float {
+                //             number_float = number_float as f32 * 10.0 + digit as f32;
+                //         } else {
+                //             number = number * 10 + digit as i32;
+                //         }
+                //         self.chars.next();
+                //     } else {
+                //         break;
+                //     }
+                // }
+                // if is_float {
+                //     (Kind::Float, TokenValue::Float(number_float))
+                // } else {
+                //     (Kind::Number, TokenValue::Number(number))
+                // }
             }
             _ => {
-                if next_char.unwrap() == 0xA as char || next_char.unwrap() == '\n' {
+                if (next_char.unwrap() == '\r' && self.peek() == Some('\n'))
+                    || next_char.unwrap() == '\n'
+                    || next_char.unwrap() == 0xA as char
+                {
                     self.cur_line += 1;
                     (Kind::NewLine, TokenValue::None)
                 } else if !next_char.unwrap().is_alphanumeric() || next_char.unwrap() == '_' {
-                    (Kind::Identifier, TokenValue::String(String::from(next_char.unwrap()).into()))
+                    println!("{:#?}", next_char.unwrap());
+                    (
+                        Kind::Identifier,
+                        TokenValue::String(String::from(next_char.unwrap()).into()),
+                    )
                 } else {
                     let start = self.offset() - 1;
                     let mut string = String::from(next_char.unwrap());
