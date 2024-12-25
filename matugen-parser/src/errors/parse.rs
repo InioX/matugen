@@ -34,10 +34,10 @@ impl ParseError<'_> {
         ParseError {
             err_type,
             start: parser.last_bracket_start,
-            end: parser.prev_token_end,
+            end: parser.lexer_state.prev_token_end,
             source: parser.source,
             filename: &parser.filename,
-            line_number: parser.lexer.cur_line,
+            line_number: parser.lexer_state.lexer.cur_line,
         }
     }
 }

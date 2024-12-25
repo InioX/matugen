@@ -6,19 +6,21 @@ pub enum Kind {
     String,
     Number,
     Float,
-    Lbracket,
-    RBracket,
-    Dot,
-    Bar,
     Space,
     Colon,
     NewLine,
     Eof,
     Sof,
     Identifier,
+
+    // SPECIAL TOKENS
+    LBracket,
+    RBracket,
     LessThan,
     GreaterThan,
     Asterisk,
+    Bar,
+    Dot,
 }
 
 use std::str::FromStr;
@@ -119,7 +121,7 @@ impl<'a> Lexer<'a> {
         }
 
         match next_char.unwrap() {
-            '{' => (Kind::Lbracket, TokenValue::None),
+            '{' => (Kind::LBracket, TokenValue::None),
             '}' => (Kind::RBracket, TokenValue::None),
             ':' => (Kind::Colon, TokenValue::None),
             '<' => (Kind::LessThan, TokenValue::None),

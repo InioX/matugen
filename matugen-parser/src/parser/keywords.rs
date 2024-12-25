@@ -13,27 +13,28 @@ use super::Parser;
 
 impl Parser<'_> {
     fn get_opening(&mut self) -> Option<usize> {
-        let mut start = self.cur_token().start;
+        let mut start = self.lexer_state.cur_token().start;
 
-        self.bump_any();
+        self.lexer_state.bump_any();
 
         while !self.opened {
-            if self.eat(Kind::Lbracket) {
+            if self.lexer_state.eat(&self.syntax.keyword_opening[0]) {
                 self.opened = true;
                 self.closed = false;
-            } else if self.eat(Kind::Eof) {
+            } else if self.lexer_state.eat(&Kind::Eof) {
                 return None;
             }
-            self.bump_while_not(Kind::Lbracket);
-            start = self.cur_token().start;
+            self.lexer_state
+                .bump_while_not(&self.syntax.keyword_opening[1]);
+            start = self.lexer_state.cur_token().start;
         }
         Some(start)
     }
 
     pub fn get_closing(&mut self) -> Result<(), ParseError> {
         println!("STARTING TO CLOSE");
-        self.bump_any();
-        if self.eat(Kind::RBracket) {
+        self.lexer_state.bump_any();
+        if self.lexer_state.eat(&self.syntax.keyword_closing[0]) {
             self.closed = true;
             self.opened = false;
             Ok(())
@@ -48,15 +49,23 @@ impl Parser<'_> {
     pub fn get_keywords(&mut self) -> Vec<Statement> {
         let mut vec: Vec<Statement> = vec![];
 
-        while !self.at(Kind::Eof) {
-            if !self.at(Kind::Lbracket) {
-                self.bump_until_not_at(Kind::Lbracket);
+        while !self.lexer_state.at(&Kind::Eof) {
+            if !self.lexer_state.at(&self.syntax.keyword_opening[0]) {
+                self.lexer_state
+                    .bump_until_not_at(&self.syntax.keyword_opening[0]);
             }
 
             // We would only get the second bracket at the start without the -1,
             // the opening will ALWAYS have two brackets unlike the closing, which
             // might have an error inside of it (so we dont look ahead for the closing).
-            self.last_bracket_start = self.get_opening().unwrap() - 1;
+
+            let opening = self.get_opening();
+
+            if opening.is_none() {
+                return vec;
+            }
+
+            self.last_bracket_start = opening.unwrap() - 1;
             let start = self.start_node();
 
             let mut strings: Vec<TokenValue> = vec![];
@@ -82,15 +91,15 @@ impl Parser<'_> {
     fn get_filter(&mut self) -> Result<Option<FilterDefinition>, ParseError> {
         let start = self.start_node();
 
-        self.bump_while_not(Kind::String);
+        self.lexer_state.bump_while_not(&Kind::String);
 
-        let name = self.cur_token().clone().value;
+        let name = self.lexer_state.cur_token().clone().value;
 
         let mut filter_args: Vec<TokenValue> = vec![];
 
         handle_error(self.collect_filter_args(&mut filter_args));
 
-        if self.at(Kind::RBracket) {
+        if self.lexer_state.at(&self.syntax.keyword_closing[0]) {
             handle_error(self.get_closing());
             return Ok(Some(FilterDefinition {
                 node: self.finish_node(start),
@@ -104,7 +113,7 @@ impl Parser<'_> {
             filter_name: name,
             arguments: filter_args,
         }))
-        // self.bump_while_not(Kind::RBracket);
+        // self.lexer_state.bump_while_not(&Kind::RBracket);
     }
 
     fn collect_filter_args(
@@ -112,38 +121,39 @@ impl Parser<'_> {
         arguments: &mut Vec<TokenValue>,
     ) -> Result<Vec<TokenValue>, ParseError> {
         // THIS SHOULD BE THE FILTER NAME
-        self.eat(Kind::String);
+        self.lexer_state.eat(&Kind::String);
 
-        if !self.eat_ignore_spaces(Kind::Colon) {
+        if !self.lexer_state.eat_ignore_spaces(&Kind::Colon) {
             println!(
                 "{}",
-                format!("DOESNT HAVE ANY ARGS: {:?}", self.cur_token())
+                format!("DOESNT HAVE ANY ARGS: {:?}", self.lexer_state.cur_token())
                     .red()
                     .bold()
             );
-            self.bump_while_not(Kind::RBracket)
+            self.lexer_state
+                .bump_while_not(&self.syntax.keyword_closing[0])
         } else {
-            // while !self.at(Kind::RBracket) {
-            //     match self.cur_kind() {
-            //         Kind::String => arguments.push(&self.cur_token.value),
+            // while !self.lexer_state.at(Kind::RBracket) {
+            //     match self.lexer_state.cur_kind() {
+            //         Kind::String => arguments.push(&self.lexer_state.cur_token.value),
             //         Kind::Number => todo!(),
             //         _ => {}
             //     }
             // }
             loop {
-                match self.cur_kind() {
+                match self.lexer_state.cur_kind() {
                     Kind::Space => {
-                        self.bump_until_not_at(Kind::Space);
+                        self.lexer_state.bump_until_not_at(&Kind::Space);
                     }
                     Kind::String => {
-                        arguments.push(self.cur_token.value.clone());
-                        self.bump(Kind::String)
+                        arguments.push(self.lexer_state.cur_token.value.clone());
+                        self.lexer_state.bump(&Kind::String)
                     }
                     Kind::Number => {
-                        arguments.push(self.cur_token.value.clone());
-                        self.bump(Kind::Number)
+                        arguments.push(self.lexer_state.cur_token.value.clone());
+                        self.lexer_state.bump(&Kind::Number)
                     }
-                    Kind::RBracket => {
+                    kind if *kind == self.syntax.keyword_closing[1] => {
                         break;
                     }
                     _ => {
@@ -172,15 +182,15 @@ impl Parser<'_> {
         filters: &mut Vec<FilterDefinition>,
     ) -> Result<(), ParseError> {
         // Always first string, what comes after we cant know
-        self.bump_while_not(Kind::String);
-        strings.push(self.cur_val().clone());
+        self.lexer_state.bump_while_not(&Kind::String);
+        strings.push(self.lexer_state.cur_val().clone());
 
-        self.bump_any();
+        self.lexer_state.bump_any();
 
-        while !&self.closed && !self.at(Kind::Eof) {
-            match &self.cur_kind() {
+        while !&self.closed && !self.lexer_state.at(&Kind::Eof) {
+            match &self.lexer_state.cur_kind() {
                 Kind::Dot => {
-                    if self.seen_dot && self.eat(Kind::Dot) {
+                    if self.seen_dot && self.lexer_state.eat(&Kind::Dot) {
                         self.seen_dot = false;
                         return Err(ParseError::new_from_parser(
                             ParseErrorTypes::DoubleDot,
@@ -188,16 +198,17 @@ impl Parser<'_> {
                         ));
                     } else {
                         self.seen_dot = true;
-                        self.bump(Kind::Dot);
+                        self.lexer_state.bump(&Kind::Dot);
                     }
                 }
                 Kind::String => {
                     if self.seen_dot {
-                        strings.push(self.cur_token.clone().value);
-                        self.bump(Kind::String);
+                        strings.push(self.lexer_state.cur_token.clone().value);
+                        self.lexer_state.bump(&Kind::String);
                         self.seen_dot = false;
                     } else {
-                        self.bump_while_not(Kind::RBracket);
+                        self.lexer_state
+                            .bump_while_not(&self.syntax.keyword_closing[0]);
                         return Err(ParseError::new_from_parser(
                             ParseErrorTypes::DoubleString,
                             &self,
@@ -215,9 +226,9 @@ impl Parser<'_> {
                         Err(e) => eprintln!("{}", e),
                     }
                 }
-                Kind::RBracket => {
+                kind if **kind == self.syntax.keyword_closing[0] => {
                     return self.get_closing();
-                    // if self.eat(Kind::RBracket) {
+                    // if self.lexer_state.eat(Kind::RBracket) {
                     //     self.closed = true;
                     //     self.opened = false;
                     //     println!("closed without filter")
@@ -226,11 +237,11 @@ impl Parser<'_> {
                     //     break;
                     // }
                 }
-                Kind::Space => self.bump(Kind::Space),
-                Kind::NewLine => self.bump(Kind::NewLine),
-                Kind::Identifier => self.bump(Kind::Identifier),
+                Kind::Space => self.lexer_state.bump(&Kind::Space),
+                Kind::NewLine => self.lexer_state.bump(&Kind::NewLine),
+                Kind::Identifier => self.lexer_state.bump(&Kind::Identifier),
                 _ => {
-                    println!("{:?}", self.cur_token());
+                    println!("{:?}", self.lexer_state.cur_token());
                 }
             }
         }

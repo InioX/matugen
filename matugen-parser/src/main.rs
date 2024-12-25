@@ -2,7 +2,7 @@ use core::panic;
 use std::path::PathBuf;
 
 use lexer::Lexer;
-use parser::Parser;
+use parser::{settings::SyntaxSettings, Parser};
 
 mod errors;
 mod lexer;
@@ -44,7 +44,9 @@ fn main() {
     // let file_path = "./matugen-parser/example/template.txt";
     let src = std::fs::read_to_string(&file_path).unwrap();
 
-    let mut parser = Parser::new(&src, file_path_absolute);
+    let syntax = SyntaxSettings::new(['{', '{'], ['}', '}'], ['<', '*'], ['>', '*']);
+
+    let mut parser = Parser::new(&src, file_path_absolute, &syntax);
 
     // parser.get_keywords();
 
