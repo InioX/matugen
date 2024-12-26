@@ -5,6 +5,7 @@
 {{ colors.colors | a }}
 
 {{ colors.colors | b: c }}
+{{ colors.colors | b: c, d, e, f, g }}
 
 {{ colors.source_color.default.hex }}
 

@@ -156,6 +156,9 @@ impl Parser<'_> {
                     kind if *kind == self.syntax.keyword_closing[1] => {
                         break;
                     }
+                    Kind::Comma => {
+                        self.lexer_state.bump_until_not_at(&Kind::Comma);
+                    }
                     _ => {
                         return Err(ParseError::new_from_parser(
                             ParseErrorTypes::UnexpectedFilterArgumentToken,

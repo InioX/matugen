@@ -44,8 +44,8 @@ impl Default for SyntaxSettings {
 impl Kind {
     fn from_char(c: &char) -> Kind {
         match c {
-            '{' => Kind::LBracket,
-            '}' => Kind::RBracket,
+            '{' => Kind::LBracketCurly,
+            '}' => Kind::RBracketCurly,
             '.' => Kind::Dot,
             '|' => Kind::Bar,
             '<' => Kind::LessThan,

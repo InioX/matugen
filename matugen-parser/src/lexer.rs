@@ -14,13 +14,18 @@ pub enum Kind {
     Identifier,
 
     // SPECIAL TOKENS
-    LBracket,
-    RBracket,
+    LBracketCurly,
+    RBracketCurly,
+    LBracketSquare,
+    RBracketSquare,
     LessThan,
     GreaterThan,
     Asterisk,
     Bar,
     Dot,
+    Comma,
+    DoubleQuote,
+    SingleQuote,
 }
 
 use std::str::FromStr;
@@ -121,14 +126,19 @@ impl<'a> Lexer<'a> {
         }
 
         match next_char.unwrap() {
-            '{' => (Kind::LBracket, TokenValue::None),
-            '}' => (Kind::RBracket, TokenValue::None),
+            '{' => (Kind::LBracketCurly, TokenValue::None),
+            '}' => (Kind::RBracketCurly, TokenValue::None),
             ':' => (Kind::Colon, TokenValue::None),
             '<' => (Kind::LessThan, TokenValue::None),
             '>' => (Kind::GreaterThan, TokenValue::None),
+            '[' => (Kind::LBracketSquare, TokenValue::None),
+            ']' => (Kind::RBracketSquare, TokenValue::None),
+            '"' => (Kind::DoubleQuote, TokenValue::None),
+            '\'' => (Kind::SingleQuote, TokenValue::None),
             '*' => (Kind::Asterisk, TokenValue::None),
             '|' => (Kind::Bar, TokenValue::None),
             '.' => (Kind::Dot, TokenValue::None),
+            ',' => (Kind::Comma, TokenValue::None),
             ' ' => (Kind::Space, TokenValue::None),
             '0'..='9' => {
                 let mut str = String::from(next_char.unwrap());
