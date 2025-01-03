@@ -12,13 +12,16 @@ pub struct Parser<'a> {
     pub source: &'a str,
     pub filename: &'a str,
     pub lexer_state: LexerState<'a>,
+    pub parser_state: ParserState,
+    pub syntax: &'a SyntaxSettings,
+}
 
-    pub opened: bool,
+#[derive(Debug)]
+pub struct ParserState {
     pub closed: bool,
     pub seen_dot: bool,
-
+    pub seen_comma: bool,
     pub last_bracket_start: usize,
-    pub syntax: &'a SyntaxSettings,
 }
 
 #[derive(Debug)]
@@ -39,10 +42,12 @@ impl<'a> Parser<'a> {
                 prev_token_end: 0,
                 lexer,
             },
-            opened: false,
-            closed: false,
-            seen_dot: false,
-            last_bracket_start: 0,
+            parser_state: ParserState {
+                closed: false,
+                seen_dot: false,
+                seen_comma: false,
+                last_bracket_start: 0,
+            },
             syntax: &syntax,
         }
     }

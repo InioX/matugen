@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::parser::Parser;
+use crate::{lexer::Token, parser::Parser};
 
 #[derive(Debug)]
 pub struct ParseError<'a> {
@@ -10,6 +10,7 @@ pub struct ParseError<'a> {
     pub source: &'a str,
     pub filename: &'a str,
     pub line_number: u64,
+    pub cur_token: Token,
 }
 
 impl ParseError<'_> {
@@ -20,6 +21,7 @@ impl ParseError<'_> {
         source: &'a str,
         filename: &'a str,
         line_number: u64,
+        cur_token: Token,
     ) -> ParseError<'a> {
         ParseError {
             err_type,
@@ -28,16 +30,18 @@ impl ParseError<'_> {
             source,
             filename,
             line_number,
+            cur_token,
         }
     }
     pub fn new_from_parser<'a>(err_type: ParseErrorTypes, parser: &Parser<'a>) -> ParseError<'a> {
         ParseError {
             err_type,
-            start: parser.last_bracket_start,
+            start: parser.parser_state.last_bracket_start,
             end: parser.lexer_state.prev_token_end,
             source: parser.source,
             filename: &parser.filename,
             line_number: parser.lexer_state.lexer.cur_line,
+            cur_token: parser.lexer_state.cur_token.clone(),
         }
     }
 }
@@ -51,6 +55,11 @@ impl<'a> fmt::Display for ParseError<'a> {
             ParseErrorTypes::UnclosedBracket => "Unclosed bracket",
             ParseErrorTypes::DoubleDot => "Double dot",
             ParseErrorTypes::DoubleString => "Double string",
+            ParseErrorTypes::DoubleComma => "Double comma",
+            ParseErrorTypes::FilterArgumentNotSeparated => {
+                "Filter argument not separated by a comma"
+            }
+            ParseErrorTypes::NoFilterArgument => "No filter argument",
         };
         let mut str = "".to_string();
 
@@ -62,8 +71,8 @@ impl<'a> fmt::Display for ParseError<'a> {
 
         write!(
             f,
-            "\n\u{1b}[2;30;41m ERROR \u{1b}[0m\u{1b}[2;30;47m {} \u{1b}[0m\n\x1b[94m-->\x1b[0m {}:{}:{}\n{}\n",
-            err_msg, self.filename, self.start, self.end, str,
+            "\n\u{1b}[2;30;41m ERROR \u{1b}[0m\u{1b}[2;30;47m {} \u{1b}[0m\n\x1b[94m-->\x1b[0m {}:{}:{}\n{}\n{:?}\n",
+            err_msg, self.filename, self.start, self.end, str, self.cur_token
         )
 
         // write!(
@@ -79,5 +88,8 @@ pub enum ParseErrorTypes {
     UnclosedBracket,
     DoubleDot,
     DoubleString,
+    DoubleComma,
+    FilterArgumentNotSeparated,
     UnexpectedFilterArgumentToken,
+    NoFilterArgument,
 }

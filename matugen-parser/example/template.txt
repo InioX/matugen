@@ -2,10 +2,17 @@
 
 15
 
+hello
+
+world
+
 {{ colors.colors | a }}
 
-{{ colors.colors | b: c }}
-{{ colors.colors | b: c, d, e, f, g }}
+{{ colors1.colors2 | b: . }}
+{{ colors3.colors4 | b: a b }}
+{{ colors5.colors6 | b: 1, 2.0 }}
+{{ colors7.colors8 | b: . }}
+{{ colors9.colors10 | b: c, d, e, f, g }}
 
 {{ colors.source_color.default.hex }}
 

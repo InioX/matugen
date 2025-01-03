@@ -1,3 +1,4 @@
+use colored::Colorize;
 use std::str::Chars;
 use string_cache::DefaultAtom as Atom;
 
@@ -51,6 +52,7 @@ pub struct Lexer<'a> {
     source: &'a str,
     chars: Chars<'a>,
     pub cur_line: u64,
+    pub opened: bool,
 }
 
 impl<'a> Lexer<'a> {
@@ -58,7 +60,8 @@ impl<'a> Lexer<'a> {
         Lexer {
             source: &input,
             chars: input.chars(),
-            cur_line: 0,
+            cur_line: 1,
+            opened: false,
         }
     }
 
@@ -141,6 +144,15 @@ impl<'a> Lexer<'a> {
             ',' => (Kind::Comma, TokenValue::None),
             ' ' => (Kind::Space, TokenValue::None),
             '0'..='9' => {
+                if !self.opened {
+                    println!(
+                        "{}",
+                        format!("SKIPPED BECAUSE NOT OPEN: {:?}", next_char)
+                            .red()
+                            .bold()
+                    );
+                    self.read_next_kind();
+                }
                 let mut str = String::from(next_char.unwrap());
                 let mut is_float = false;
 
@@ -155,7 +167,6 @@ impl<'a> Lexer<'a> {
                         str.push(next_char);
                         self.chars.next();
                     } else {
-                        println!("{}", str);
                         break;
                     }
                 }
@@ -215,6 +226,16 @@ impl<'a> Lexer<'a> {
                         TokenValue::String(String::from(next_char.unwrap()).into()),
                     )
                 } else {
+                    if !self.opened {
+                        println!(
+                            "{}",
+                            format!("SKIPPED BECAUSE NOT OPEN: {:?}", next_char)
+                                .red()
+                                .bold()
+                        );
+                        self.read_next_kind();
+                    }
+
                     let start = self.offset() - 1;
                     let mut string = String::from(next_char.unwrap());
                     while let Some(next_char) = self.peek() {
