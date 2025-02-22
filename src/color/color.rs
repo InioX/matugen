@@ -6,7 +6,7 @@ use material_colors::{
     image::{FilterType, ImageReader},
     scheme::variant::{
         SchemeContent, SchemeExpressive, SchemeFidelity, SchemeFruitSalad, SchemeMonochrome,
-        SchemeNeutral, SchemeRainbow, SchemeTonalSpot,
+        SchemeNeutral, SchemeRainbow, SchemeTonalSpot, SchemeVibrant,
     },
     theme::{ColorGroup, CustomColor, CustomColorGroup},
 };
@@ -170,6 +170,9 @@ pub fn generate_dynamic_scheme(
         }
         SchemeTypes::SchemeTonalSpot => {
             SchemeTonalSpot::new(Hct::new(source_color), is_dark, contrast_level).scheme
+        }
+        SchemeTypes::SchemeVibrant => {
+            SchemeVibrant::new(Hct::new(source_color), is_dark, contrast_level).scheme
         }
     }
 }

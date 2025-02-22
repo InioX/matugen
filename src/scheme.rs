@@ -17,6 +17,7 @@ pub enum SchemeTypes {
     SchemeNeutral,
     SchemeRainbow,
     SchemeTonalSpot,
+    SchemeVibrant,
 }
 #[derive(Debug)]
 pub struct Schemes {
