@@ -164,7 +164,7 @@ in {
 
     type = lib.mkOption {
       description = "Palette used when generating the colorschemes.";
-      type = lib.types.enum ["scheme-content" "scheme-expressive" "scheme-fidelity" "scheme-fruit-salad" "scheme-monochrome" "scheme-neutral" "scheme-rainbow" "scheme-tonal-spot"];
+      type = lib.types.enum ["scheme-content" "scheme-expressive" "scheme-fidelity" "scheme-fruit-salad" "scheme-monochrome" "scheme-neutral" "scheme-rainbow" "scheme-tonal-spot" "scheme-vibrant"];
       default = osCfg.palette or "scheme-tonal-spot";
       example = "scheme-content";
     };

@@ -116,6 +116,11 @@ impl MyApp {
                     Some(SchemeTypes::SchemeTonalSpot),
                     "SchemeTonalSpot",
                 );
+                ui.selectable_value(
+                    &mut self.app.args.r#type,
+                    Some(SchemeTypes::SchemeVibrant),
+                    "SchemeVibrant",
+                );
             });
     }
 
