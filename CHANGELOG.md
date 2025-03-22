@@ -6,6 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0](https://github.com/InioX/matugen/compare/v2.4.1...v3.0.0) - 2025-03-22
+
+### Added
+
+- add ui
+- add palettes to `dump_json`
+
+### Fixed
+
+- trying to install color eyre twice
+- not compiling because of unix wallpaper
+- wrong tones in `dump_json` ([#116](https://github.com/InioX/matugen/pull/116))
+
+### Other
+
+- run cargo fmt
+- refactor
+- *(readme)* improve discord link
+
 ## [2.4.1](https://github.com/InioX/matugen/compare/v2.4.0...v2.4.1) - 2024-11-13
 
 ### Fixed
