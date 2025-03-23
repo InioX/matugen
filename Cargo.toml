@@ -28,6 +28,7 @@ ui = [
   "dep:indexmap",
   "dep:egui_file",
   "dep:rfd",
+  "dep:egui_extras",
 ]
 
 [dev-dependencies]
@@ -79,6 +80,7 @@ reqwest = { version = "0.12.5", default-features = false, features = [
 
 # gui feature
 egui = { version = "0.29.1", optional = true }
+egui_extras = { version = "0.29.1", optional = true, features = ["image", "file"] }
 eframe = { version = "0.29.1", optional = true }
 indexmap = { version = "2.7.0", optional = true }
 egui_file = { version = "0.19.0", optional = true }
