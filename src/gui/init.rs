@@ -217,19 +217,21 @@ impl MyApp {
                 .spacing([10.0, 10.0]) // Spacing between items
                 .show(ui, |ui| {
                     for (i, path) in self.images_vec.clone().iter().enumerate() {
-                        let img_widget = egui::Image::from_uri(format!(
-                            "file://{}",
-                            path.clone().into_os_string().into_string().unwrap()
-                        ))
-                        .max_height(300.0)
-                        .max_width(300.0)
-                        .maintain_aspect_ratio(true)
-                        .fit_to_original_size(1.0);
+                        let path_str = path.clone().into_os_string().into_string().unwrap();
+                        let img_widget = egui::Image::from_uri(format!("file://{}", &path_str))
+                            .max_height(200.0)
+                            .max_width(200.0)
+                            .maintain_aspect_ratio(true)
+                            .fit_to_original_size(1.0);
 
-                        if ui.add(img_widget.sense(egui::Sense::click())).clicked() {
-                            self.selected_file = Some(path.to_path_buf());
-                            self.run();
-                        }
+                        ui.vertical_centered(|ui| {
+                            if ui.add(img_widget.sense(egui::Sense::click())).clicked() {
+                                self.selected_file = Some(path.to_path_buf());
+                                self.run();
+                            }
+
+                            ui.label(format!("{}", path_str));
+                        });
 
                         if (i + 1) % 3 == 0 {
                             ui.end_row();
