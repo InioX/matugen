@@ -38,6 +38,13 @@ pub struct Template {
     pub compare_to: Option<String>,
     pub pre_hook: Option<String>,
     pub post_hook: Option<String>,
+    pub input_path_modes: Option<InputPathModes>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct InputPathModes {
+    pub light: PathBuf,
+    pub dark: PathBuf,
 }
 
 pub struct TemplateFile<'a> {
@@ -68,8 +75,21 @@ impl TemplateFile<'_> {
         for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
             add_engine_filters(self.engine);
 
-            let (input_path_absolute, output_path_absolute) =
-                get_absolute_paths(&self.state.config_path, template)?;
+            let input_path = if let Some(input_path_mode) = &template.input_path_modes {
+                match self.state.default_scheme {
+                    SchemesEnum::Light => &input_path_mode.light,
+                    SchemesEnum::Dark => &input_path_mode.dark,
+                }
+            } else {
+                &template.input_path
+            };
+
+            let (input_path_absolute, output_path_absolute) = get_absolute_paths(
+                &self.state.config_path,
+                template,
+                &input_path,
+                &template.output_path,
+            )?;
 
             if template.pre_hook.is_some() {
                 format_hook(
@@ -102,8 +122,9 @@ impl TemplateFile<'_> {
             })?;
 
             debug!(
-                "Trying to write the {} template to {}",
+                "Trying to write the {} template from {} to {}",
                 name,
+                input_path.display(),
                 output_path_absolute.display()
             );
 
@@ -228,25 +249,25 @@ fn create_missing_folders(output_path_absolute: &Path) -> Result<(), Report> {
 fn get_absolute_paths(
     config_path: &Option<PathBuf>,
     template: &Template,
+    input_path: &PathBuf,
+    output_path: &PathBuf,
 ) -> Result<(PathBuf, PathBuf), Report> {
     let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
         let base = std::fs::canonicalize(config_path.as_ref().unwrap())?;
         (
-            template
-                .input_path
+            input_path
                 .try_resolve_in(&base)?
                 .to_path_buf()
                 .strip_canonicalization(),
-            template
-                .output_path
+            output_path
                 .try_resolve_in(&base)?
                 .to_path_buf()
                 .strip_canonicalization(),
         )
     } else {
         (
-            template.input_path.try_resolve()?.to_path_buf(),
-            template.output_path.try_resolve()?.to_path_buf(),
+            input_path.try_resolve()?.to_path_buf(),
+            output_path.try_resolve()?.to_path_buf(),
         )
     };
     Ok((input_path_absolute, output_path_absolute))
