@@ -12,6 +12,7 @@ test = "aaaa"
 [templates.name1]
 input_path = "./colors.whatever-extension"
 output_path = "./a/colors-generated.whatever-extension"
+input_path_modes = { dark = "./colors.whatever-extension", light = "./colors.whatever-extension"}
 colors_to_compare = [
     { name = "black", color = "#000000" },
     { name = "red", color = "#ff0000" },
