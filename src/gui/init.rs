@@ -14,11 +14,14 @@ use matugen::{
     },
     scheme::{SchemeTypes, Schemes},
 };
+use serde::{Deserialize, Serialize};
 
 use crate::{template::TemplateFile, util::arguments::Cli, State};
 
+use super::cache::{read_cache, save_cache};
+
 #[cfg(feature = "ui")]
-#[derive(PartialEq)]
+#[derive(PartialEq, Serialize, Deserialize, Clone)]
 pub enum Tabs {
     Images,
     Settings,
@@ -35,7 +38,8 @@ pub struct MyApp {
     selected_tab: Tabs,
     app: State,
     images_vec: Vec<PathBuf>,
-    images_folder: Option<PathBuf>,
+    image_folder: Option<PathBuf>,
+    load_cache: bool,
 }
 
 #[cfg(feature = "ui")]
@@ -68,6 +72,15 @@ fn get_images_in_folder(folder_path: &PathBuf) -> Vec<PathBuf> {
 #[cfg(feature = "ui")]
 impl MyApp {
     pub fn new(_cc: &eframe::CreationContext, cli: Box<Cli>) -> Self {
+        let mut is_cache = false;
+        let mut selected_tab = Tabs::Settings;
+        let mut image_folder = None;
+        if let Some(c) = read_cache() {
+            is_cache = true;
+            selected_tab = c.selected_tab;
+            image_folder = Some(c.image_folder);
+        } else {
+        };
         Self {
             selected_file: None,
             app: crate::State::new(*cli.clone()),
@@ -76,12 +89,17 @@ impl MyApp {
                 light: None,
                 dark: None,
             },
-            selected_tab: Tabs::Settings,
+            selected_tab,
             images_vec: vec![],
-            images_folder: None,
+            load_cache: if is_cache { true } else { false },
+            image_folder,
         }
     }
     fn body(&mut self, ui: &mut Ui) {
+        if self.load_cache {
+            self.update_images_tab(ui);
+            self.load_cache = false;
+        }
         match self.selected_tab {
             Tabs::Settings => self.settings(ui),
             Tabs::Colors => self.colors(ui),
@@ -241,18 +259,23 @@ impl MyApp {
         });
     }
 
-    fn update_images_tab(&mut self, ui: &mut Ui, image_folder: Option<PathBuf>) {
-        if image_folder == Some("".into()) || image_folder.is_none() {
+    fn update_images_tab(&mut self, ui: &mut Ui) {
+        if self.image_folder == Some("".into()) || self.image_folder.is_none() {
             return;
         }
-        let images = get_images_in_folder(&image_folder.as_ref().unwrap());
+        save_cache(
+            self.image_folder.clone().unwrap(),
+            self.selected_tab.clone(),
+        );
+        let images = get_images_in_folder(&self.image_folder.as_ref().unwrap());
         self.images_vec = images;
     }
 
     fn top_buttons(&mut self, ui: &mut Ui) {
         if ui.button("Image Folder").clicked() {
             if let Some(path) = rfd::FileDialog::new().pick_folder() {
-                self.update_images_tab(ui, Some(path))
+                self.image_folder = Some(path);
+                self.update_images_tab(ui)
             }
         }
         if ui.button("Select image").clicked() {
@@ -316,9 +339,33 @@ impl eframe::App for MyApp {
         egui::TopBottomPanel::top("my_panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.horizontal(|ui| {
-                    ui.selectable_value(&mut self.selected_tab, Tabs::Images, "Images");
-                    ui.selectable_value(&mut self.selected_tab, Tabs::Settings, "Settings");
-                    ui.selectable_value(&mut self.selected_tab, Tabs::Colors, "Colors");
+                    if ui
+                        .selectable_value(&mut self.selected_tab, Tabs::Images, "Images")
+                        .clicked()
+                    {
+                        save_cache(
+                            self.image_folder.clone().unwrap(),
+                            self.selected_tab.clone(),
+                        );
+                    };
+                    if ui
+                        .selectable_value(&mut self.selected_tab, Tabs::Settings, "Settings")
+                        .clicked()
+                    {
+                        save_cache(
+                            self.image_folder.clone().unwrap(),
+                            self.selected_tab.clone(),
+                        )
+                    };
+                    if ui
+                        .selectable_value(&mut self.selected_tab, Tabs::Colors, "Colors")
+                        .clicked()
+                    {
+                        save_cache(
+                            self.image_folder.clone().unwrap(),
+                            self.selected_tab.clone(),
+                        )
+                    };
                 });
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
