@@ -19,7 +19,7 @@ pub fn save_cache(image_folder: PathBuf, selected_tab: Tabs) {
     };
     let toml = toml::to_string(&config).unwrap();
     if let Some(path) = get_proj_path(&ProjectDirsTypes::Cache) {
-        dbg!(&path);
+        // dbg!(&path);
         // std::fs::create_dir_all(&path).expect("Failed to crate cache folder");
         fs::write(path, toml).expect("Failed saving cache")
     }
