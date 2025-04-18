@@ -1,6 +1,7 @@
 use core::fmt;
 use std::collections::HashMap;
 
+use indexmap::IndexMap;
 use material_colors::scheme::Scheme;
 use std::collections::BTreeSet;
 
@@ -19,10 +20,10 @@ pub enum SchemeTypes {
     SchemeTonalSpot,
     SchemeVibrant,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Schemes {
-    pub light: BTreeSet<(std::string::String, material_colors::color::Argb)>,
-    pub dark: BTreeSet<(std::string::String, material_colors::color::Argb)>,
+    pub light: IndexMap<std::string::String, material_colors::color::Argb>,
+    pub dark: IndexMap<std::string::String, material_colors::color::Argb>,
 }
 
 #[derive(
@@ -103,8 +104,8 @@ pub fn get_custom_color_schemes(
     let custom_colors_light = custom_colors.flat_map(|c| from_color!(c, light));
 
     let schemes: Schemes = Schemes {
-        dark: BTreeSet::from_iter(scheme_dark.into_iter().chain(custom_colors_dark)),
-        light: BTreeSet::from_iter(scheme_light.into_iter().chain(custom_colors_light)),
+        dark: IndexMap::from_iter(scheme_dark.into_iter().chain(custom_colors_dark)),
+        light: IndexMap::from_iter(scheme_light.into_iter().chain(custom_colors_light)),
     };
     schemes
 }

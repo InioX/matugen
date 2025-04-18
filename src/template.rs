@@ -3,7 +3,7 @@ use color_eyre::eyre::WrapErr;
 use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
-use matugen::template_util::template::add_engine_filters;
+// use matugen::template_util::template::add_engine_filters;
 use matugen::template_util::template::get_render_data;
 use matugen::template_util::template::render_template;
 use serde::{Deserialize, Serialize};
@@ -73,7 +73,7 @@ impl TemplateFile<'_> {
         );
 
         for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
-            add_engine_filters(self.engine);
+            // add_engine_filters(self.engine);
 
             let input_path = if let Some(input_path_mode) = &template.input_path_modes {
                 match self.state.default_scheme {

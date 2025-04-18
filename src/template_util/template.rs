@@ -41,23 +41,23 @@ pub struct ColorVariants {
     pub default: Color,
 }
 
-pub fn add_engine_filters(engine: &mut Engine) {
-    // Color manipulation
-    engine.add_filter("set_lightness", set_lightness);
-    engine.add_filter("auto_lightness", auto_lightness);
-    engine.add_filter("set_alpha", set_alpha);
-    engine.add_filter("set_hue", set_hue);
-    engine.add_filter("grayscale", grayscale);
-    engine.add_filter("invert", invert);
+// pub fn add_engine_filters(engine: &mut Engine) {
+//     // Color manipulation
+//     engine.add_filter("set_lightness", set_lightness);
+//     engine.add_filter("auto_lightness", auto_lightness);
+//     engine.add_filter("set_alpha", set_alpha);
+//     engine.add_filter("set_hue", set_hue);
+//     engine.add_filter("grayscale", grayscale);
+//     engine.add_filter("invert", invert);
 
-    // String manipulation
-    engine.add_filter("to_upper", str::to_uppercase);
-    engine.add_filter("to_lower", str::to_lowercase);
-    engine.add_filter("replace", |s: String, from: String, to: String| {
-        s.replace(&from, &to)
-    });
-    engine.add_filter("camel_case", camel_case);
-}
+//     // String manipulation
+//     engine.add_filter("to_upper", str::to_uppercase);
+//     engine.add_filter("to_lower", str::to_lowercase);
+//     engine.add_filter("replace", |s: String, from: String, to: String| {
+//         s.replace(&from, &to)
+//     });
+//     engine.add_filter("camel_case", camel_case);
+// }
 
 pub fn render_template(
     engine: &Engine,
