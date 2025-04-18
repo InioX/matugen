@@ -1,0 +1,8 @@
+[package]
+name = "matugen-parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ariadne = { version = "0.5.1" }
+chumsky = { version = "0.10.0" }

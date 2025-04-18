@@ -7,6 +7,7 @@ use std::path::PathBuf;
 
 use material_colors::theme::ThemeBuilder;
 
+mod engine;
 mod helpers;
 pub mod template;
 mod util;
@@ -28,8 +29,10 @@ use color_eyre::Report;
 
 use matugen::scheme::{Schemes, SchemesEnum};
 
+use crate::engine::engine::Engine;
 use material_colors::{color::Argb, theme::Theme};
 use upon::Value;
+
 pub struct State {
     pub args: Cli,
     pub config_file: ConfigFile,
@@ -70,6 +73,14 @@ impl State {
             schemes,
             default_scheme,
         }
+    }
+
+    fn run_other_generator(&self) {
+        let src = std::fs::read_to_string("test.test").unwrap();
+
+        let mut engine = Engine::new(src, self.schemes.clone(), self.default_scheme.clone());
+
+        engine.generate_templates();
     }
 
     fn update_themes(&mut self) {
@@ -137,7 +148,8 @@ impl State {
         let mut render_data = self.init_render_data()?;
         let mut template = TemplateFile::new(self, &mut engine, &mut render_data);
 
-        template.generate()?;
+        self.run_other_generator();
+        // template.generate()?;
 
         if let Some(_wallpaper_cfg) = &self.config_file.config.wallpaper {
             set_wallpaper(&self.args.source, _wallpaper_cfg)?;

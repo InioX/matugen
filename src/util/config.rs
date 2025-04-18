@@ -84,10 +84,14 @@ impl ConfigFile {
 
     fn read_from_proj_path() -> Result<(ConfigFile, Option<PathBuf>), Report> {
         if let Some(path) = get_proj_path(&ProjectDirsTypes::Config) {
-            let content: String = fs::read_to_string(&path).unwrap();
-            match toml::from_str(&content) {
-                Ok(res) => Ok((res, Some(path))),
-                Err(e) => Err(Report::new(e).suggestion(ERROR_TEXT)),
+            if path.exists() {
+                let content: String = fs::read_to_string(&path).unwrap();
+                match toml::from_str(&content) {
+                    Ok(res) => Ok((res, Some(path))),
+                    Err(e) => Err(Report::new(e).suggestion(ERROR_TEXT)),
+                }
+            } else {
+                Ok((Self::read_from_fallback_path()?, None))
             }
         } else {
             Ok((Self::read_from_fallback_path()?, None))
