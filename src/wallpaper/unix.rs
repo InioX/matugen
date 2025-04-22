@@ -35,7 +35,7 @@ pub fn set(
                     "Failed to set wallpaper, the program <red>{command}</> was not found in PATH!"
                 )
             } else {
-                error!("Some error(s) occured while setting wallpaper!");
+                error!("Some error(s) occurred while setting wallpaper!");
             }
         }
     };
