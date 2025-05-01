@@ -114,6 +114,11 @@ impl MyApp {
                 &mut self.app.args.contrast.unwrap(),
                 -1.0..=1.0,
             ));
+            ui.label("Lightness");
+            ui.add(egui::Slider::new(
+                &mut self.app.args.lightness.unwrap(),
+                -1.0..=1.0,
+            ));
         });
         ui.label("Scheme type");
         egui::ComboBox::from_label("")

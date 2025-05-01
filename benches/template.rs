@@ -18,7 +18,7 @@ fn parse_template(data: &str) {
 
     let (scheme_dark, scheme_light) = get_schemes(source_color, &None, &None);
     let schemes =
-        get_custom_color_schemes(source_color, scheme_dark, scheme_light, &None, &None, &None);
+        get_custom_color_schemes(source_color, scheme_dark, scheme_light, &None, &None, &None, &None);
     let render_data =
         get_render_data(&schemes, &source_color, &SchemesEnum::Dark, &None, None).unwrap();
 

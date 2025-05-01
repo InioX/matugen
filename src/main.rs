@@ -18,6 +18,7 @@ use matugen::{
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
     template_util::template::get_render_data,
 };
+use owo_colors::OwoColorize;
 use template::{build_engine_syntax, TemplateFile};
 
 use crate::template::Template;
@@ -59,6 +60,7 @@ impl State {
             &config_file.config.custom_colors,
             &args.r#type,
             &args.contrast,
+            &args.lightness,
         );
 
         Self {
@@ -84,6 +86,7 @@ impl State {
             &self.config_file.config.custom_colors,
             &self.args.r#type,
             &self.args.contrast,
+            &self.args.lightness,
         );
     }
 
@@ -189,6 +192,7 @@ fn main() -> Result<(), Report> {
         config: None,
         prefix: None,
         contrast: Some(0.0),
+        lightness: Some(0.0),
         verbose: Some(true),
         quiet: None,
         debug: Some(true),

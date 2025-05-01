@@ -33,6 +33,11 @@ pub struct Cli {
     /// standard (i.e. the design as spec'd), and 1 represents maximum contrast.
     #[arg(long, global = true, allow_negative_numbers = true)]
     pub contrast: Option<f64>,
+    
+    /// Value from -1 to 1. -1 represents minimum lightness, 0 represents
+    /// standard (i.e. the design as spec'd), and 1 represents maximum lightness.
+    #[arg(long, global = true, allow_negative_numbers = true)]
+    pub lightness: Option<f64>,
 
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub verbose: Option<bool>,
