@@ -18,7 +18,6 @@ use matugen::{
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
     template_util::template::get_render_data,
 };
-use owo_colors::OwoColorize;
 use template::{build_engine_syntax, TemplateFile};
 
 use crate::template::Template;
