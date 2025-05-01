@@ -191,7 +191,7 @@ pub fn adjust_color_lightness_light(
     color: Argb,
     lightness_level: &Option<f64>,
 ) -> Argb {
-    // If lightness values were plotted on a graph, the effect of this function is to rotate the line corresponding to the identity function about x = 255 and y = 255 by setting the value at x = 0 to -lightness_level*255 and then clamping the values to between 0 and 255.
+    // If lightness values were plotted on a graph, the effect of this function is to rotate the line corresponding to the identity function about x = 0 and y = 0 by setting the value at x = 255 to 255+lightness_level*255 and then clamping the values to between 0 and 255.
     let pre_lightness_level = ((color.red as f64) + (color.green as f64) + (color.blue as f64))/ 3.0;
     let adj = pre_lightness_level / 255.0 * (1.0 + lightness_level.unwrap_or(0.0)) / pre_lightness_level* 255.0;
     Argb::new(color.alpha, (color.red as f64 * adj).clamp(0.0, 255.0) as u8, (color.green as f64 * adj).clamp(0.0, 255.0) as u8, (color.blue as f64 * adj).clamp(0.0, 255.0) as u8)
