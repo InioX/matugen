@@ -49,7 +49,7 @@
 - **Custom Keywords/Colors:**
      - Define your own custom keywords or colors you would like to be harmonized inside the config file, that you can then use in templates
 - **Palette Customization:**
-     - Customize the contrast and scheme type for the palette
+     - Customize the contrast, lightness and scheme type for the palette
 - **Restart Apps/Change Wallpaper:**
      - Restart supported apps and set the wallpaper on Windows, MacOS, Linux and NetBSD
 
