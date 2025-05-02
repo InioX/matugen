@@ -114,10 +114,15 @@ impl MyApp {
                 &mut self.app.args.contrast.unwrap(),
                 -1.0..=1.0,
             ));
-            ui.label("Lightness");
+            ui.label("Lightness (Dark)");
             ui.add(egui::Slider::new(
-                &mut self.app.args.lightness.unwrap(),
-                -1.0..=1.0,
+                &mut self.app.args.lightness_dark.unwrap(),
+                -100.0..=1.0,
+            ));
+            ui.label("Lightness (Light)");
+            ui.add(egui::Slider::new(
+                &mut self.app.args.lightness_light.unwrap(),
+                -1.0..=100.0,
             ));
         });
         ui.label("Scheme type");

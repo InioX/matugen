@@ -34,16 +34,21 @@ pub struct Cli {
     #[arg(long, global = true, allow_negative_numbers = true)]
     pub contrast: Option<f64>,
     
-    /// Value from -∞ to +∞. -∞ represents minimum lightness, 0 represents
-    /// standard (i.e. the design as spec'd), and +∞ represents maximum lightness.
-    /// (for a dark scheme: if the considered lightnesses are between 0 and 1 then this applies an affine
+    /// Value from -∞ to 1. -∞ represents minimum lightness, 0 represents
+    /// standard (i.e. the design as spec'd), and 1 represents maximum lightness.
+    /// For dark schemes, if the considered lightnesses are between 0 and 1 then this applies an affine
     /// transformation to the lightness by keeping the value for 1 at 1 and setting the
-    /// value for 0 to the lightness argument and then clamping the result; for a light scheme: if the considered lightnesses are between 0 and 1 then this applies an affine
-    /// transformation to the lightness by keeping the value for 0 at 0 and setting the
-    /// value for 1 to 1 + the lightness argument and then clamping the result)
-    
+    /// value for 0 to the lightness argument and then clamping the result
     #[arg(long, global = true, allow_negative_numbers = true)]
-    pub lightness: Option<f64>,
+    pub lightness_dark: Option<f64>,
+
+    /// Value from -1 to +∞. -1 represents minimum lightness, 0 represents
+    /// standard (i.e. the design as spec'd), and +∞ represents maximum lightness.
+    /// For light schemes, if the considered lightnesses are between 0 and 1 then this applies an affine
+    /// transformation to the lightness by keeping the value for 0 at 0 and setting the
+    /// value for 1 to (1 + the lightness argument) and then clamping the result
+    #[arg(long, global = true, allow_negative_numbers = true)]
+    pub lightness_light: Option<f64>,
 
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub verbose: Option<bool>,

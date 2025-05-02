@@ -60,7 +60,8 @@ pub fn get_custom_color_schemes(
     custom_colors: &Option<HashMap<String, OwnCustomColor, std::hash::RandomState>>,
     scheme_type: &Option<SchemeTypes>,
     contrast: &Option<f64>,
-    lightness: &Option<f64>,
+    lightness_dark: &Option<f64>,
+    lightness_light: &Option<f64>,
 ) -> Schemes {
     macro_rules! from_color {
         ($color: expr, $variant: ident) => {
@@ -104,8 +105,8 @@ pub fn get_custom_color_schemes(
     let custom_colors_light = custom_colors.flat_map(|c| from_color!(c, light));
 
     let schemes: Schemes = Schemes {
-        dark: BTreeSet::from_iter(scheme_dark.into_iter().chain(custom_colors_dark).map(|(name, color)| (name,adjust_color_lightness_dark(color, lightness)))),
-        light: BTreeSet::from_iter(scheme_light.into_iter().chain(custom_colors_light).map(|(name, color)| (name,adjust_color_lightness_light(color, lightness)))),
+        dark: BTreeSet::from_iter(scheme_dark.into_iter().chain(custom_colors_dark).map(|(name, color)| (name,adjust_color_lightness_dark(color, lightness_dark)))),
+        light: BTreeSet::from_iter(scheme_light.into_iter().chain(custom_colors_light).map(|(name, color)| (name,adjust_color_lightness_light(color, lightness_light)))),
     };
     schemes
 }

@@ -59,7 +59,8 @@ impl State {
             &config_file.config.custom_colors,
             &args.r#type,
             &args.contrast,
-            &args.lightness,
+            &args.lightness_dark,
+            &args.lightness_light,
         );
 
         Self {
@@ -85,7 +86,8 @@ impl State {
             &self.config_file.config.custom_colors,
             &self.args.r#type,
             &self.args.contrast,
-            &self.args.lightness,
+            &self.args.lightness_dark,
+            &self.args.lightness_light,
         );
     }
 
@@ -191,7 +193,8 @@ fn main() -> Result<(), Report> {
         config: None,
         prefix: None,
         contrast: Some(0.0),
-        lightness: Some(0.0),
+        lightness_dark: Some(0.0),
+        lightness_light: Some(0.0),
         verbose: Some(true),
         quiet: None,
         debug: Some(true),
