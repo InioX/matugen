@@ -32,13 +32,20 @@ use upon::{Engine, Syntax};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Template {
     pub input_path: PathBuf,
-    pub output_path: PathBuf,
+    pub output_path: OutputPaths,
     pub mode: Option<SchemesEnum>,
     pub colors_to_compare: Option<Vec<matugen::color::color::ColorDefinition>>,
     pub compare_to: Option<String>,
     pub pre_hook: Option<String>,
     pub post_hook: Option<String>,
     pub input_path_modes: Option<InputPathModes>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum OutputPaths {
+    Single(PathBuf),
+    Multiple(Vec<PathBuf>),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -84,11 +91,16 @@ impl TemplateFile<'_> {
                 &template.input_path
             };
 
-            let (input_path_absolute, output_path_absolute) = get_absolute_paths(
+            let output_paths = match &template.output_path {
+                OutputPaths::Single(path) => vec![path.clone()],
+                OutputPaths::Multiple(paths) => paths.clone(),
+            };
+
+            let (input_path_absolute, output_paths_absolute) = get_absolute_paths(
                 &self.state.config_path,
                 template,
                 &input_path,
-                &template.output_path,
+                &output_paths,
             )?;
 
             if template.pre_hook.is_some() {
@@ -121,30 +133,32 @@ impl TemplateFile<'_> {
                 Report::new(error).wrap_err(message)
             })?;
 
-            debug!(
-                "Trying to write the {} template from {} to {}",
-                name,
-                input_path.display(),
-                output_path_absolute.display()
-            );
+            for output_path_absolute in output_paths_absolute.iter() {
+                debug!(
+                    "Trying to write the {} template from {} to {}",
+                    name,
+                    input_path.display(),
+                    output_path_absolute.display()
+                );
 
-            self.export_template(
-                name,
-                self.render_data,
-                output_path_absolute,
-                input_path_absolute,
-                i,
-            )?;
-
-            if template.post_hook.is_some() {
-                format_hook(
-                    self.engine,
+                self.export_template(
+                    name,
                     self.render_data,
-                    template.post_hook.as_ref().unwrap(),
-                    &template.colors_to_compare,
-                    &template.compare_to,
-                )
-                .unwrap();
+                    output_path_absolute,
+                    &input_path_absolute,
+                    i,
+                )?;
+
+                if template.post_hook.is_some() {
+                    format_hook(
+                        self.engine,
+                        self.render_data,
+                        template.post_hook.as_ref().unwrap(),
+                        &template.colors_to_compare,
+                        &template.compare_to,
+                    )
+                    .unwrap();
+                }
             }
         }
         Ok(())
@@ -154,8 +168,8 @@ impl TemplateFile<'_> {
         &self,
         name: &String,
         render_data: &Value,
-        output_path_absolute: PathBuf,
-        input_path_absolute: PathBuf,
+        output_path_absolute: &PathBuf,
+        input_path_absolute: &PathBuf,
         i: usize,
     ) -> Result<(), Report> {
         let data = render_template(self.engine, name, render_data, input_path_absolute.to_str())?;
@@ -250,25 +264,33 @@ fn get_absolute_paths(
     config_path: &Option<PathBuf>,
     template: &Template,
     input_path: &PathBuf,
-    output_path: &PathBuf,
-) -> Result<(PathBuf, PathBuf), Report> {
+    output_path: &Vec<PathBuf>,
+) -> Result<(PathBuf, Vec<PathBuf>), Report> {
     let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
         let base = std::fs::canonicalize(config_path.as_ref().unwrap())?;
+        let mut output_paths = vec![];
+        for path in output_path {
+            output_paths.push(
+                path.try_resolve_in(&base)?
+                    .to_path_buf()
+                    .strip_canonicalization(),
+            );
+        }
+
         (
             input_path
                 .try_resolve_in(&base)?
                 .to_path_buf()
                 .strip_canonicalization(),
-            output_path
-                .try_resolve_in(&base)?
-                .to_path_buf()
-                .strip_canonicalization(),
+            output_paths,
         )
     } else {
-        (
-            input_path.try_resolve()?.to_path_buf(),
-            output_path.try_resolve()?.to_path_buf(),
-        )
+        let mut output_paths = vec![];
+        for path in output_path {
+            output_paths.push(path.try_resolve()?.to_path_buf());
+        }
+
+        (input_path.try_resolve()?.to_path_buf(), output_paths)
     };
     Ok((input_path_absolute, output_path_absolute))
 }
