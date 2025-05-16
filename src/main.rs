@@ -30,6 +30,8 @@ use matugen::scheme::{Schemes, SchemesEnum};
 
 use material_colors::{color::Argb, theme::Theme};
 use upon::Value;
+use convert_case::{Case, Casing};
+
 pub struct State {
     pub args: Cli,
     pub config_file: ConfigFile,
@@ -148,7 +150,14 @@ impl State {
 
     fn init_engine(&self) -> upon::Engine {
         let syntax = build_engine_syntax(self);
-        upon::Engine::with_syntax(syntax)
+        let mut engine = upon::Engine::with_syntax(syntax);
+
+        engine.add_filter("camelCase", |s: String| s.to_case(Case::Camel));
+        engine.add_filter("PascalCase", |s: String| s.to_case(Case::Pascal));
+        engine.add_filter("snake_case", |s: String| s.to_case(Case::Snake));
+        engine.add_filter("kebab-case", |s: String| s.to_case(Case::Kebab));
+
+        engine
     }
 
     fn init_render_data(&self) -> Result<Value, Report> {
