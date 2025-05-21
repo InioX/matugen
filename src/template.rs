@@ -21,6 +21,8 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 
+use std::collections::HashMap;
+
 use matugen::color::color::Source;
 use resolve_path::PathResolveExt;
 
@@ -67,11 +69,13 @@ impl TemplateFile<'_> {
     }
 
     pub fn generate(&mut self) -> Result<(), Report> {
-        info!(
-            "Loaded <b><cyan>{}</> templates.",
+        debug!(
+            "Trying to load <b><cyan>{}</> templates.",
             &self.state.config_file.templates.len()
         );
 
+
+        let mut name_to_absolute_paths: HashMap<&String, (PathBuf, PathBuf)> = Default::default();
         for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
             add_engine_filters(self.engine);
 
@@ -122,9 +126,26 @@ impl TemplateFile<'_> {
             })?;
 
             debug!(
+                "Loaded the {} template from {}",
+                name,
+                input_path.display()
+            );
+
+            name_to_absolute_paths.insert(name, (input_path_absolute, output_path_absolute));
+        }
+
+        info!(
+            "Loaded <b><cyan>{}</> templates.",
+            &self.state.config_file.templates.len()
+        );
+
+        for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
+            let (input_path_absolute, output_path_absolute) = name_to_absolute_paths.remove(name).unwrap();
+
+            debug!(
                 "Trying to write the {} template from {} to {}",
                 name,
-                input_path.display(),
+                input_path_absolute.display(),
                 output_path_absolute.display()
             );
 
