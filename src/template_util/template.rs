@@ -9,12 +9,6 @@ use crate::color::format::{
     format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
     rgb_from_argb,
 };
-use crate::filters::alpha::set_alpha;
-use crate::filters::camel::camel_case;
-use crate::filters::grayscale::grayscale;
-use crate::filters::hue::set_hue;
-use crate::filters::invert::invert;
-use crate::filters::lightness::{auto_lightness, set_lightness};
 use crate::scheme::{Schemes, SchemesEnum};
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
