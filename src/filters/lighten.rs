@@ -1,17 +1,17 @@
 use colorsys::{ColorAlpha, ColorTransform, Rgb};
 use material_colors::color::Argb;
 
-use crate::engine::{Engine, FilterType, Value};
+use crate::engine::{Engine, FilterReturnType, Value};
 
 pub(crate) fn lighten(
     keywords: &Vec<&str>,
     args: Vec<Value>,
-    original: FilterType,
+    original: FilterReturnType,
     engine: &Engine,
-) -> FilterType {
+) -> FilterReturnType {
     match &original {
-        FilterType::String(v) => println!("{}", v),
-        FilterType::Color(v) => println!("{}", v),
+        FilterReturnType::String(v) => println!("{}", v),
+        FilterReturnType::Color(v) => println!("{}", v),
     }
 
     let amt = if args.len() >= 1 {
@@ -25,11 +25,11 @@ pub(crate) fn lighten(
     };
 
     match original {
-        FilterType::String(s) => FilterType::String(s.to_uppercase()),
-        FilterType::Color(argb) => {
+        FilterReturnType::String(s) => FilterReturnType::String(s.to_uppercase()),
+        FilterReturnType::Color(argb) => {
             let mut color = Rgb::from((argb.red, argb.green, argb.blue));
             color.lighten(amt);
-            FilterType::Color(Argb {
+            FilterReturnType::Color(Argb {
                 alpha: color.alpha() as u8,
                 red: color.red() as u8,
                 green: color.green() as u8,

@@ -2,89 +2,89 @@ use material_colors::color::Argb;
 
 use crate::engine::{Engine, Value};
 
-pub enum FilterType {
+pub enum FilterReturnType {
     String(String),
     Color(Argb),
 }
 
-pub type FilterFn = fn(&Vec<&str>, Vec<Value>, FilterType, &Engine) -> FilterType;
+pub type FilterFn = fn(&Vec<&str>, Vec<Value>, FilterReturnType, &Engine) -> FilterReturnType;
 
-impl ToString for FilterType {
+impl ToString for FilterReturnType {
     fn to_string(&self) -> String {
         match self {
-            FilterType::String(value) => format!("{}", value),
-            FilterType::Color(argb) => todo!(),
+            FilterReturnType::String(value) => format!("{}", value),
+            FilterReturnType::Color(argb) => todo!(),
         }
     }
 }
 
-impl From<String> for FilterType {
+impl From<String> for FilterReturnType {
     fn from(value: String) -> Self {
-        FilterType::String(value)
+        FilterReturnType::String(value)
     }
 }
 
-impl From<&String> for FilterType {
+impl From<&String> for FilterReturnType {
     fn from(value: &String) -> Self {
-        FilterType::String(value.to_string())
+        FilterReturnType::String(value.to_string())
     }
 }
 
-impl From<i64> for FilterType {
+impl From<i64> for FilterReturnType {
     fn from(value: i64) -> Self {
-        FilterType::String(value.to_string())
+        FilterReturnType::String(value.to_string())
     }
 }
 
-impl From<&i64> for FilterType {
+impl From<&i64> for FilterReturnType {
     fn from(value: &i64) -> Self {
-        FilterType::String(value.to_string())
+        FilterReturnType::String(value.to_string())
     }
 }
 
-impl From<f64> for FilterType {
+impl From<f64> for FilterReturnType {
     fn from(value: f64) -> Self {
-        FilterType::String(value.to_string())
+        FilterReturnType::String(value.to_string())
     }
 }
 
-impl From<&f64> for FilterType {
+impl From<&f64> for FilterReturnType {
     fn from(value: &f64) -> Self {
-        FilterType::String(value.to_string())
+        FilterReturnType::String(value.to_string())
     }
 }
 
-impl From<bool> for FilterType {
+impl From<bool> for FilterReturnType {
     fn from(value: bool) -> Self {
         match value {
-            true => return FilterType::String(String::from("true")),
-            false => return FilterType::String(String::from("false")),
+            true => return FilterReturnType::String(String::from("true")),
+            false => return FilterReturnType::String(String::from("false")),
         }
     }
 }
 
-impl From<&bool> for FilterType {
+impl From<&bool> for FilterReturnType {
     fn from(value: &bool) -> Self {
         match value {
-            true => return FilterType::String(String::from("true")),
-            false => return FilterType::String(String::from("false")),
+            true => return FilterReturnType::String(String::from("true")),
+            false => return FilterReturnType::String(String::from("false")),
         }
     }
 }
 
-impl From<Argb> for FilterType {
+impl From<Argb> for FilterReturnType {
     fn from(value: Argb) -> Self {
-        FilterType::Color(value)
+        FilterReturnType::Color(value)
     }
 }
 
-impl From<&Argb> for FilterType {
+impl From<&Argb> for FilterReturnType {
     fn from(value: &Argb) -> Self {
-        FilterType::Color(*value)
+        FilterReturnType::Color(*value)
     }
 }
 
-impl From<Value> for FilterType {
+impl From<Value> for FilterReturnType {
     fn from(value: Value) -> Self {
         match value {
             Value::Ident(v) => v.into(),
@@ -92,13 +92,13 @@ impl From<Value> for FilterType {
             Value::Float(v) => v.into(),
             Value::Color(v) => v.into(),
             Value::Bool(v) => v.into(),
-            Value::Map(_hash_map) => panic!("Cant convert map to FilterType"),
-            Value::Object(_hash_map) => panic!("Cant convert Object to FilterType"),
+            Value::Map(_hash_map) => panic!("Cant convert map to FilterReturnType"),
+            Value::Object(_hash_map) => panic!("Cant convert Object to FilterReturnType"),
         }
     }
 }
 
-impl From<&Value> for FilterType {
+impl From<&Value> for FilterReturnType {
     fn from(value: &Value) -> Self {
         match value {
             Value::Ident(v) => v.into(),
@@ -106,8 +106,8 @@ impl From<&Value> for FilterType {
             Value::Float(v) => v.into(),
             Value::Color(v) => v.into(),
             Value::Bool(v) => v.into(),
-            Value::Map(_hash_map) => panic!("Cant convert map to FilterType"),
-            Value::Object(_hash_map) => panic!("Cant convert Object to FilterType"),
+            Value::Map(_hash_map) => panic!("Cant convert map to FilterReturnType"),
+            Value::Object(_hash_map) => panic!("Cant convert Object to FilterReturnType"),
         }
     }
 }

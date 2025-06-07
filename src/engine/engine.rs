@@ -11,7 +11,7 @@ use crate::{
         format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
         rgb_from_argb,
     },
-    engine::filtertype::{FilterFn, FilterType},
+    engine::filtertype::{FilterFn, FilterReturnType},
     scheme::{Schemes, SchemesEnum},
 };
 use colorsys::{ColorAlpha, ColorTransform, Hsl, Rgb};
@@ -325,7 +325,7 @@ impl Engine {
         let mut current_value = if keywords[0] == "colors" {
             let (r#type, name, colorscheme, format) = self.get_color_parts(&keywords);
             let modified_colors = self.modified_colors.borrow();
-            FilterType::Color(*self.get_from_map_check_modified(
+            FilterReturnType::Color(*self.get_from_map_check_modified(
                 r#type,
                 name,
                 colorscheme,
@@ -334,7 +334,7 @@ impl Engine {
             ))
         } else {
             // Support string filters too
-            FilterType::from(self.resolve_path(keywords.clone()).unwrap())
+            FilterReturnType::from(self.resolve_path(keywords.clone()).unwrap())
         };
 
         for filter in filters {
@@ -361,7 +361,7 @@ impl Engine {
                 };
 
                 // Update the cache if color
-                if let FilterType::Color(argb) = current_value {
+                if let FilterReturnType::Color(argb) = current_value {
                     match colorscheme {
                         "dark" => {
                             self.modified_colors
@@ -396,8 +396,8 @@ impl Engine {
         }
 
         match current_value {
-            FilterType::String(val) => val.into(),
-            FilterType::Color(argb) => self.format_color(&argb, keywords[3]).into(),
+            FilterReturnType::String(val) => val.into(),
+            FilterReturnType::Color(argb) => self.format_color(&argb, keywords[3]).into(),
         }
     }
 
@@ -411,7 +411,7 @@ impl Engine {
         colorscheme: &str,
         format: &str,
         modified_colors: &ColorCache,
-    ) -> FilterType {
+    ) -> FilterReturnType {
         let original = if r#type == "colors" {
             let color = self.get_from_map_check_modified(
                 r#type,
@@ -420,9 +420,9 @@ impl Engine {
                 format,
                 modified_colors,
             );
-            FilterType::Color(*color)
+            FilterReturnType::Color(*color)
         } else {
-            FilterType::String(String::from("a"))
+            FilterReturnType::String(String::from("a"))
         };
 
         match self.filters.get(filtername) {
