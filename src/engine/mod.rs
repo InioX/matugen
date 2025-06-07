@@ -16,4 +16,4 @@ pub enum Value {
 
 pub use engine::Engine;
 pub use filtertype::FilterFn;
-pub use filtertype::FilterType;
+pub use filtertype::FilterReturnType;
