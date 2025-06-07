@@ -7,7 +7,6 @@ use std::path::PathBuf;
 
 use material_colors::theme::ThemeBuilder;
 
-mod engine;
 mod helpers;
 pub mod template;
 mod util;
@@ -29,8 +28,8 @@ use color_eyre::Report;
 
 use matugen::scheme::{Schemes, SchemesEnum};
 
-use crate::engine::engine::Engine;
 use material_colors::{color::Argb, theme::Theme};
+use matugen::engine::Engine;
 use upon::Value;
 
 pub struct State {

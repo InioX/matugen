@@ -6,15 +6,16 @@ use chumsky::error::Rich;
 use chumsky::prelude::*;
 use chumsky::span::SimpleSpan;
 
-use colorsys::{ColorAlpha, ColorTransform, Hsl, Rgb};
-use material_colors::color::Argb;
-use matugen::{
+use crate::{
     color::format::{
         format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
         rgb_from_argb,
     },
+    engine::filtertype::{FilterFn, FilterType},
     scheme::{Schemes, SchemesEnum},
 };
+use colorsys::{ColorAlpha, ColorTransform, Hsl, Rgb};
+use material_colors::color::Argb;
 
 use crate::engine::Value;
 
@@ -41,7 +42,7 @@ struct SpannedExpr<'src> {
     span: SimpleSpan,
 }
 
-pub(crate) struct Engine {
+pub struct Engine {
     src: String,
     filters: HashMap<&'static str, FilterFn>,
     syntax: EngineSyntax,
@@ -63,239 +64,17 @@ pub(crate) struct EngineSyntax {
     block_right: [char; 2],
 }
 
-pub(crate) enum FilterType {
-    String(String),
-    Color(Argb),
-}
-
-impl ToString for FilterType {
-    fn to_string(&self) -> String {
-        match self {
-            FilterType::String(value) => format!("{}", value),
-            FilterType::Color(argb) => todo!(),
-        }
-    }
-}
-
-impl From<String> for FilterType {
-    fn from(value: String) -> Self {
-        FilterType::String(value)
-    }
-}
-
-impl From<&String> for FilterType {
-    fn from(value: &String) -> Self {
-        FilterType::String(value.to_string())
-    }
-}
-
-impl From<i64> for FilterType {
-    fn from(value: i64) -> Self {
-        FilterType::String(value.to_string())
-    }
-}
-
-impl From<&i64> for FilterType {
-    fn from(value: &i64) -> Self {
-        FilterType::String(value.to_string())
-    }
-}
-
-impl From<f64> for FilterType {
-    fn from(value: f64) -> Self {
-        FilterType::String(value.to_string())
-    }
-}
-
-impl From<&f64> for FilterType {
-    fn from(value: &f64) -> Self {
-        FilterType::String(value.to_string())
-    }
-}
-
-impl From<bool> for FilterType {
-    fn from(value: bool) -> Self {
-        match value {
-            true => return FilterType::String(String::from("true")),
-            false => return FilterType::String(String::from("false")),
-        }
-    }
-}
-
-impl From<&bool> for FilterType {
-    fn from(value: &bool) -> Self {
-        match value {
-            true => return FilterType::String(String::from("true")),
-            false => return FilterType::String(String::from("false")),
-        }
-    }
-}
-
-impl From<Argb> for FilterType {
-    fn from(value: Argb) -> Self {
-        FilterType::Color(value)
-    }
-}
-
-impl From<&Argb> for FilterType {
-    fn from(value: &Argb) -> Self {
-        FilterType::Color(*value)
-    }
-}
-
-impl From<Value> for FilterType {
-    fn from(value: Value) -> Self {
-        match value {
-            Value::Ident(v) => v.into(),
-            Value::Int(v) => v.into(),
-            Value::Float(v) => v.into(),
-            Value::Color(v) => v.into(),
-            Value::Bool(v) => v.into(),
-            Value::Map(_hash_map) => panic!("Cant convert map to FilterType"),
-            Value::Object(_hash_map) => panic!("Cant convert Object to FilterType"),
-        }
-    }
-}
-
-impl From<&Value> for FilterType {
-    fn from(value: &Value) -> Self {
-        match value {
-            Value::Ident(v) => v.into(),
-            Value::Int(v) => v.into(),
-            Value::Float(v) => v.into(),
-            Value::Color(v) => v.into(),
-            Value::Bool(v) => v.into(),
-            Value::Map(_hash_map) => panic!("Cant convert map to FilterType"),
-            Value::Object(_hash_map) => panic!("Cant convert Object to FilterType"),
-        }
-    }
-}
-
-pub type FilterFn = fn(&Vec<&str>, Vec<Value>, FilterType, &Engine) -> FilterType;
-
-fn set_red(
-    keywords: &Vec<&str>,
-    args: Vec<Value>,
-    original: FilterType,
-    engine: &Engine,
-) -> FilterType {
-    match &original {
-        FilterType::String(v) => println!("{}", v),
-        FilterType::Color(v) => println!("{}", v),
-    }
-
-    let amt = if args.len() >= 1 {
-        match args[0] {
-            Value::Int(v) => v as f64,
-            Value::Float(v) => v,
-            _ => panic!("Invalid argument type"),
-        }
-    } else {
-        panic!("Not enough arguments")
-    };
-
-    match original {
-        FilterType::String(s) => FilterType::String(s.to_uppercase()),
-        FilterType::Color(argb) => {
-            let mut color = Rgb::from((argb.red, argb.green, argb.blue));
-            color.set_red(amt);
-            FilterType::Color(Argb {
-                alpha: color.alpha() as u8,
-                red: color.red() as u8,
-                green: color.green() as u8,
-                blue: color.blue() as u8,
-            })
-        }
-    }
-}
-
-fn lighten(
-    keywords: &Vec<&str>,
-    args: Vec<Value>,
-    original: FilterType,
-    engine: &Engine,
-) -> FilterType {
-    match &original {
-        FilterType::String(v) => println!("{}", v),
-        FilterType::Color(v) => println!("{}", v),
-    }
-
-    let amt = if args.len() >= 1 {
-        match args[0] {
-            Value::Int(v) => v as f64,
-            Value::Float(v) => v,
-            _ => panic!("Invalid argument type"),
-        }
-    } else {
-        panic!("Not enough arguments")
-    };
-
-    match original {
-        FilterType::String(s) => FilterType::String(s.to_uppercase()),
-        FilterType::Color(argb) => {
-            let mut color = Rgb::from((argb.red, argb.green, argb.blue));
-            color.lighten(amt);
-            FilterType::Color(Argb {
-                alpha: color.alpha() as u8,
-                red: color.red() as u8,
-                green: color.green() as u8,
-                blue: color.blue() as u8,
-            })
-        }
-    }
-}
-
-fn darken(
-    keywords: &Vec<&str>,
-    args: Vec<Value>,
-    original: FilterType,
-    engine: &Engine,
-) -> FilterType {
-    match &original {
-        FilterType::String(v) => println!("{}", v),
-        FilterType::Color(v) => println!("{}", v),
-    }
-
-    let amt = if args.len() >= 1 {
-        match args[0] {
-            Value::Int(v) => v as f64,
-            Value::Float(v) => v,
-            _ => panic!("Invalid argument type"),
-        }
-    } else {
-        panic!("Not enough arguments")
-    };
-
-    match original {
-        FilterType::String(s) => FilterType::String(s.to_uppercase()),
-        FilterType::Color(argb) => {
-            let mut color = Rgb::from((argb.red, argb.green, argb.blue));
-            color.lighten(-amt);
-            FilterType::Color(Argb {
-                alpha: color.alpha() as u8,
-                red: color.red() as u8,
-                green: color.green() as u8,
-                blue: color.blue() as u8,
-            })
-        }
-    }
-}
-
-// fn shuffle_color(keywords: &Vec<&str>, args: Vec<Value>, engine: &Engine) -> FilterType {
-//     let
-//     let color = engine.get_from_map_check_modified(r#type, name, colorscheme, format, modified_colors)
-// }
-
-// fn trim(keyword: Box<Expression<'_>>, args: Vec<Value>) -> String {
-//     input.trim().to_string()
-// }
-
 impl Engine {
     pub fn new<T: Into<String>>(src: T, schemes: Schemes, default_scheme: SchemesEnum) -> Self {
         let mut filters: HashMap<&str, FilterFn> = HashMap::new();
-        filters.insert("lighten", lighten);
-        filters.insert("darken", darken);
-        filters.insert("set_red", set_red);
+
+        // Setting individual values
+        filters.insert("lighten", crate::filters::lighten);
+        filters.insert("darken", crate::filters::darken);
+
+        filters.insert("set_red", crate::filters::set_red);
+        filters.insert("set_green", crate::filters::set_green);
+        filters.insert("set_blue", crate::filters::set_blue);
 
         let mut ctx = Context::new();
 
