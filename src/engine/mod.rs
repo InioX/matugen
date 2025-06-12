@@ -1,19 +1,15 @@
 pub mod context;
 pub mod engine;
-pub mod filtertype;
+pub mod filters;
 pub mod value;
 
-#[derive(Debug, Clone)]
-pub enum Value {
-    Ident(String),
-    Int(i64),
-    Float(f64),
-    Color(material_colors::color::Argb),
-    Bool(bool),
-    Map(std::collections::HashMap<String, Value>),
-    Object(std::collections::HashMap<String, Value>),
-}
-
 pub use engine::Engine;
+pub use filters::filtertype;
+pub use filters::helpers;
+
+pub use filtertype::FilterError;
+pub use filtertype::FilterErrorKind;
 pub use filtertype::FilterFn;
 pub use filtertype::FilterReturnType;
+pub use value::SpannedValue;
+pub use value::Value;

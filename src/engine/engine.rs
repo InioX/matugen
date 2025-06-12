@@ -11,7 +11,10 @@ use crate::{
         format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
         rgb_from_argb,
     },
-    engine::filtertype::{FilterFn, FilterReturnType},
+    engine::{
+        filtertype::{emit_filter_error, FilterFn, FilterReturnType},
+        FilterError, SpannedValue,
+    },
     scheme::{Schemes, SchemesEnum},
 };
 use colorsys::{ColorAlpha, ColorTransform, Hsl, Rgb};
@@ -28,15 +31,15 @@ pub(crate) enum Expression<'src> {
     },
     Filter {
         name: &'src str,
-        args: Vec<Value>,
+        args: Vec<SpannedValue>,
     },
     KeywordWithFilters {
-        keyword: Box<Expression<'src>>,
-        filters: Vec<Expression<'src>>,
+        keyword: Box<SpannedExpr<'src>>,
+        filters: Vec<SpannedExpr<'src>>,
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct SpannedExpr<'src> {
     expr: Expression<'src>,
     span: SimpleSpan,
@@ -62,6 +65,28 @@ pub(crate) struct EngineSyntax {
     keyword_right: [char; 2],
     block_left: [char; 2],
     block_right: [char; 2],
+}
+
+pub fn format_color(color: &material_colors::color::Argb, format: &str) -> impl Into<String> {
+    let base_color = rgb_from_argb(*color);
+    let hsl_color = Hsl::from(&base_color);
+
+    match format {
+        "hex" => format_hex(&base_color),
+        "hex_stripped" => format_hex_stripped(&base_color),
+        "rgb" => format_rgb(&base_color),
+        "rgba" => format_rgba(&base_color, true),
+        "hsl" => format_hsl(&hsl_color),
+        "hsla" => format_hsla(&hsl_color, true),
+        "red" => format!("{:?}", base_color.red() as u8),
+        "green" => format!("{:?}", base_color.green() as u8),
+        "blue" => format!("{:?}", base_color.blue() as u8),
+        "alpha" => format!("{:?}", base_color.alpha() as u8),
+        "hue" => format!("{:?}", &hsl_color.hue()),
+        "saturation" => format!("{:?}", &hsl_color.lightness()),
+        "lightness" => format!("{:?}", &hsl_color.saturation()),
+        _ => panic!("Invalid format"),
+    }
 }
 
 impl Engine {
@@ -173,7 +198,7 @@ impl Engine {
                 src.replace_range(range, &self.get_replacement(keywords));
             }
             Expression::KeywordWithFilters { keyword, filters } => {
-                let keywords = match *keyword {
+                let keywords = match keyword.expr {
                     Expression::Keyword { keywords } => keywords,
                     _ => panic!(""),
                 };
@@ -195,7 +220,7 @@ impl Engine {
             let color = self.get_from_map(r#type, name, colorscheme, format);
             let format = &keywords[3];
 
-            self.format_color(color, format).into()
+            format_color(color, format).into()
         } else {
             String::from(self.resolve_path(keywords).unwrap())
         }
@@ -291,36 +316,10 @@ impl Engine {
         }
     }
 
-    pub fn format_color(
-        &self,
-        color: &material_colors::color::Argb,
-        format: &str,
-    ) -> impl Into<String> {
-        let base_color = rgb_from_argb(*color);
-        let hsl_color = Hsl::from(&base_color);
-
-        match format {
-            "hex" => format_hex(&base_color),
-            "hex_stripped" => format_hex_stripped(&base_color),
-            "rgb" => format_rgb(&base_color),
-            "rgba" => format_rgba(&base_color, true),
-            "hsl" => format_hsl(&hsl_color),
-            "hsla" => format_hsla(&hsl_color, true),
-            "red" => format!("{:?}", base_color.red() as u8),
-            "green" => format!("{:?}", base_color.green() as u8),
-            "blue" => format!("{:?}", base_color.blue() as u8),
-            "alpha" => format!("{:?}", base_color.alpha() as u8),
-            "hue" => format!("{:?}", &hsl_color.hue()),
-            "saturation" => format!("{:?}", &hsl_color.lightness()),
-            "lightness" => format!("{:?}", &hsl_color.saturation()),
-            _ => panic!("Invalid format"),
-        }
-    }
-
     fn get_replacement_filter(
         &self,
         keywords: Vec<&str>,
-        filters: Vec<Expression>,
+        filters: Vec<SpannedExpr>,
     ) -> impl Into<String> {
         let mut current_value = if keywords[0] == "colors" {
             let (r#type, name, colorscheme, format) = self.get_color_parts(&keywords);
@@ -341,14 +340,14 @@ impl Engine {
             if let Expression::Filter {
                 name: filtername,
                 args,
-            } = filter
+            } = filter.expr
             {
                 let (r#type, name, colorscheme, format) = self.get_color_parts(&keywords);
 
                 current_value = {
                     let modified_colors = self.modified_colors.borrow();
 
-                    self.apply_filter(
+                    match self.apply_filter(
                         filtername,
                         args,
                         &keywords,
@@ -357,7 +356,13 @@ impl Engine {
                         colorscheme,
                         format,
                         &modified_colors,
-                    )
+                    ) {
+                        Ok(v) => v,
+                        Err(e) => {
+                            emit_filter_error("test", &self.src, &e.kind, filter.span);
+                            std::process::exit(1);
+                        }
+                    }
                 };
 
                 // Update the cache if color
@@ -397,21 +402,21 @@ impl Engine {
 
         match current_value {
             FilterReturnType::String(val) => val.into(),
-            FilterReturnType::Color(argb) => self.format_color(&argb, keywords[3]).into(),
+            FilterReturnType::Color(argb) => format_color(&argb, keywords[3]).into(),
         }
     }
 
     fn apply_filter(
         &self,
         filtername: &str,
-        args: Vec<Value>,
+        args: Vec<SpannedValue>,
         keywords: &Vec<&str>,
         r#type: &str,
         name: &str,
         colorscheme: &str,
         format: &str,
         modified_colors: &ColorCache,
-    ) -> FilterReturnType {
+    ) -> Result<FilterReturnType, FilterError> {
         let original = if r#type == "colors" {
             let color = self.get_from_map_check_modified(
                 r#type,
@@ -441,7 +446,10 @@ impl Engine {
             .separated_by(just('.'))
             .at_least(1)
             .collect::<Vec<&'src str>>()
-            .map(|v| Expression::Keyword { keywords: v });
+            .map_with(|v, e| SpannedExpr {
+                expr: Expression::Keyword { keywords: v },
+                span: e.span(),
+            });
 
         let float = text::int(10)
             .then_ignore(just('.'))
@@ -457,7 +465,10 @@ impl Engine {
 
         let ident = text::ident().map(|s: &str| Value::Ident(s.to_string()));
 
-        let arg = float.or(int).or(ident);
+        let arg = float
+            .or(int)
+            .or(ident)
+            .map_with(|value, e| SpannedValue::new(value, e.span()));
 
         let filter = text::ident()
             .then(
@@ -466,13 +477,16 @@ impl Engine {
                     .ignore_then(
                         arg.padded()
                             .separated_by(just(',').padded())
-                            .collect::<Vec<Value>>(),
+                            .collect::<Vec<SpannedValue>>(),
                     )
                     .or_not(),
             )
-            .map(|(name, args)| Expression::Filter {
-                name,
-                args: args.unwrap_or_default(),
+            .map_with(|(name, args), e| SpannedExpr {
+                expr: Expression::Filter {
+                    name,
+                    args: args.unwrap_or_default(),
+                },
+                span: e.span(),
             });
 
         let filters = just('|')
@@ -481,13 +495,25 @@ impl Engine {
             .repeated()
             .collect::<Vec<_>>();
 
-        let full_expr = dotted_ident.then(filters).map(|(expr, filters)| {
+        let full_expr = dotted_ident.then(filters).map(|(keyword, filters)| {
             if filters.is_empty() {
-                expr
+                keyword
             } else {
-                Expression::KeywordWithFilters {
-                    keyword: Box::new(expr),
-                    filters,
+                let span = SimpleSpan::new(
+                    (),
+                    keyword.span.start
+                        ..filters
+                            .last()
+                            .map(|f| f.span.end)
+                            .unwrap_or(keyword.span.end),
+                );
+                dbg!(&span);
+                SpannedExpr {
+                    expr: Expression::KeywordWithFilters {
+                        keyword: Box::new(keyword),
+                        filters,
+                    },
+                    span,
                 }
             }
         });
@@ -498,7 +524,7 @@ impl Engine {
             .padded()
             .then_ignore(just(self.syntax.keyword_right))
             .map_with(|expr, e| SpannedExpr {
-                expr,
+                expr: expr.expr,
                 span: e.span(),
             });
 

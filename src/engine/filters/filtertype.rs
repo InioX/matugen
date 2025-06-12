@@ -1,13 +1,83 @@
+use ariadne::{Color, Label, Report, ReportKind, Source};
+use chumsky::span::SimpleSpan;
 use material_colors::color::Argb;
+use upon::filters::Filter;
 
-use crate::engine::{Engine, Value};
+use crate::engine::{Engine, SpannedValue, Value};
+
+#[derive(Debug)]
+pub struct FilterError {
+    pub kind: FilterErrorKind,
+}
+
+#[derive(Debug)]
+pub enum FilterErrorKind {
+    NotEnoughArguments,
+    InvalidArgumentType {
+        span: SimpleSpan,
+        expected: String,
+        actual: String,
+    },
+    ColorFilterOnString,
+}
+
+impl FilterError {
+    pub fn new(kind: FilterErrorKind) -> Self {
+        Self { kind }
+    }
+}
+
+pub fn emit_filter_error(
+    source_id: &str,
+    source_code: &str,
+    kind: &FilterErrorKind,
+    span: SimpleSpan,
+) {
+    let (message, span, name) = match kind {
+        FilterErrorKind::NotEnoughArguments => (
+            "Not enough arguments provided for filter",
+            span,
+            "NotEnoughArguments",
+        ),
+        FilterErrorKind::InvalidArgumentType {
+            span,
+            expected,
+            actual,
+        } => ("a", *span, "InvalidArgumentType"),
+        FilterErrorKind::ColorFilterOnString => (
+            "Cannot use color filters on a string filter, consider using the 'to_color' filter",
+            span,
+            "ColorFilterOnString",
+        ),
+    };
+    Report::build(ReportKind::Error, ((), span.into_range()))
+        .with_config(ariadne::Config::default().with_index_type(ariadne::IndexType::Byte))
+        .with_message(name)
+        .with_label(
+            Label::new(((), span.into_range()))
+                .with_message(message)
+                .with_color(Color::Red),
+        )
+        .finish()
+        .print(Source::from(&source_code))
+        .unwrap();
+}
 
 pub enum FilterReturnType {
     String(String),
     Color(Argb),
 }
+pub struct SpannedFilterReturnType {
+    value: FilterReturnType,
+    span: SimpleSpan,
+}
 
-pub type FilterFn = fn(&Vec<&str>, Vec<Value>, FilterReturnType, &Engine) -> FilterReturnType;
+pub type FilterFn = fn(
+    &Vec<&str>,
+    Vec<SpannedValue>,
+    FilterReturnType,
+    &Engine,
+) -> Result<FilterReturnType, FilterError>;
 
 impl ToString for FilterReturnType {
     fn to_string(&self) -> String {
