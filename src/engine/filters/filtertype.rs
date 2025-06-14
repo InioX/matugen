@@ -35,7 +35,7 @@ pub fn emit_filter_error(
 ) {
     let (message, span, name) = match kind {
         FilterErrorKind::NotEnoughArguments => (
-            "Not enough arguments provided for filter",
+            "Not enough arguments provided for filter".to_string(),
             span,
             "NotEnoughArguments",
         ),
@@ -43,9 +43,14 @@ pub fn emit_filter_error(
             span,
             expected,
             actual,
-        } => ("a", *span, "InvalidArgumentType"),
+        } => (
+            format!("Found '{}' expected '{}'", actual, expected),
+            *span,
+            "InvalidArgumentType",
+        ),
         FilterErrorKind::ColorFilterOnString => (
-            "Cannot use color filters on a string filter, consider using the 'to_color' filter",
+            "Cannot use color filters on a string filter, consider using the 'to_color' filter"
+                .to_string(),
             span,
             "ColorFilterOnString",
         ),
