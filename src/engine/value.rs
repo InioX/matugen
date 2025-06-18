@@ -28,8 +28,8 @@ pub struct SpannedValue {
 impl SpannedValue {
     pub fn new(value: Value, span: SimpleSpan) -> Self {
         Self {
-            value: value,
-            span: span,
+            value,
+            span,
         }
     }
 }

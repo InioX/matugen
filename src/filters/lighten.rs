@@ -2,12 +2,12 @@ use colorsys::{ColorAlpha, ColorTransform, Rgb};
 use material_colors::color::Argb;
 
 use crate::{
-    engine::{Engine, FilterError, FilterErrorKind, FilterReturnType, SpannedValue, Value},
+    engine::{Engine, FilterError, FilterErrorKind, FilterReturnType, SpannedValue},
     expect_args,
 };
 
 pub(crate) fn lighten(
-    keywords: &Vec<&str>,
+    keywords: &[&str],
     args: Vec<SpannedValue>,
     original: FilterReturnType,
     engine: &Engine,

@@ -2,12 +2,12 @@ use colorsys::{ColorAlpha, Rgb};
 use material_colors::color::Argb;
 
 use crate::{
-    engine::{Engine, FilterError, FilterErrorKind, FilterReturnType, SpannedValue, Value},
+    engine::{Engine, FilterError, FilterErrorKind, FilterReturnType, SpannedValue},
     expect_args,
 };
 
 pub(crate) fn set_red(
-    keywords: &Vec<&str>,
+    keywords: &[&str],
     args: Vec<SpannedValue>,
     original: FilterReturnType,
     engine: &Engine,
@@ -30,7 +30,7 @@ pub(crate) fn set_red(
 }
 
 pub(crate) fn set_green(
-    keywords: &Vec<&str>,
+    keywords: &[&str],
     args: Vec<SpannedValue>,
     original: FilterReturnType,
     engine: &Engine,
@@ -53,7 +53,7 @@ pub(crate) fn set_green(
 }
 
 pub(crate) fn set_blue(
-    keywords: &Vec<&str>,
+    keywords: &[&str],
     args: Vec<SpannedValue>,
     original: FilterReturnType,
     engine: &Engine,

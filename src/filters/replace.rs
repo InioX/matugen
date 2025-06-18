@@ -1,16 +1,10 @@
-use colorsys::{ColorAlpha, ColorTransform, Rgb};
-use material_colors::color::Argb;
-
 use crate::{
-    engine::{
-        engine::format_color, Engine, FilterError, FilterErrorKind, FilterReturnType, SpannedValue,
-        Value,
-    },
+    engine::{engine::format_color, Engine, FilterError, FilterReturnType, SpannedValue},
     expect_args,
 };
 
 pub(crate) fn replace(
-    keywords: &Vec<&str>,
+    keywords: &[&str],
     args: Vec<SpannedValue>,
     original: FilterReturnType,
     engine: &Engine,
@@ -22,7 +16,7 @@ pub(crate) fn replace(
         FilterReturnType::Color(color) => {
             let string = format_color(&color, keywords[3]);
             let modified: String = string.into().replace(&find, &replace);
-            Ok(FilterReturnType::String(modified.into()))
+            Ok(FilterReturnType::String(modified))
         }
     }
 }

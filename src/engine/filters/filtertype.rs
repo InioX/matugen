@@ -1,7 +1,6 @@
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::span::SimpleSpan;
 use material_colors::color::Argb;
-use upon::filters::Filter;
 
 use crate::engine::{Engine, SpannedValue, Value};
 
@@ -79,7 +78,7 @@ pub struct SpannedFilterReturnType {
 }
 
 pub type FilterFn = fn(
-    &Vec<&str>,
+    &[&str],
     Vec<SpannedValue>,
     FilterReturnType,
     &Engine,
@@ -88,7 +87,7 @@ pub type FilterFn = fn(
 impl ToString for FilterReturnType {
     fn to_string(&self) -> String {
         match self {
-            FilterReturnType::String(value) => format!("{}", value),
+            FilterReturnType::String(value) => value.to_string(),
             FilterReturnType::Color(argb) => todo!(),
         }
     }
@@ -133,8 +132,8 @@ impl From<&f64> for FilterReturnType {
 impl From<bool> for FilterReturnType {
     fn from(value: bool) -> Self {
         match value {
-            true => return FilterReturnType::String(String::from("true")),
-            false => return FilterReturnType::String(String::from("false")),
+            true => FilterReturnType::String(String::from("true")),
+            false => FilterReturnType::String(String::from("false")),
         }
     }
 }
@@ -142,8 +141,8 @@ impl From<bool> for FilterReturnType {
 impl From<&bool> for FilterReturnType {
     fn from(value: &bool) -> Self {
         match value {
-            true => return FilterReturnType::String(String::from("true")),
-            false => return FilterReturnType::String(String::from("false")),
+            true => FilterReturnType::String(String::from("true")),
+            false => FilterReturnType::String(String::from("false")),
         }
     }
 }
