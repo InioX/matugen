@@ -5,6 +5,7 @@ use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::error::Rich;
 use chumsky::prelude::*;
 use chumsky::span::SimpleSpan;
+use serde_json::json;
 
 use crate::{
     color::format::{
@@ -12,6 +13,7 @@ use crate::{
         rgb_from_argb,
     },
     engine::{
+        context::RuntimeContext,
         filtertype::{emit_filter_error, FilterFn, FilterReturnType},
         FilterError, SpannedValue,
     },
@@ -38,7 +40,7 @@ pub(crate) enum Expression<'src> {
         filters: Vec<SpannedExpr<'src>>,
     },
     ForLoop {
-        var: SpannedValue,
+        var: Vec<SpannedValue>,
         list: Box<SpannedExpr<'src>>,
         body: Vec<Box<SpannedExpr<'src>>>,
     },
@@ -56,7 +58,6 @@ impl<'src> Expression<'src> {
         }
     }
 }
-
 #[derive(Debug, Clone)]
 struct SpannedExpr<'src> {
     expr: Expression<'src>,
@@ -71,6 +72,7 @@ pub struct Engine {
     default_scheme: SchemesEnum,
     modified_colors: RefCell<ColorCache>,
     context: Context,
+    runtime: RefCell<RuntimeContext>,
 }
 
 pub(crate) struct ColorCache {
@@ -107,6 +109,59 @@ pub fn format_color(color: &material_colors::color::Argb, format: &str) -> impl 
     }
 }
 
+pub fn format_color_all(color: &material_colors::color::Argb) -> HashMap<String, Value> {
+    let base_color = rgb_from_argb(*color);
+    let hsl_color = Hsl::from(&base_color);
+
+    let mut map = HashMap::new();
+
+    map.insert("hex".to_string(), Value::Ident(format_hex(&base_color)));
+    map.insert(
+        "hex_stripped".to_string(),
+        Value::Ident(format_hex_stripped(&base_color)),
+    );
+    map.insert("rgb".to_string(), Value::Ident(format_rgb(&base_color)));
+    map.insert(
+        "rgba".to_string(),
+        Value::Ident(format_rgba(&base_color, true)),
+    );
+    map.insert("hsl".to_string(), Value::Ident(format_hsl(&hsl_color)));
+    map.insert(
+        "hsla".to_string(),
+        Value::Ident(format_hsla(&hsl_color, true)),
+    );
+    map.insert(
+        "red".to_string(),
+        Value::Ident(format!("{:?}", base_color.red() as u8)),
+    );
+    map.insert(
+        "green".to_string(),
+        Value::Ident(format!("{:?}", base_color.green() as u8)),
+    );
+    map.insert(
+        "blue".to_string(),
+        Value::Ident(format!("{:?}", base_color.blue() as u8)),
+    );
+    map.insert(
+        "alpha".to_string(),
+        Value::Ident(format!("{:?}", base_color.alpha() as u8)),
+    );
+    map.insert(
+        "hue".to_string(),
+        Value::Ident(format!("{:?}", &hsl_color.hue())),
+    );
+    map.insert(
+        "saturation".to_string(),
+        Value::Ident(format!("{:?}", &hsl_color.lightness())),
+    );
+    map.insert(
+        "lightness".to_string(),
+        Value::Ident(format!("{:?}", &hsl_color.saturation())),
+    );
+
+    map
+}
+
 impl Engine {
     pub fn new<T: Into<String>>(src: T, schemes: Schemes, default_scheme: SchemesEnum) -> Self {
         let mut filters: HashMap<&str, FilterFn> = HashMap::new();
@@ -121,15 +176,19 @@ impl Engine {
 
         let mut ctx = Context::new();
 
-        let mut inner_map = HashMap::new();
-        inner_map.insert("name".to_string(), Value::Ident("test".to_string()));
-
-        let mut outer_map = HashMap::new();
-        outer_map.insert("user".to_string(), Value::Object(inner_map));
-
-        ctx.merge(&outer_map);
-
-        // filters.insert("trim", trim);
+        ctx.merge_json(json!({
+            "user": {
+                "name": "test",
+                "pets": {
+                    "dog": {
+                        "name": "Paw"
+                    },
+                    "cat": {
+                        "name": "Spotty"
+                    },
+                }
+            },
+        }));
 
         Self {
             src: src.into(),
@@ -147,33 +206,74 @@ impl Engine {
                 light: HashMap::new(),
             }
             .into(),
-            context: ctx,
+            context: ctx.clone(),
+            runtime: RuntimeContext::new(ctx.clone()).into(),
         }
     }
 
-    pub fn resolve_path<'a, I>(&'a self, path: I) -> Option<&'a Value>
+    pub fn resolve_path<'a, I>(&self, path: I) -> Option<Value>
     where
-        I: IntoIterator<Item = &'a str>,
+        I: IntoIterator<Item = &'a str> + Clone,
     {
-        let mut iter = path.into_iter();
+        let mut iter = path.clone().into_iter().peekable();
 
-        let next = iter.next();
+        if let Some(&first) = iter.peek() {
+            let mut color_map: HashMap<String, Value> = HashMap::new();
 
-        let mut current = self.context.data().get(next?);
+            if first == "colors" {
+                let subkeys: Vec<&str> = iter.collect();
 
-        for key in iter {
-            current = match current {
-                Some(Value::Object(map)) => map.get(key),
-                _ => {
-                    eprintln!("Could not find {}", key);
-                    return None;
+                for name in self.schemes.get_all_names() {
+                    let mut per_scheme = HashMap::new();
+
+                    let default_scheme = match self.default_scheme {
+                        SchemesEnum::Light => self.schemes.light.clone(),
+                        SchemesEnum::Dark => self.schemes.dark.clone(),
+                    };
+
+                    for (scheme_name, scheme) in [
+                        ("light", self.schemes.light.clone()),
+                        ("dark", self.schemes.dark.clone()),
+                        ("default", default_scheme),
+                    ] {
+                        if let Some(color) = scheme.get(name) {
+                            let format_map = format_color_all(color);
+
+                            per_scheme.insert(scheme_name.to_string(), Value::Map(format_map));
+                        }
+                    }
+                    color_map.insert(name.clone(), Value::Map(per_scheme));
                 }
-            };
+
+                return Some(Value::Map(color_map));
+            }
         }
 
-        dbg!(&current);
+        let first = iter.next()?;
 
-        current
+        let mut current = self
+            .runtime
+            .borrow()
+            .resolve_path(std::iter::once(first))
+            .or_else(|| self.context.data().get(first).cloned())?;
+
+        while let Some(next_key) = iter.next() {
+            match current {
+                Value::Map(ref map) => {
+                    current = map.get(next_key)?.clone();
+                }
+                Value::Color(argb) => {
+                    // convert to map and keep walking
+                    let color_map = format_color_all(&argb);
+                    current = Value::Ident(color_map.get(next_key)?.clone().into());
+                }
+                _ => {
+                    return None;
+                }
+            }
+        }
+
+        Some(current)
     }
 
     pub fn generate_templates(&self) {
@@ -183,9 +283,7 @@ impl Engine {
 
         match res {
             Some(exprs) => {
-                for e in exprs.into_iter() {
-                    self.build_string(&mut changed_src, *e);
-                }
+                self.build_string(&mut changed_src, exprs);
             }
             None => {}
         }
@@ -210,9 +308,15 @@ impl Engine {
         });
     }
 
-    fn build_string(&self, src: &mut String, expr: SpannedExpr) {
-        let _range = expr.span.into_range();
+    fn build_string(&self, src: &mut String, exprs: Vec<Box<SpannedExpr>>) {
+        for expr in exprs.into_iter() {
+            let _range = expr.span.into_range();
 
+            self.eval(src, expr);
+        }
+    }
+
+    fn eval(&self, src: &mut String, expr: Box<SpannedExpr>) {
         match expr.expr {
             Expression::Keyword { keywords } => {
                 src.push_str(&self.get_replacement(keywords));
@@ -232,18 +336,75 @@ impl Engine {
                 let values = match list.expr.as_keywords() {
                     Some(v) => self.resolve_path(v.iter().copied()),
                     None => unreachable!(),
-                };
+                }
+                .unwrap();
 
-                dbg!(values);
+                match values {
+                    Value::Map(map) => {
+                        for (key, value) in map {
+                            self.runtime.borrow_mut().push_scope();
+
+                            if var.len() == 1 {
+                                self.runtime
+                                    .borrow_mut()
+                                    .insert(var[0].value.clone(), Value::Ident(key.clone()));
+                            } else if var.len() == 2 {
+                                self.runtime
+                                    .borrow_mut()
+                                    .insert(var[0].value.clone(), Value::Ident(key.clone()));
+                                self.runtime
+                                    .borrow_mut()
+                                    .insert(var[1].value.clone(), value.clone());
+                            } else {
+                                panic!("for-loop supports only one or two variables");
+                            }
+
+                            // Evaluate the body with these bindings
+                            src.push_str(&self.eval_loop_body(body.clone()));
+
+                            self.runtime.borrow_mut().pop_scope();
+                        }
+                    }
+                    Value::Array(arr) => {
+                        for item in arr {
+                            self.runtime.borrow_mut().push_scope();
+
+                            if var.len() == 1 {
+                                self.runtime
+                                    .borrow_mut()
+                                    .insert(var[0].value.clone(), item.clone());
+                            } else {
+                                panic!("for-loop over list supports only one variable");
+                            }
+
+                            src.push_str(&self.eval_loop_body(body.clone()));
+                            self.runtime.borrow_mut().pop_scope();
+                        }
+                    }
+                    _ => {
+                        panic!("Cannot loop over non-iterable value");
+                    }
+                }
             }
             _ => {}
         }
     }
 
+    fn eval_loop_body(&self, exprs: Vec<Box<SpannedExpr>>) -> String {
+        let mut output = String::from("");
+
+        for expr in exprs.into_iter() {
+            let _range = expr.span.into_range();
+            self.eval(&mut output, expr);
+        }
+
+        output
+    }
+
     fn get_replacement(&self, keywords: Vec<&str>) -> String {
         if keywords[0] == "colors" {
             let (r#type, name, colorscheme, format) = self.get_color_parts(&keywords);
-            let color = self.get_from_map(r#type, name, colorscheme, format);
+            let color = self.get_from_map(r#type, name, colorscheme);
             let format = &keywords[3];
 
             format_color(color, format).into()
@@ -253,7 +414,7 @@ impl Engine {
     }
 
     fn validate_color_parts(&self, keywords: &Vec<&str>) -> bool {
-        if keywords.len() == 0 || keywords.len() > 4 {
+        if keywords.len() == 0 || keywords.len() > 4 || keywords.len() < 4 {
             false
         } else {
             true
@@ -282,6 +443,23 @@ impl Engine {
         }
 
         (keywords[0], keywords[1], keywords[2], keywords[3])
+    }
+
+    fn get_color_parts_partial<'a>(
+        &self,
+        keywords: &Vec<&'a str>,
+    ) -> (
+        Option<&'a str>,
+        Option<&'a str>,
+        Option<&'a str>,
+        Option<&'a str>,
+    ) {
+        (
+            keywords.get(0).copied(),
+            keywords.get(1).copied(),
+            keywords.get(2).copied(),
+            keywords.get(3).copied(),
+        )
     }
 
     pub fn get_from_map_check_modified<'a>(
@@ -314,10 +492,10 @@ impl Engine {
             _ => panic!("{}", format!("Invalid color mode {:?}. The color mode can only be one of: [dark, light, default]", colorscheme))
         };
 
-        self.get_from_map(r#type, name, colorscheme, format)
+        self.get_from_map(r#type, name, colorscheme)
     }
 
-    pub fn get_from_map(&self, r#type: &str, name: &str, colorscheme: &str, format: &str) -> &Argb {
+    pub fn get_from_map(&self, r#type: &str, name: &str, colorscheme: &str) -> &Argb {
         if r#type == "colors" {
             // Just to check if the color exists, we get the color later
             let mut scheme = &self.schemes.dark;
@@ -586,7 +764,13 @@ impl Engine {
                 .padded()
                 .ignore_then(just("for"))
                 .padded()
-                .ignore_then(spanned_ident)
+                .ignore_then(
+                    spanned_ident
+                        .padded()
+                        .separated_by(just(","))
+                        .at_least(1)
+                        .collect::<Vec<SpannedValue>>(),
+                )
                 .padded()
                 .then_ignore(just("in"))
                 .padded()

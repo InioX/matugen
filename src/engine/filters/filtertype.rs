@@ -168,7 +168,8 @@ impl From<Value> for FilterReturnType {
             Value::Color(v) => v.into(),
             Value::Bool(v) => v.into(),
             Value::Map(_hash_map) => panic!("Cant convert map to FilterReturnType"),
-            Value::Object(_hash_map) => panic!("Cant convert Object to FilterReturnType"),
+            Value::Array(_array) => panic!("Cant convert Array to String"),
+            Value::Null => todo!(),
         }
     }
 }
@@ -182,7 +183,8 @@ impl From<&Value> for FilterReturnType {
             Value::Color(v) => v.into(),
             Value::Bool(v) => v.into(),
             Value::Map(_hash_map) => panic!("Cant convert map to FilterReturnType"),
-            Value::Object(_hash_map) => panic!("Cant convert Object to FilterReturnType"),
+            Value::Array(_array) => panic!("Cant convert Array to String"),
+            Value::Null => todo!(),
         }
     }
 }

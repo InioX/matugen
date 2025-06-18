@@ -1,6 +1,7 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 use chumsky::span::SimpleSpan;
+use material_colors::color::Argb;
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -10,7 +11,8 @@ pub enum Value {
     Color(material_colors::color::Argb),
     Bool(bool),
     Map(std::collections::HashMap<String, Value>),
-    Object(std::collections::HashMap<String, Value>),
+    Array(Vec<Value>),
+    Null,
 }
 
 #[derive(Debug, Clone)]
@@ -67,7 +69,23 @@ impl From<&Value> for String {
             Value::Bool(v) => v.to_string(),
             Value::Color(_v) => unreachable!(),
             Value::Map(_hash_map) => panic!("Cant convert map to String"),
-            Value::Object(_hash_map) => panic!("Cant convert Object to String"),
+            Value::Array(_array) => panic!("Cant convert Array to String"),
+            Value::Null => String::from("Null"),
+        }
+    }
+}
+
+impl From<Value> for String {
+    fn from(value: Value) -> Self {
+        match value {
+            Value::Ident(v) => v.to_string(),
+            Value::Int(v) => v.to_string(),
+            Value::Float(v) => v.to_string(),
+            Value::Bool(v) => v.to_string(),
+            Value::Color(_v) => unreachable!(),
+            Value::Map(_hash_map) => panic!("Cant convert map to String"),
+            Value::Array(_array) => panic!("Cant convert Array to String"),
+            Value::Null => String::from("Null"),
         }
     }
 }
@@ -87,9 +105,40 @@ impl Value {
             Value::Bool(_) => "Bool",
             Value::Color(_) => "Color",
             Value::Map(_) => "Map",
-            Value::Object(_) => "Object",
-            // Value::Null => "Null",
+            Value::Null => "Null",
+            Value::Array(_) => "Array",
         }
         .to_string()
+    }
+}
+
+impl From<serde_json::Value> for Value {
+    fn from(v: serde_json::Value) -> Self {
+        match v {
+            serde_json::Value::Null => Value::Null,
+            serde_json::Value::Bool(b) => Value::Bool(b),
+            serde_json::Value::Number(n) => {
+                if let Some(i) = n.as_i64() {
+                    Value::Int(i)
+                } else if let Some(f) = n.as_f64() {
+                    Value::Float(f)
+                } else {
+                    panic!("Invalid number format");
+                }
+            }
+            serde_json::Value::String(s) => {
+                if let Ok(color) = Argb::from_str(&s) {
+                    Value::Color(color)
+                } else {
+                    Value::Ident(s)
+                }
+            }
+            serde_json::Value::Array(arr) => {
+                Value::Array(arr.into_iter().map(Value::from).collect())
+            }
+            serde_json::Value::Object(map) => {
+                Value::Map(map.into_iter().map(|(k, v)| (k, Value::from(v))).collect())
+            }
+        }
     }
 }
