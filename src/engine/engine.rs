@@ -19,7 +19,7 @@ use crate::{
     },
     scheme::{Schemes, SchemesEnum},
 };
-use colorsys::{ColorAlpha, ColorTransform, Hsl, Rgb};
+use colorsys::{ColorAlpha, Hsl};
 use material_colors::color::Argb;
 
 use crate::engine::Value;
@@ -316,7 +316,7 @@ impl Engine {
             .resolve_path(std::iter::once(first))
             .or_else(|| self.context.data().get(first).cloned())?;
 
-        while let Some(next_key) = iter.next() {
+        for next_key in iter {
             match current {
                 Value::Map(ref map) => {
                     current = map.get(next_key)?.clone();
@@ -344,11 +344,8 @@ impl Engine {
 
         let mut changed_src: String = String::new();
 
-        match res {
-            Some(exprs) => {
-                self.build_string(&mut changed_src, exprs);
-            }
-            None => {}
+        if let Some(exprs) = res {
+            self.build_string(&mut changed_src, exprs);
         }
 
         println!("==================\n{}", changed_src);
@@ -375,11 +372,11 @@ impl Engine {
         for expr in exprs.into_iter() {
             let _range = expr.span.into_range();
 
-            self.eval(src, expr);
+            self.eval(src, *expr);
         }
     }
 
-    fn eval(&self, src: &mut String, expr: Box<SpannedExpr>) {
+    fn eval(&self, src: &mut String, expr: SpannedExpr) {
         match expr.expr {
             Expression::Keyword { keywords } => {
                 src.push_str(&self.get_replacement(keywords));
@@ -458,7 +455,7 @@ impl Engine {
 
         for expr in exprs.into_iter() {
             let _range = expr.span.into_range();
-            self.eval(&mut output, expr);
+            self.eval(&mut output, *expr);
         }
 
         output
@@ -476,12 +473,8 @@ impl Engine {
         }
     }
 
-    fn validate_color_parts(&self, keywords: &Vec<&str>) -> bool {
-        if keywords.len() == 0 || keywords.len() > 4 || keywords.len() < 4 {
-            false
-        } else {
-            true
-        }
+    fn validate_color_parts(&self, keywords: &[&str]) -> bool {
+        !(keywords.is_empty() || keywords.len() > 4 || keywords.len() < 4)
     }
 
     // fn get_from_context<'a>(&self, keywords: &Vec<&'a str>) -> Option<Value> {
@@ -498,7 +491,7 @@ impl Engine {
     // }
 
     fn get_color_parts<'a>(&self, keywords: &Vec<&'a str>) -> (&'a str, &'a str, &'a str, &'a str) {
-        if self.validate_color_parts(keywords) == false {
+        if !self.validate_color_parts(keywords) {
             panic!(
                 "{}",
                 format!("Keyword length invalid: {:?}", keywords.len())
@@ -508,7 +501,7 @@ impl Engine {
         (keywords[0], keywords[1], keywords[2], keywords[3])
     }
 
-    pub fn get_format<'a>(&self, keywords: &Vec<&'a str>) -> &'a str {
+    pub fn get_format<'a>(&self, keywords: &[&'a str]) -> &'a str {
         keywords[3]
     }
 
@@ -521,23 +514,11 @@ impl Engine {
         modified_colors: &'a ColorCache,
     ) -> &'a Argb {
         match colorscheme {
-            "light" => match modified_colors.light.get(name) {
-                Some(v) => return v,
-                None => {},
-            },
-            "dark" => match modified_colors.dark.get(name) {
-                Some(v) => return v,
-                None => {},
-            },
+            "light" => if let Some(v) = modified_colors.light.get(name) { return v },
+            "dark" => if let Some(v) = modified_colors.dark.get(name) { return v },
             "default" => match self.default_scheme {
-                SchemesEnum::Light => match modified_colors.light.get(name) {
-                    Some(v) => return v,
-                    None => {},
-                },
-                SchemesEnum::Dark => match modified_colors.dark.get(name) {
-                    Some(v) => return v,
-                    None => {},
-                }
+                SchemesEnum::Light => if let Some(v) = modified_colors.light.get(name) { return v },
+                SchemesEnum::Dark => if let Some(v) = modified_colors.dark.get(name) { return v }
             },
             _ => panic!("{}", format!("Invalid color mode {:?}. The color mode can only be one of: [dark, light, default]", colorscheme))
         };
@@ -564,7 +545,7 @@ impl Engine {
                 _ => panic!("{}", format!("Invalid color mode {:?}. The color mode can only be one of: [dark, light, default]", colorscheme))
             };
 
-            return scheme.get(name).unwrap();
+            scheme.get(name).unwrap()
         } else {
             todo!()
         }
@@ -603,7 +584,7 @@ impl Engine {
         }
 
         match current_value {
-            FilterReturnType::String(val) => val.into(),
+            FilterReturnType::String(val) => val,
             FilterReturnType::Color(argb) => format_color(&argb, self.get_format(&keywords)).into(),
         }
     }
@@ -616,9 +597,9 @@ impl Engine {
         input: FilterReturnType,
     ) -> Result<FilterReturnType, FilterError> {
         match self.filters.get(filtername) {
-            Some(f) => return f(keywords, args, input, &self),
+            Some(f) => f(keywords, args, input, self),
             None => panic!("{}", format!("Could not find filter {:?}", filtername)),
-        };
+        }
     }
 
     fn add_filter(&mut self, name: &'static str, function: FilterFn) {}

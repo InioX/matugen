@@ -77,7 +77,7 @@ impl State {
     fn run_other_generator(&self) {
         let src = std::fs::read_to_string("test.test").unwrap();
 
-        let mut engine = Engine::new(src, self.schemes.clone(), self.default_scheme.clone());
+        let engine = Engine::new(src, self.schemes.clone(), self.default_scheme);
 
         engine.generate_templates();
     }
@@ -145,7 +145,7 @@ impl State {
 
         let mut engine = self.init_engine();
         let mut render_data = self.init_render_data()?;
-        let mut template = TemplateFile::new(self, &mut engine, &mut render_data);
+        let template = TemplateFile::new(self, &mut engine, &mut render_data);
 
         self.run_other_generator();
         // template.generate()?;

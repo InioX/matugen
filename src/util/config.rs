@@ -1,6 +1,6 @@
 use directories::ProjectDirs;
 use std::collections::HashMap;
-use std::fs::{self, File};
+use std::fs::{self};
 use std::path::PathBuf;
 
 use color_eyre::{Help, Report};
@@ -51,7 +51,7 @@ pub fn get_proj_path(dir_type: &ProjectDirsTypes) -> Option<PathBuf> {
             ProjectDirsTypes::Cache => PathBuf::from(proj_dirs.cache_dir()).join("cache.toml"),
         };
 
-        return Some(file);
+        Some(file)
     } else {
         None
     }

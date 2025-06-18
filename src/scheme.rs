@@ -3,7 +3,6 @@ use std::collections::HashMap;
 
 use indexmap::IndexMap;
 use material_colors::scheme::Scheme;
-use std::collections::BTreeSet;
 
 use crate::color::color::{generate_dynamic_scheme, make_custom_color, OwnCustomColor};
 

@@ -67,7 +67,7 @@ pub fn render_template(
             let message = format!(
                 "[{} - {}]\n{:#}",
                 name,
-                path.unwrap_or(&"".to_string()),
+                path.unwrap_or(""),
                 &error
             );
 

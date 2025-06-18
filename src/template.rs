@@ -4,7 +4,6 @@ use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
 // use matugen::template_util::template::add_engine_filters;
-use matugen::template_util::template::get_render_data;
 use matugen::template_util::template::render_template;
 use serde::{Deserialize, Serialize};
 
@@ -21,7 +20,6 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 
-use matugen::color::color::Source;
 use resolve_path::PathResolveExt;
 
 use crate::SchemesEnum;
@@ -87,7 +85,7 @@ impl TemplateFile<'_> {
             let (input_path_absolute, output_path_absolute) = get_absolute_paths(
                 &self.state.config_path,
                 template,
-                &input_path,
+                input_path,
                 &template.output_path,
             )?;
 

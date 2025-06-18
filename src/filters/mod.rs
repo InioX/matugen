@@ -10,7 +10,6 @@ pub mod lighten;
 pub mod replace;
 pub(crate) use darken::darken;
 pub(crate) use lighten::lighten;
-pub(crate) use replace::replace;
 
 pub mod set;
 pub(crate) use set::set_blue;
