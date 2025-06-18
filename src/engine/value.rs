@@ -9,6 +9,10 @@ pub enum Value {
     Int(i64),
     Float(f64),
     Color(material_colors::color::Argb),
+    LazyColor {
+        color: Argb,
+        scheme: Option<String>, // If known, otherwise None
+    },
     Bool(bool),
     Map(std::collections::HashMap<String, Value>),
     Array(Vec<Value>),
@@ -71,6 +75,7 @@ impl From<&Value> for String {
             Value::Map(_hash_map) => panic!("Cant convert map to String"),
             Value::Array(_array) => panic!("Cant convert Array to String"),
             Value::Null => String::from("Null"),
+            Value::LazyColor { color, scheme } => todo!(),
         }
     }
 }
@@ -83,6 +88,7 @@ impl From<Value> for String {
             Value::Float(v) => v.to_string(),
             Value::Bool(v) => v.to_string(),
             Value::Color(_v) => unreachable!(),
+            Value::LazyColor { color, scheme } => unreachable!(),
             Value::Map(_hash_map) => panic!("Cant convert map to String"),
             Value::Array(_array) => panic!("Cant convert Array to String"),
             Value::Null => String::from("Null"),
@@ -104,6 +110,7 @@ impl Value {
             Value::Float(_) => "Float",
             Value::Bool(_) => "Bool",
             Value::Color(_) => "Color",
+            Value::LazyColor { color, scheme } => "Color",
             Value::Map(_) => "Map",
             Value::Null => "Null",
             Value::Array(_) => "Array",
