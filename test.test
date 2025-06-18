@@ -4,3 +4,8 @@
 {{ colors.primary.default.hex | darken: 5 }}
 
 {{ user.name }}
+
+<* for format in colors.primary.default *>
+    {{ format }}
+    {{ colors.secondary.default.hex }}
+<* endfor *>
