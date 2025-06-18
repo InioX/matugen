@@ -26,6 +26,20 @@ pub struct Schemes {
     pub dark: IndexMap<std::string::String, material_colors::color::Argb>,
 }
 
+impl Schemes {
+    pub fn get_all_schemes(&self) -> [&str; 2] {
+        ["light", "dark"]
+    }
+    pub fn get_all_names(&self) -> Vec<&String> {
+        let mut vec = vec![];
+        for (name, key) in &self.dark {
+            vec.push(name);
+        }
+
+        vec
+    }
+}
+
 #[derive(
     serde::Serialize,
     serde::Deserialize,

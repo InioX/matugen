@@ -1,11 +1,6 @@
-{{ colors.primary.default.rgb }}
-{{ colors.primary.default.rgb | set_red: 0 | set_red: 255 }}
-{{ colors.primary.default.hex | lighten: 5 }}
-{{ colors.primary.default.hex | darken: 5 }}
-
-{{ user.name }}
-
-<* for format in colors.primary.default *>
-    {{ format }}
-    {{ colors.secondary.default.hex }}
+<* for name, color in colors *>
+    {{ name }}: {{ color.default.hex }}
+<* endfor *>
+<*for name, key in user.pets *>
+    {{ name }}: {{ key.name }}
 <* endfor *>
