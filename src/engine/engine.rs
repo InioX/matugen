@@ -70,7 +70,6 @@ pub struct Engine {
     syntax: EngineSyntax,
     schemes: Schemes,
     default_scheme: SchemesEnum,
-    modified_colors: RefCell<ColorCache>,
     context: Context,
     runtime: RefCell<RuntimeContext>,
 }
@@ -201,11 +200,6 @@ impl Engine {
             },
             schemes,
             default_scheme,
-            modified_colors: ColorCache {
-                dark: HashMap::new(),
-                light: HashMap::new(),
-            }
-            .into(),
             context: ctx.clone(),
             runtime: RuntimeContext::new(ctx.clone()).into(),
         }
@@ -221,7 +215,68 @@ impl Engine {
             let mut color_map: HashMap<String, Value> = HashMap::new();
 
             if first == "colors" {
-                let subkeys: Vec<&str> = iter.collect();
+                iter.next()?;
+
+                if let Some(color_name) = iter.next() {
+                    if let Some(scheme_name) = iter.next() {
+                        if let Some(format_name) = iter.next() {
+                            // If full: colors.name.scheme.format → return format string
+                            let scheme = match scheme_name {
+                                "light" => &self.schemes.light,
+                                "dark" => &self.schemes.dark,
+                                "default" => match self.default_scheme {
+                                    SchemesEnum::Light => &self.schemes.light,
+                                    SchemesEnum::Dark => &self.schemes.dark,
+                                },
+                                _ => return None,
+                            };
+
+                            let color = scheme.get(color_name)?;
+                            let formats = format_color_all(color);
+                            return formats.get(format_name).cloned();
+                        }
+
+                        let scheme = match scheme_name {
+                            "light" => &self.schemes.light,
+                            "dark" => &self.schemes.dark,
+                            "default" => match self.default_scheme {
+                                SchemesEnum::Light => &self.schemes.light,
+                                SchemesEnum::Dark => &self.schemes.dark,
+                            },
+                            _ => return None,
+                        };
+
+                        let color = scheme.get(color_name)?;
+                        return Some(Value::LazyColor {
+                            color: *color,
+                            scheme: Some(scheme_name.to_string()),
+                        });
+                    }
+
+                    let mut scheme_map = HashMap::new();
+                    for (scheme_name, scheme) in [
+                        ("light", &self.schemes.light),
+                        ("dark", &self.schemes.dark),
+                        (
+                            "default",
+                            match self.default_scheme {
+                                SchemesEnum::Light => &self.schemes.light,
+                                SchemesEnum::Dark => &self.schemes.dark,
+                            },
+                        ),
+                    ] {
+                        if let Some(color) = scheme.get(color_name) {
+                            scheme_map.insert(
+                                scheme_name.to_string(),
+                                Value::LazyColor {
+                                    color: *color,
+                                    scheme: Some(scheme_name.to_string()),
+                                },
+                            );
+                        }
+                    }
+                    return Some(Value::Map(scheme_map));
+                }
 
                 for name in self.schemes.get_all_names() {
                     let mut scheme_map = HashMap::new();
@@ -453,21 +508,8 @@ impl Engine {
         (keywords[0], keywords[1], keywords[2], keywords[3])
     }
 
-    fn get_color_parts_partial<'a>(
-        &self,
-        keywords: &Vec<&'a str>,
-    ) -> (
-        Option<&'a str>,
-        Option<&'a str>,
-        Option<&'a str>,
-        Option<&'a str>,
-    ) {
-        (
-            keywords.get(0).copied(),
-            keywords.get(1).copied(),
-            keywords.get(2).copied(),
-            keywords.get(3).copied(),
-        )
+    pub fn get_format<'a>(&self, keywords: &Vec<&'a str>) -> &'a str {
+        keywords[3]
     }
 
     pub fn get_from_map_check_modified<'a>(
@@ -534,87 +576,35 @@ impl Engine {
         filters: Vec<SpannedExpr>,
     ) -> impl Into<String> {
         let mut current_value = if keywords[0] == "colors" {
-            let (r#type, name, colorscheme, format) = self.get_color_parts(&keywords);
-            let modified_colors = self.modified_colors.borrow();
-            FilterReturnType::Color(*self.get_from_map_check_modified(
-                r#type,
-                name,
-                colorscheme,
-                format,
-                &modified_colors,
-            ))
+            let (r#type, name, colorscheme, _format) = self.get_color_parts(&keywords);
+            FilterReturnType::Color(*self.get_from_map(r#type, name, colorscheme))
         } else {
-            // Support string filters too
-            FilterReturnType::from(self.resolve_path(keywords.clone()).unwrap())
+            FilterReturnType::from(
+                self.resolve_path(keywords.clone())
+                    .expect("Invalid path in filter"),
+            )
         };
 
         for filter in filters {
             if let Expression::Filter {
-                name: filtername,
+                name: filter_name,
                 args,
             } = filter.expr
             {
-                let (r#type, name, colorscheme, format) = self.get_color_parts(&keywords);
-
-                current_value = {
-                    let modified_colors = self.modified_colors.borrow();
-
-                    match self.apply_filter(
-                        filtername,
-                        args,
-                        &keywords,
-                        r#type,
-                        name,
-                        colorscheme,
-                        format,
-                        &modified_colors,
-                    ) {
-                        Ok(v) => v,
-                        Err(e) => {
-                            emit_filter_error("test", &self.src, &e.kind, filter.span);
-                            std::process::exit(1);
-                        }
+                current_value = match self.apply_filter(filter_name, args, &keywords, current_value)
+                {
+                    Ok(val) => val,
+                    Err(e) => {
+                        emit_filter_error("test", &self.src, &e.kind, filter.span);
+                        std::process::exit(1);
                     }
                 };
-
-                // Update the cache if color
-                if let FilterReturnType::Color(argb) = current_value {
-                    match colorscheme {
-                        "dark" => {
-                            self.modified_colors
-                                .borrow_mut()
-                                .dark
-                                .insert(name.to_owned(), argb);
-                        }
-                        "light" => {
-                            self.modified_colors
-                                .borrow_mut()
-                                .light
-                                .insert(name.to_owned(), argb);
-                        }
-                        "default" => match self.default_scheme {
-                            SchemesEnum::Dark => {
-                                self.modified_colors
-                                    .borrow_mut()
-                                    .dark
-                                    .insert(name.to_owned(), argb);
-                            }
-                            SchemesEnum::Light => {
-                                self.modified_colors
-                                    .borrow_mut()
-                                    .light
-                                    .insert(name.to_owned(), argb);
-                            }
-                        },
-                        _ => panic!("Invalid color scheme"),
-                    };
-                }
             }
         }
 
         match current_value {
             FilterReturnType::String(val) => val.into(),
-            FilterReturnType::Color(argb) => format_color(&argb, keywords[3]).into(),
+            FilterReturnType::Color(argb) => format_color(&argb, self.get_format(&keywords)).into(),
         }
     }
 
@@ -623,27 +613,10 @@ impl Engine {
         filtername: &str,
         args: Vec<SpannedValue>,
         keywords: &Vec<&str>,
-        r#type: &str,
-        name: &str,
-        colorscheme: &str,
-        format: &str,
-        modified_colors: &ColorCache,
+        input: FilterReturnType,
     ) -> Result<FilterReturnType, FilterError> {
-        let original = if r#type == "colors" {
-            let color = self.get_from_map_check_modified(
-                r#type,
-                name,
-                colorscheme,
-                format,
-                modified_colors,
-            );
-            FilterReturnType::Color(*color)
-        } else {
-            FilterReturnType::String(String::from("a"))
-        };
-
         match self.filters.get(filtername) {
-            Some(f) => return f(keywords, args, original, &self),
+            Some(f) => return f(keywords, args, input, &self),
             None => panic!("{}", format!("Could not find filter {:?}", filtername)),
         };
     }

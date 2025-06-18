@@ -89,7 +89,9 @@ impl From<Value> for String {
             Value::Bool(v) => v.to_string(),
             Value::Color(_v) => unreachable!(),
             Value::LazyColor { color, scheme } => unreachable!(),
-            Value::Map(_hash_map) => panic!("Cant convert map to String"),
+            Value::Map(_hash_map) => {
+                panic!("Cant convert map to String")
+            }
             Value::Array(_array) => panic!("Cant convert Array to String"),
             Value::Null => String::from("Null"),
         }

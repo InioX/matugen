@@ -4,3 +4,7 @@
 <*for name, key in user.pets *>
     {{ name }}: {{ key.name }}
 <* endfor *>
+
+{{ colors.primary.default.rgb }}
+{{ colors.secondary.default.rgb | lighten: 10 | darken: 10 }}
+{{ colors.secondary.default.rgb | darken: 10 | lighten: 10 }}
