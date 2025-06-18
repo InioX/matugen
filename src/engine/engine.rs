@@ -224,7 +224,7 @@ impl Engine {
                 let subkeys: Vec<&str> = iter.collect();
 
                 for name in self.schemes.get_all_names() {
-                    let mut per_scheme = HashMap::new();
+                    let mut scheme_map = HashMap::new();
 
                     let default_scheme = match self.default_scheme {
                         SchemesEnum::Light => self.schemes.light.clone(),
@@ -237,12 +237,16 @@ impl Engine {
                         ("default", default_scheme),
                     ] {
                         if let Some(color) = scheme.get(name) {
-                            let format_map = format_color_all(color);
-
-                            per_scheme.insert(scheme_name.to_string(), Value::Map(format_map));
+                            scheme_map.insert(
+                                scheme_name.to_string(),
+                                Value::LazyColor {
+                                    color: *color,
+                                    scheme: Some(scheme_name.to_string()),
+                                },
+                            );
                         }
                     }
-                    color_map.insert(name.clone(), Value::Map(per_scheme));
+                    color_map.insert(name.clone(), Value::Map(scheme_map));
                 }
 
                 return Some(Value::Map(color_map));
@@ -261,6 +265,10 @@ impl Engine {
             match current {
                 Value::Map(ref map) => {
                     current = map.get(next_key)?.clone();
+                }
+                Value::LazyColor { color, .. } => {
+                    let color_map = format_color_all(&color);
+                    current = Value::Ident(color_map.get(next_key)?.into());
                 }
                 Value::Color(argb) => {
                     // convert to map and keep walking
