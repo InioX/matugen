@@ -68,6 +68,7 @@ pub fn emit_filter_error(
         .unwrap();
 }
 
+#[derive(Debug)]
 pub enum FilterReturnType {
     String(String),
     Color(Argb),
