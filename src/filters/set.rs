@@ -74,3 +74,26 @@ pub(crate) fn set_blue(
         }
     }
 }
+
+pub(crate) fn set_alpha(
+    keywords: &[&str],
+    args: &[SpannedValue],
+    original: FilterReturnType,
+    engine: &Engine,
+) -> Result<FilterReturnType, FilterError> {
+    let amt = expect_args!(args, f64);
+
+    match original {
+        FilterReturnType::String(s) => Err(FilterError::new(FilterErrorKind::ColorFilterOnString)),
+        FilterReturnType::Color(argb) => {
+            let mut color = Rgb::from((argb.red, argb.green, argb.blue));
+            color.set_alpha(amt);
+            Ok(FilterReturnType::Color(Argb {
+                alpha: color.alpha() as u8,
+                red: color.red() as u8,
+                green: color.green() as u8,
+                blue: color.blue() as u8,
+            }))
+        }
+    }
+}
