@@ -1,0 +1,252 @@
+use std::collections::HashMap;
+
+use chumsky::Parser;
+use colorsys::{ColorAlpha, Hsl};
+
+use crate::parser::{
+    engine::{Expression, SpannedExpr},
+    filtertype::emit_filter_error,
+    FilterError, FilterReturnType, SpannedValue, Value,
+};
+
+use crate::color::format::{
+    format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
+    rgb_from_argb,
+};
+
+use super::Engine;
+
+pub fn format_color(color: &material_colors::color::Argb, format: &str) -> impl Into<String> {
+    let base_color = rgb_from_argb(*color);
+    let hsl_color = Hsl::from(&base_color);
+
+    match format {
+        "hex" => format_hex(&base_color),
+        "hex_stripped" => format_hex_stripped(&base_color),
+        "rgb" => format_rgb(&base_color),
+        "rgba" => format_rgba(&base_color, true),
+        "hsl" => format_hsl(&hsl_color),
+        "hsla" => format_hsla(&hsl_color, true),
+        "red" => format!("{:?}", base_color.red() as u8),
+        "green" => format!("{:?}", base_color.green() as u8),
+        "blue" => format!("{:?}", base_color.blue() as u8),
+        "alpha" => format!("{:?}", base_color.alpha() as u8),
+        "hue" => format!("{:?}", &hsl_color.hue()),
+        "saturation" => format!("{:?}", &hsl_color.lightness()),
+        "lightness" => format!("{:?}", &hsl_color.saturation()),
+        _ => panic!("Invalid format"),
+    }
+}
+
+pub fn format_color_all(color: &material_colors::color::Argb) -> HashMap<String, Value> {
+    let base_color = rgb_from_argb(*color);
+    let hsl_color = Hsl::from(&base_color);
+
+    let mut map = HashMap::new();
+
+    map.insert("hex".to_string(), Value::Ident(format_hex(&base_color)));
+    map.insert(
+        "hex_stripped".to_string(),
+        Value::Ident(format_hex_stripped(&base_color)),
+    );
+    map.insert("rgb".to_string(), Value::Ident(format_rgb(&base_color)));
+    map.insert(
+        "rgba".to_string(),
+        Value::Ident(format_rgba(&base_color, true)),
+    );
+    map.insert("hsl".to_string(), Value::Ident(format_hsl(&hsl_color)));
+    map.insert(
+        "hsla".to_string(),
+        Value::Ident(format_hsla(&hsl_color, true)),
+    );
+    map.insert(
+        "red".to_string(),
+        Value::Ident(format!("{:?}", base_color.red() as u8)),
+    );
+    map.insert(
+        "green".to_string(),
+        Value::Ident(format!("{:?}", base_color.green() as u8)),
+    );
+    map.insert(
+        "blue".to_string(),
+        Value::Ident(format!("{:?}", base_color.blue() as u8)),
+    );
+    map.insert(
+        "alpha".to_string(),
+        Value::Ident(format!("{:?}", base_color.alpha() as u8)),
+    );
+    map.insert(
+        "hue".to_string(),
+        Value::Ident(format!("{:?}", &hsl_color.hue())),
+    );
+    map.insert(
+        "saturation".to_string(),
+        Value::Ident(format!("{:?}", &hsl_color.lightness())),
+    );
+    map.insert(
+        "lightness".to_string(),
+        Value::Ident(format!("{:?}", &hsl_color.saturation())),
+    );
+
+    map
+}
+
+impl Engine {
+    pub fn generate_templates(&self) {
+        let (res, errs) = self.parser().parse(self.src.trim()).into_output_errors();
+
+        let mut changed_src: String = String::new();
+
+        if let Some(exprs) = res {
+            self.build_string(&mut changed_src, exprs);
+        }
+
+        println!("==================\n{}", changed_src);
+        self.show_errors(errs);
+    }
+
+    fn build_string(&self, src: &mut String, exprs: Vec<Box<SpannedExpr>>) {
+        for expr in exprs.into_iter() {
+            let _range = expr.span.into_range();
+
+            self.eval(src, *expr);
+        }
+    }
+
+    fn eval(&self, src: &mut String, expr: SpannedExpr) {
+        match expr.expr {
+            Expression::Keyword { keywords } => {
+                src.push_str(&self.get_replacement(keywords));
+            }
+            Expression::KeywordWithFilters { keyword, filters } => {
+                let keywords = match keyword.expr {
+                    Expression::Keyword { keywords } => keywords,
+                    _ => panic!(""),
+                };
+
+                dbg!(&keywords);
+
+                src.push_str(&self.get_replacement_filter(keywords, filters).into());
+            }
+            Expression::Raw { value } => {
+                src.push_str(&value);
+            }
+            Expression::ForLoop { var, list, body } => {
+                let values = match list.expr.as_keywords() {
+                    Some(v) => self.resolve_path(v.iter().copied()),
+                    None => unreachable!(),
+                }
+                .unwrap();
+
+                match values {
+                    Value::Map(map) => {
+                        for (key, value) in map {
+                            self.runtime.borrow_mut().push_scope();
+
+                            if var.len() == 1 {
+                                self.runtime
+                                    .borrow_mut()
+                                    .insert(var[0].value.clone(), Value::Ident(key.clone()));
+                            } else if var.len() == 2 {
+                                self.runtime
+                                    .borrow_mut()
+                                    .insert(var[0].value.clone(), Value::Ident(key.clone()));
+                                self.runtime
+                                    .borrow_mut()
+                                    .insert(var[1].value.clone(), value.clone());
+                            } else {
+                                panic!("for-loop supports only one or two variables");
+                            }
+
+                            // Evaluate the body with these bindings
+                            src.push_str(&self.eval_loop_body(body.clone()));
+
+                            self.runtime.borrow_mut().pop_scope();
+                        }
+                    }
+                    Value::Array(arr) => {
+                        for item in arr {
+                            self.runtime.borrow_mut().push_scope();
+
+                            if var.len() == 1 {
+                                self.runtime
+                                    .borrow_mut()
+                                    .insert(var[0].value.clone(), item.clone());
+                            } else {
+                                panic!("for-loop over list supports only one variable");
+                            }
+
+                            src.push_str(&self.eval_loop_body(body.clone()));
+                            self.runtime.borrow_mut().pop_scope();
+                        }
+                    }
+                    _ => {
+                        panic!("Cannot loop over non-iterable value");
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn eval_loop_body(&self, exprs: Vec<Box<SpannedExpr>>) -> String {
+        let mut output = String::from("");
+
+        for expr in exprs.into_iter() {
+            let _range = expr.span.into_range();
+            self.eval(&mut output, *expr);
+        }
+
+        output
+    }
+
+    fn get_replacement_filter(
+        &self,
+        keywords: Vec<&str>,
+        filters: Vec<SpannedExpr>,
+    ) -> impl Into<String> {
+        let mut current_value = if keywords[0] == "colors" {
+            FilterReturnType::from(self.resolve_path_filter(keywords.clone()).unwrap())
+        } else {
+            FilterReturnType::from(
+                self.resolve_path(keywords.clone())
+                    .expect("Invalid path in filter"),
+            )
+        };
+
+        for filter in filters {
+            if let Expression::Filter {
+                name: filter_name,
+                args,
+            } = filter.expr
+            {
+                current_value = match self.apply_filter(filter_name, args, &keywords, current_value)
+                {
+                    Ok(val) => val,
+                    Err(e) => {
+                        emit_filter_error("test", &self.src, &e.kind, filter.span);
+                        std::process::exit(1);
+                    }
+                };
+            }
+        }
+
+        match current_value {
+            FilterReturnType::String(val) => val,
+            FilterReturnType::Color(argb) => format_color(&argb, self.get_format(&keywords)).into(),
+        }
+    }
+
+    fn apply_filter(
+        &self,
+        filtername: &str,
+        args: Vec<SpannedValue>,
+        keywords: &Vec<&str>,
+        input: FilterReturnType,
+    ) -> Result<FilterReturnType, FilterError> {
+        match self.filters.get(filtername) {
+            Some(f) => f(keywords, args, input, self),
+            None => panic!("{}", format!("Could not find filter {:?}", filtername)),
+        }
+    }
+}
