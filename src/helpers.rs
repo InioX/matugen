@@ -1,7 +1,7 @@
+use crate::color::color::Source;
 use crate::wallpaper::{self, Wallpaper};
 use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
-use matugen::color::color::Source;
 use std::io::Write;
 
 use crate::util::arguments::Cli;

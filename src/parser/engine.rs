@@ -11,17 +11,18 @@ use crate::{
     parser::{context::RuntimeContext, filtertype::FilterFn, SpannedValue},
     scheme::{Schemes, SchemesEnum},
 };
+
 use material_colors::color::Argb;
 
 use super::context::Context;
 
 use crate::parser::Value;
 
-mod resolve;
-pub(crate) use resolve::*;
-
 mod replace;
 pub(crate) use replace::*;
+
+mod resolve;
+pub(crate) use resolve::*;
 
 #[derive(Debug, Clone)]
 enum Expression<'src> {
@@ -56,19 +57,26 @@ impl<'src> Expression<'src> {
     }
 }
 #[derive(Debug, Clone)]
-struct SpannedExpr<'src> {
+pub struct SpannedExpr<'src> {
     expr: Expression<'src>,
     span: SimpleSpan,
 }
 
-pub struct Engine {
-    src: String,
+pub struct Engine<'src> {
     filters: HashMap<&'static str, FilterFn>,
     syntax: EngineSyntax,
     schemes: Schemes,
     default_scheme: SchemesEnum,
     context: Context,
     runtime: RefCell<RuntimeContext>,
+    templates: HashMap<String, Template<'src>>,
+}
+
+#[derive(Debug)]
+pub struct Template<'src> {
+    pub name: String,
+    pub source: String,
+    pub ast: Vec<Box<SpannedExpr<'src>>>,
 }
 
 pub(crate) struct ColorCache {
@@ -83,36 +91,13 @@ pub(crate) struct EngineSyntax {
     block_right: [char; 2],
 }
 
-impl Engine {
-    pub fn new<T: Into<String>>(src: T, schemes: Schemes, default_scheme: SchemesEnum) -> Self {
+impl<'src> Engine<'src> {
+    pub fn new(schemes: Schemes, default_scheme: SchemesEnum) -> Self {
         let mut filters: HashMap<&str, FilterFn> = HashMap::new();
 
-        // Setting individual values
-        filters.insert("lighten", crate::filters::lighten);
-        filters.insert("darken", crate::filters::darken);
-
-        filters.insert("set_red", crate::filters::set_red);
-        filters.insert("set_green", crate::filters::set_green);
-        filters.insert("set_blue", crate::filters::set_blue);
-
-        let mut ctx = Context::new();
-
-        ctx.merge_json(json!({
-            "user": {
-                "name": "test",
-                "pets": {
-                    "dog": {
-                        "name": "Paw"
-                    },
-                    "cat": {
-                        "name": "Spotty"
-                    },
-                }
-            },
-        }));
+        let ctx = Context::new();
 
         Self {
-            src: src.into(),
             filters,
             syntax: EngineSyntax {
                 keyword_left: ['{', '{'],
@@ -124,29 +109,54 @@ impl Engine {
             default_scheme,
             context: ctx.clone(),
             runtime: RuntimeContext::new(ctx.clone()).into(),
+            templates: HashMap::new(),
         }
     }
 
-    fn show_errors(&self, errs: Vec<Rich<'_, char>>) {
-        errs.into_iter().for_each(|e| {
-            Report::build(ReportKind::Error, ((), e.span().into_range()))
-                .with_config(ariadne::Config::default().with_index_type(ariadne::IndexType::Byte))
-                .with_message(e.to_string())
-                .with_label(
-                    Label::new(((), e.span().into_range()))
-                        .with_message(e.reason().to_string())
-                        .with_color(Color::Red),
-                )
-                .finish()
-                .print(Source::from(&self.src))
-                .unwrap();
-        });
+    pub fn add_filter(&mut self, name: &'static str, function: FilterFn) -> Option<FilterFn> {
+        self.filters.insert(name, function)
+    }
+    pub fn remove_filter(&mut self, name: &'static str) -> Option<FilterFn> {
+        self.filters.remove(name)
     }
 
-    fn add_filter(&mut self, name: &'static str, function: FilterFn) {}
-    fn remove_filter(&mut self) {}
+    pub fn add_template(&mut self, name: &'src str, source: &'src str) {
+        let (ast, errs) = self.parser().parse(source.trim()).into_output_errors();
 
-    fn parser<'src>(
+        self.templates.insert(
+            name.to_string(),
+            Template {
+                name: name.to_string(),
+                ast: {
+                    match ast {
+                        Some(v) => v,
+                        None => {
+                            self.show_errors(errs, source);
+                            std::process::exit(1)
+                        }
+                    }
+                },
+                source: source.to_owned(),
+            },
+        );
+    }
+
+    pub fn remove_template(&mut self, name: &'src str) -> bool {
+        match self.templates.remove(name) {
+            Some(_) => true,
+            None => false,
+        }
+    }
+
+    pub fn add_context(&mut self, context: serde_json::Value) {
+        self.context.merge_json(context);
+    }
+
+    pub fn render(&self, name: &'src str) -> String {
+        self.generate_template(self.templates.get(name).expect("Failed to get template"))
+    }
+
+    fn parser(
         &self,
     ) -> impl Parser<'src, &'src str, Vec<Box<SpannedExpr<'src>>>, extra::Err<Rich<'src, char>>>
     {
@@ -298,5 +308,21 @@ impl Engine {
         })
         .repeated()
         .collect::<Vec<Box<SpannedExpr<'src>>>>()
+    }
+
+    fn show_errors(&self, errs: Vec<Rich<'_, char>>, source: &'src str) {
+        errs.into_iter().for_each(|e| {
+            Report::build(ReportKind::Error, ((), e.span().into_range()))
+                .with_config(ariadne::Config::default().with_index_type(ariadne::IndexType::Byte))
+                .with_message(e.to_string())
+                .with_label(
+                    Label::new(((), e.span().into_range()))
+                        .with_message(e.reason().to_string())
+                        .with_color(Color::Red),
+                )
+                .finish()
+                .print(Source::from(source))
+                .unwrap();
+        });
     }
 }

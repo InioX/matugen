@@ -1,11 +1,11 @@
 use crate::{
     expect_args,
-    parser::{engine::format_color, Engine, FilterError, FilterReturnType, SpannedValue},
+    parser::{Engine, FilterError, FilterReturnType, SpannedValue},
 };
 
 pub(crate) fn replace(
     keywords: &[&str],
-    args: Vec<SpannedValue>,
+    args: &[SpannedValue],
     original: FilterReturnType,
     engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {

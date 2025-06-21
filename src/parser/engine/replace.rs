@@ -4,7 +4,7 @@ use chumsky::Parser;
 use colorsys::{ColorAlpha, Hsl};
 
 use crate::parser::{
-    engine::{Expression, SpannedExpr},
+    engine::{Expression, SpannedExpr, Template},
     filtertype::emit_filter_error,
     FilterError, FilterReturnType, SpannedValue, Value,
 };
@@ -91,42 +91,39 @@ pub fn format_color_all(color: &material_colors::color::Argb) -> HashMap<String,
     map
 }
 
-impl Engine {
-    pub fn generate_templates(&self) {
-        let (res, errs) = self.parser().parse(self.src.trim()).into_output_errors();
-
-        let mut changed_src: String = String::new();
-
-        if let Some(exprs) = res {
-            self.build_string(&mut changed_src, exprs);
-        }
-
-        println!("==================\n{}", changed_src);
-        self.show_errors(errs);
+impl Engine<'_> {
+    pub fn generate_template(&self, template: &Template) -> String {
+        self.build_string(&template.ast, &template.source)
     }
 
-    fn build_string(&self, src: &mut String, exprs: Vec<Box<SpannedExpr>>) {
+    fn build_string(&self, exprs: &[Box<SpannedExpr>], source: &String) -> String {
+        let src = &mut String::from("");
+
         for expr in exprs.into_iter() {
             let _range = expr.span.into_range();
 
-            self.eval(src, *expr);
+            self.eval(src, &*expr, &source);
         }
+
+        src.to_string()
     }
 
-    fn eval(&self, src: &mut String, expr: SpannedExpr) {
-        match expr.expr {
+    fn eval(&self, src: &mut String, expr: &SpannedExpr, source: &String) {
+        match &expr.expr {
             Expression::Keyword { keywords } => {
                 src.push_str(&self.get_replacement(keywords));
             }
             Expression::KeywordWithFilters { keyword, filters } => {
-                let keywords = match keyword.expr {
+                let keywords = match &keyword.expr {
                     Expression::Keyword { keywords } => keywords,
                     _ => panic!(""),
                 };
 
-                dbg!(&keywords);
-
-                src.push_str(&self.get_replacement_filter(keywords, filters).into());
+                src.push_str(
+                    &self
+                        .get_replacement_filter(&keywords, filters, source)
+                        .into(),
+                );
             }
             Expression::Raw { value } => {
                 src.push_str(&value);
@@ -159,7 +156,7 @@ impl Engine {
                             }
 
                             // Evaluate the body with these bindings
-                            src.push_str(&self.eval_loop_body(body.clone()));
+                            src.push_str(&self.eval_loop_body(body.clone(), source));
 
                             self.runtime.borrow_mut().pop_scope();
                         }
@@ -176,7 +173,7 @@ impl Engine {
                                 panic!("for-loop over list supports only one variable");
                             }
 
-                            src.push_str(&self.eval_loop_body(body.clone()));
+                            src.push_str(&self.eval_loop_body(body.clone(), source));
                             self.runtime.borrow_mut().pop_scope();
                         }
                     }
@@ -189,27 +186,43 @@ impl Engine {
         }
     }
 
-    fn eval_loop_body(&self, exprs: Vec<Box<SpannedExpr>>) -> String {
+    fn eval_loop_body(&self, exprs: Vec<Box<SpannedExpr>>, source: &String) -> String {
         let mut output = String::from("");
 
         for expr in exprs.into_iter() {
             let _range = expr.span.into_range();
-            self.eval(&mut output, *expr);
+            self.eval(&mut output, &*expr, source);
         }
 
         output
     }
 
+    fn get_replacement(&self, keywords: &[&str]) -> String {
+        if keywords[0] == "colors" {
+            let (r#type, name, colorscheme, format) = self.get_color_parts(&keywords);
+            let color = self.get_from_map(r#type, name, colorscheme);
+            let format = &keywords[3];
+
+            format_color(color, format).into()
+        } else {
+            String::from(self.resolve_path(keywords.into_iter().copied()).unwrap())
+        }
+    }
+
     fn get_replacement_filter(
         &self,
-        keywords: Vec<&str>,
-        filters: Vec<SpannedExpr>,
+        keywords: &[&str],
+        filters: &[SpannedExpr],
+        source: &String,
     ) -> impl Into<String> {
         let mut current_value = if keywords[0] == "colors" {
-            FilterReturnType::from(self.resolve_path_filter(keywords.clone()).unwrap())
+            FilterReturnType::from(
+                self.resolve_path_filter(keywords.into_iter().copied())
+                    .unwrap(),
+            )
         } else {
             FilterReturnType::from(
-                self.resolve_path(keywords.clone())
+                self.resolve_path(keywords.into_iter().copied())
                     .expect("Invalid path in filter"),
             )
         };
@@ -218,13 +231,13 @@ impl Engine {
             if let Expression::Filter {
                 name: filter_name,
                 args,
-            } = filter.expr
+            } = &filter.expr
             {
                 current_value = match self.apply_filter(filter_name, args, &keywords, current_value)
                 {
                     Ok(val) => val,
                     Err(e) => {
-                        emit_filter_error("test", &self.src, &e.kind, filter.span);
+                        emit_filter_error("test", source, &e.kind, filter.span);
                         std::process::exit(1);
                     }
                 };
@@ -240,8 +253,8 @@ impl Engine {
     fn apply_filter(
         &self,
         filtername: &str,
-        args: Vec<SpannedValue>,
-        keywords: &Vec<&str>,
+        args: &[SpannedValue],
+        keywords: &[&str],
         input: FilterReturnType,
     ) -> Result<FilterReturnType, FilterError> {
         match self.filters.get(filtername) {

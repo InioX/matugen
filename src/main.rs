@@ -12,12 +12,13 @@ pub mod template;
 mod util;
 mod wallpaper;
 
-use helpers::{set_wallpaper, setup_logging};
-use matugen::{
+use crate::{
     color::color::{get_source_color, Source},
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
     template_util::template::get_render_data,
 };
+use helpers::{set_wallpaper, setup_logging};
+use serde_json::json;
 use template::{build_engine_syntax, TemplateFile};
 
 use crate::template::Template;
@@ -26,10 +27,17 @@ use crate::util::{arguments::Cli, color::show_color, config::ConfigFile};
 use clap::Parser;
 use color_eyre::Report;
 
-use matugen::scheme::{Schemes, SchemesEnum};
+pub mod color;
+pub mod exec;
+pub mod filters;
+pub mod parser;
+pub mod scheme;
+pub mod template_util;
+
+use crate::parser::Engine;
+use crate::scheme::{Schemes, SchemesEnum};
 
 use material_colors::{color::Argb, theme::Theme};
-use matugen::parser::Engine;
 use upon::Value;
 
 pub struct State {
@@ -76,10 +84,38 @@ impl State {
 
     fn run_other_generator(&self) {
         let src = std::fs::read_to_string("test.test").unwrap();
+        let src2 = std::fs::read_to_string("test2.test").unwrap();
 
-        let engine = Engine::new(src, self.schemes.clone(), self.default_scheme);
+        let mut engine = Engine::new(self.schemes.clone(), self.default_scheme);
 
-        engine.generate_templates();
+        engine.add_context(json!({
+            "user": {
+                "name": "test",
+                "pets": {
+                    "dog": {
+                        "name": "Paw"
+                    },
+                    "cat": {
+                        "name": "Spotty"
+                    },
+                }
+            },
+        }));
+
+        engine.add_filter("lighten", crate::filters::lighten);
+        engine.add_filter("darken", crate::filters::darken);
+
+        engine.add_filter("set_red", crate::filters::set_red);
+        engine.add_filter("set_green", crate::filters::set_green);
+        engine.add_filter("set_blue", crate::filters::set_blue);
+
+        engine.add_template("1", &src);
+        engine.add_template("2", &src2);
+
+        let res = engine.render("1");
+        let res2 = engine.render("2");
+        println!("first: \n{}", res);
+        println!("second: \n{}", res2);
     }
 
     fn update_themes(&mut self) {
@@ -193,7 +229,7 @@ fn main() -> Result<(), Report> {
     let args_unparsed: Vec<String> = std::env::args().collect();
 
     let default_args = Cli {
-        source: crate::Source::Color(matugen::color::color::ColorFormat::Hex {
+        source: crate::Source::Color(crate::color::color::ColorFormat::Hex {
             string: String::from("#ffffff"),
         }),
         r#type: Some(SchemeTypes::SchemeContent),

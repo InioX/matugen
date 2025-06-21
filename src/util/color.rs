@@ -12,7 +12,7 @@ use crate::Schemes;
 #[cfg(feature = "dump-json")]
 use super::arguments::Format;
 
-use matugen::color::format::rgb_from_argb;
+use crate::color::format::rgb_from_argb;
 
 const DEFAULT_TONES: [i32; 18] = [
     0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100,
@@ -115,7 +115,7 @@ fn format_single_palette(palette: TonalPalette, format: &Format) -> serde_json::
 
 #[cfg(feature = "dump-json")]
 fn format_single_color(color: Rgb, format: &Format) -> String {
-    use matugen::color::format::{
+    use crate::color::format::{
         format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
         hsl_from_rgb,
     };

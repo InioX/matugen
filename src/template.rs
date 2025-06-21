@@ -4,12 +4,12 @@ use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
 // use matugen::template_util::template::add_engine_filters;
-use matugen::template_util::template::render_template;
+use crate::template_util::template::render_template;
 use serde::{Deserialize, Serialize};
 
 use upon::Value;
 
-use matugen::exec::hook::format_hook;
+use crate::exec::hook::format_hook;
 
 use std::path::Path;
 use std::str;
@@ -32,7 +32,7 @@ pub struct Template {
     pub input_path: PathBuf,
     pub output_path: PathBuf,
     pub mode: Option<SchemesEnum>,
-    pub colors_to_compare: Option<Vec<matugen::color::color::ColorDefinition>>,
+    pub colors_to_compare: Option<Vec<crate::color::color::ColorDefinition>>,
     pub compare_to: Option<String>,
     pub pre_hook: Option<String>,
     pub post_hook: Option<String>,
