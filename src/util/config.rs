@@ -18,7 +18,7 @@ pub struct Config {
     // TODO: Add a `Command` struct
     pub prefix: Option<String>,
     pub custom_keywords: Option<HashMap<String, String>>,
-    pub custom_colors: Option<HashMap<String, matugen::color::color::OwnCustomColor>>,
+    pub custom_colors: Option<HashMap<String, crate::color::color::OwnCustomColor>>,
     pub expr_prefix: Option<String>,
     pub expr_postfix: Option<String>,
     pub block_prefix: Option<String>,

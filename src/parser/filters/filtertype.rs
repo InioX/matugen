@@ -72,14 +72,10 @@ pub enum FilterReturnType {
     String(String),
     Color(Argb),
 }
-pub struct SpannedFilterReturnType {
-    value: FilterReturnType,
-    span: SimpleSpan,
-}
 
 pub type FilterFn = fn(
     &[&str],
-    Vec<SpannedValue>,
+    &[SpannedValue],
     FilterReturnType,
     &Engine,
 ) -> Result<FilterReturnType, FilterError>;

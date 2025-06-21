@@ -9,7 +9,7 @@ pub struct Cli {
     /// Optional name to operate on
     // name: Option<String>,
     #[command(subcommand)]
-    pub source: matugen::color::color::Source,
+    pub source: crate::color::color::Source,
 
     /// Sets a custom color scheme type
     #[arg(
@@ -19,7 +19,7 @@ pub struct Cli {
         global = true,
         default_value = "scheme-tonal-spot"
     )]
-    pub r#type: Option<matugen::scheme::SchemeTypes>,
+    pub r#type: Option<crate::scheme::SchemeTypes>,
 
     /// Sets a custom config file
     #[arg(short, long, value_name = "FILE", global = true)]

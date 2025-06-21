@@ -2,16 +2,16 @@ use material_colors::color::Argb;
 
 use super::Engine;
 
-use crate::{
-    parser::{
-        engine::{format_color, format_color_all},
-        Value,
-    },
-    scheme::SchemesEnum,
+use crate::parser::{
+    engine::{format_color, format_color_all},
+    Value,
 };
+
+use crate::scheme::SchemesEnum;
+
 use std::collections::HashMap;
 
-impl Engine {
+impl Engine<'_> {
     pub fn resolve_path<'a, I>(&self, path: I) -> Option<Value>
     where
         I: IntoIterator<Item = &'a str> + Clone,
@@ -173,23 +173,14 @@ impl Engine {
         self.resolve_path(path)
     }
 
-    pub(crate) fn get_replacement(&self, keywords: Vec<&str>) -> String {
-        if keywords[0] == "colors" {
-            let (r#type, name, colorscheme, format) = self.get_color_parts(&keywords);
-            let color = self.get_from_map(r#type, name, colorscheme);
-            let format = &keywords[3];
-
-            format_color(color, format).into()
-        } else {
-            String::from(self.resolve_path(keywords).unwrap())
-        }
-    }
-
     fn validate_color_parts(&self, keywords: &[&str]) -> bool {
         !(keywords.is_empty() || keywords.len() > 4 || keywords.len() < 4)
     }
 
-    fn get_color_parts<'a>(&self, keywords: &Vec<&'a str>) -> (&'a str, &'a str, &'a str, &'a str) {
+    pub(crate) fn get_color_parts<'a>(
+        &self,
+        keywords: &[&'a str],
+    ) -> (&'a str, &'a str, &'a str, &'a str) {
         if !self.validate_color_parts(keywords) {
             panic!(
                 "{}",

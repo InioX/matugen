@@ -8,7 +8,7 @@ use crate::{
 
 pub(crate) fn lighten(
     keywords: &[&str],
-    args: Vec<SpannedValue>,
+    args: &[SpannedValue],
     original: FilterReturnType,
     engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {

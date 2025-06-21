@@ -8,7 +8,7 @@ use crate::{
 
 pub(crate) fn set_red(
     keywords: &[&str],
-    args: Vec<SpannedValue>,
+    args: &[SpannedValue],
     original: FilterReturnType,
     engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
@@ -31,7 +31,7 @@ pub(crate) fn set_red(
 
 pub(crate) fn set_green(
     keywords: &[&str],
-    args: Vec<SpannedValue>,
+    args: &[SpannedValue],
     original: FilterReturnType,
     engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
@@ -54,7 +54,7 @@ pub(crate) fn set_green(
 
 pub(crate) fn set_blue(
     keywords: &[&str],
-    args: Vec<SpannedValue>,
+    args: &[SpannedValue],
     original: FilterReturnType,
     engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
