@@ -2,7 +2,7 @@ use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::span::SimpleSpan;
 use material_colors::color::Argb;
 
-use crate::engine::{Engine, SpannedValue, Value};
+use crate::parser::{Engine, SpannedValue, Value};
 
 #[derive(Debug)]
 pub struct FilterError {

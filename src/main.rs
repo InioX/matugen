@@ -29,7 +29,7 @@ use color_eyre::Report;
 use matugen::scheme::{Schemes, SchemesEnum};
 
 use material_colors::{color::Argb, theme::Theme};
-use matugen::engine::Engine;
+use matugen::parser::Engine;
 use upon::Value;
 
 pub struct State {

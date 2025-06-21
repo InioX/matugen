@@ -1,4 +1,4 @@
-use crate::engine::Value;
+use crate::parser::Value;
 
 #[macro_export]
 macro_rules! expect_args {
@@ -7,8 +7,8 @@ macro_rules! expect_args {
             stringify!($ty)
         ),*].len();
         if $args.len() < expected_len {
-            return Err($crate::engine::FilterError::new(
-                $crate::engine::FilterErrorKind::NotEnoughArguments,
+            return Err($crate::parser::FilterError::new(
+                $crate::parser::FilterErrorKind::NotEnoughArguments,
             ));
         }
 
@@ -18,11 +18,11 @@ macro_rules! expect_args {
                 {
                     let spanned = &$args[_i];
                     _i += 1;
-                    match <$ty as $crate::engine::helpers::ExpectFromValue>::expect_from(&spanned.value) {
+                    match <$ty as $crate::parser::helpers::ExpectFromValue>::expect_from(&spanned.value) {
                         Ok(v) => v,
                         Err(actual) => {
-                            return Err($crate::engine::FilterError::new(
-                                $crate::engine::FilterErrorKind::InvalidArgumentType {
+                            return Err($crate::parser::FilterError::new(
+                                $crate::parser::FilterErrorKind::InvalidArgumentType {
                                     span: spanned.span,
                                     expected: stringify!($ty).to_string(),
                                     actual,

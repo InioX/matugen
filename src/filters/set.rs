@@ -2,8 +2,8 @@ use colorsys::{ColorAlpha, Rgb};
 use material_colors::color::Argb;
 
 use crate::{
-    engine::{Engine, FilterError, FilterErrorKind, FilterReturnType, SpannedValue},
     expect_args,
+    parser::{Engine, FilterError, FilterErrorKind, FilterReturnType, SpannedValue},
 };
 
 pub(crate) fn set_red(
