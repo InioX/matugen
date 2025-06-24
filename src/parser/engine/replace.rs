@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use chumsky::Parser;
+use chumsky::{span::SimpleSpan, Parser};
 use colorsys::{ColorAlpha, Hsl};
 
 use crate::parser::{
-    engine::{Expression, SpannedExpr, Template},
+    engine::{emit_resolve_error, Expression, SpannedExpr, Template},
     filtertype::emit_filter_error,
     FilterError, FilterReturnType, SpannedValue, Value,
 };
@@ -15,6 +15,17 @@ use crate::color::format::{
 };
 
 use super::Engine;
+
+pub fn get_str<'a>(source: &'a str, span: &SimpleSpan) -> &'a str {
+    &source[span.start as usize..span.end as usize]
+}
+
+pub fn get_str_vec<'a>(source: &'a str, spans: &Vec<SimpleSpan>) -> Vec<&'a str> {
+    spans
+        .iter()
+        .map(|s| get_str(source, s))
+        .collect::<Vec<&str>>()
+}
 
 pub fn format_color(color: &material_colors::color::Argb, format: &str) -> impl Into<String> {
     let base_color = rgb_from_argb(*color);
@@ -91,9 +102,9 @@ pub fn format_color_all(color: &material_colors::color::Argb) -> HashMap<String,
     map
 }
 
-impl Engine<'_> {
+impl Engine {
     pub fn generate_template(&self, template: &Template) -> String {
-        self.build_string(&template.ast, &template.source)
+        self.build_string(&template.ast, &self.sources[template.source_id])
     }
 
     fn build_string(&self, exprs: &[Box<SpannedExpr>], source: &String) -> String {
@@ -111,31 +122,40 @@ impl Engine<'_> {
     fn eval(&self, src: &mut String, expr: &SpannedExpr, source: &String) {
         match &expr.expr {
             Expression::Keyword { keywords } => {
-                src.push_str(&self.get_replacement(keywords));
+                src.push_str(&self.get_replacement(&get_str_vec(source, keywords)));
             }
             Expression::KeywordWithFilters { keyword, filters } => {
                 let keywords = match &keyword.expr {
-                    Expression::Keyword { keywords } => keywords,
+                    Expression::Keyword { keywords } => &get_str_vec(source, keywords),
                     _ => panic!(""),
                 };
 
                 src.push_str(
                     &self
-                        .get_replacement_filter(&keywords, filters, source)
+                        .get_replacement_filter(keywords, filters, source)
                         .into(),
                 );
             }
             Expression::Raw { value } => {
-                src.push_str(&value);
+                src.push_str(get_str(source, value));
             }
             Expression::ForLoop { var, list, body } => {
-                let values = match list.expr.as_keywords() {
-                    Some(v) => self.resolve_path(v.iter().copied()),
+                let values = match list.expr.as_keywords(source) {
+                    Some(v) => self.resolve_path(v),
                     None => unreachable!(),
-                }
-                .unwrap();
+                };
 
-                match values {
+                if values.is_none() {
+                    let spans = list.expr.as_spans().unwrap();
+                    emit_resolve_error(
+                        "test",
+                        source,
+                        SimpleSpan::from(spans.first().unwrap().start..spans.last().unwrap().end),
+                    );
+                    std::process::exit(1);
+                }
+
+                match values.unwrap() {
                     Value::Map(map) => {
                         for (key, value) in map {
                             self.runtime.borrow_mut().push_scope();
@@ -233,8 +253,12 @@ impl Engine<'_> {
                 args,
             } = &filter.expr
             {
-                current_value = match self.apply_filter(filter_name, args, &keywords, current_value)
-                {
+                current_value = match self.apply_filter(
+                    get_str(source, filter_name),
+                    args,
+                    &keywords,
+                    current_value,
+                ) {
                     Ok(val) => val,
                     Err(e) => {
                         emit_filter_error("test", source, &e.kind, filter.span);

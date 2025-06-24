@@ -1,3 +1,5 @@
+use ariadne::{Color, Label, Report, ReportKind, Source};
+use chumsky::span::SimpleSpan;
 use material_colors::color::Argb;
 
 use super::Engine;
@@ -11,7 +13,26 @@ use crate::scheme::SchemesEnum;
 
 use std::collections::HashMap;
 
-impl Engine<'_> {
+pub fn emit_resolve_error(source_id: &str, source_code: &str, span: SimpleSpan) {
+    Report::build(ReportKind::Error, ((), span.into_range()))
+        .with_config(ariadne::Config::default().with_index_type(ariadne::IndexType::Byte))
+        .with_message("Failed to resolve path")
+        .with_label(
+            Label::new(((), span.into_range()))
+                .with_message(format!(
+                    "The value '{}' does not exist in the context",
+                    source_code
+                        .get(span.start..span.end)
+                        .unwrap_or("<invalid span>")
+                ))
+                .with_color(Color::Red),
+        )
+        .finish()
+        .print(Source::from(&source_code))
+        .unwrap();
+}
+
+impl Engine {
     pub fn resolve_path<'a, I>(&self, path: I) -> Option<Value>
     where
         I: IntoIterator<Item = &'a str> + Clone,

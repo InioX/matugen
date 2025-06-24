@@ -15,7 +15,7 @@ mod wallpaper;
 use crate::{
     color::color::{get_source_color, Source},
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
-    template_util::template::get_render_data,
+    template_util::template::{get_render_data, get_render_data_new},
 };
 use helpers::{set_wallpaper, setup_logging};
 use serde_json::json;
@@ -88,19 +88,23 @@ impl State {
 
         let mut engine = Engine::new(self.schemes.clone(), self.default_scheme);
 
-        engine.add_context(json!({
-            "user": {
-                "name": "test",
-                "pets": {
-                    "dog": {
-                        "name": "Paw"
-                    },
-                    "cat": {
-                        "name": "Spotty"
-                    },
-                }
-            },
-        }));
+        let image = match &self.args.source {
+            Source::Image { path } => Some(path),
+            #[cfg(feature = "web-image")]
+            Source::WebImage { .. } => None,
+            Source::Color { .. } => None,
+        };
+
+        engine.add_context(
+            get_render_data_new(
+                &self.schemes,
+                &self.source_color,
+                &self.default_scheme,
+                &self.config_file.config.custom_keywords,
+                image,
+            )
+            .unwrap(),
+        );
 
         engine.add_filter("lighten", crate::filters::lighten);
         engine.add_filter("darken", crate::filters::darken);
@@ -109,8 +113,8 @@ impl State {
         engine.add_filter("set_green", crate::filters::set_green);
         engine.add_filter("set_blue", crate::filters::set_blue);
 
-        engine.add_template("1", &src);
-        engine.add_template("2", &src2);
+        engine.add_template("1".to_owned(), src);
+        engine.add_template("2".to_owned(), src2);
 
         let res = engine.render("1");
         let res2 = engine.render("2");
