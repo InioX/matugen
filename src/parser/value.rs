@@ -27,10 +27,7 @@ pub struct SpannedValue {
 
 impl SpannedValue {
     pub fn new(value: Value, span: SimpleSpan) -> Self {
-        Self {
-            value,
-            span,
-        }
+        Self { value, span }
     }
 }
 
@@ -74,7 +71,7 @@ impl From<&Value> for String {
             Value::Color(_v) => unreachable!(),
             Value::Map(_hash_map) => panic!("Cant convert map to String"),
             Value::Array(_array) => panic!("Cant convert Array to String"),
-            Value::Null => String::from("Null"),
+            Value::Null => String::from(""),
             Value::LazyColor { color, scheme } => todo!(),
         }
     }
@@ -93,7 +90,7 @@ impl From<Value> for String {
                 panic!("Cant convert map to String")
             }
             Value::Array(_array) => panic!("Cant convert Array to String"),
-            Value::Null => String::from("Null"),
+            Value::Null => String::from(""),
         }
     }
 }

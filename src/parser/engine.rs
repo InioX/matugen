@@ -25,30 +25,37 @@ mod resolve;
 pub(crate) use resolve::*;
 
 #[derive(Debug, Clone)]
-enum Expression<'src> {
+enum Expression {
     Keyword {
-        keywords: Vec<&'src str>,
+        keywords: Vec<SimpleSpan>,
     },
     Filter {
-        name: &'src str,
+        name: SimpleSpan,
         args: Vec<SpannedValue>,
     },
     KeywordWithFilters {
-        keyword: Box<SpannedExpr<'src>>,
-        filters: Vec<SpannedExpr<'src>>,
+        keyword: Box<SpannedExpr>,
+        filters: Vec<SpannedExpr>,
     },
     ForLoop {
         var: Vec<SpannedValue>,
-        list: Box<SpannedExpr<'src>>,
-        body: Vec<Box<SpannedExpr<'src>>>,
+        list: Box<SpannedExpr>,
+        body: Vec<Box<SpannedExpr>>,
     },
     Raw {
-        value: String,
+        value: SimpleSpan,
     },
 }
 
-impl<'src> Expression<'src> {
-    pub fn as_keywords(&self) -> Option<&Vec<&'src str>> {
+impl Expression {
+    pub fn as_keywords<'a>(&self, source: &'a str) -> Option<Vec<&'a str>> {
+        if let Expression::Keyword { keywords } = self {
+            Some(get_str_vec(source, keywords))
+        } else {
+            None
+        }
+    }
+    pub fn as_spans<'a>(&self) -> Option<&Vec<SimpleSpan>> {
         if let Expression::Keyword { keywords } = self {
             Some(keywords)
         } else {
@@ -56,27 +63,28 @@ impl<'src> Expression<'src> {
         }
     }
 }
+
 #[derive(Debug, Clone)]
-pub struct SpannedExpr<'src> {
-    expr: Expression<'src>,
+pub struct SpannedExpr {
+    expr: Expression,
     span: SimpleSpan,
 }
 
-pub struct Engine<'src> {
+pub struct Engine {
     filters: HashMap<&'static str, FilterFn>,
     syntax: EngineSyntax,
     schemes: Schemes,
     default_scheme: SchemesEnum,
     context: Context,
     runtime: RefCell<RuntimeContext>,
-    templates: HashMap<String, Template<'src>>,
+    templates: HashMap<String, Template>,
+    sources: Vec<String>,
 }
 
-#[derive(Debug)]
-pub struct Template<'src> {
+pub struct Template {
     pub name: String,
-    pub source: String,
-    pub ast: Vec<Box<SpannedExpr<'src>>>,
+    pub source_id: usize, // Index into `Engine.sources`
+    pub ast: Vec<Box<SpannedExpr>>,
 }
 
 pub(crate) struct ColorCache {
@@ -91,7 +99,7 @@ pub(crate) struct EngineSyntax {
     block_right: [char; 2],
 }
 
-impl<'src> Engine<'src> {
+impl Engine {
     pub fn new(schemes: Schemes, default_scheme: SchemesEnum) -> Self {
         let mut filters: HashMap<&str, FilterFn> = HashMap::new();
 
@@ -110,6 +118,7 @@ impl<'src> Engine<'src> {
             context: ctx.clone(),
             runtime: RuntimeContext::new(ctx.clone()).into(),
             templates: HashMap::new(),
+            sources: vec![],
         }
     }
 
@@ -120,29 +129,30 @@ impl<'src> Engine<'src> {
         self.filters.remove(name)
     }
 
-    pub fn add_template(&mut self, name: &'src str, source: &'src str) {
-        let (ast, errs) = self.parser().parse(source.trim()).into_output_errors();
+    pub fn add_template(&mut self, name: String, source: String) {
+        self.sources.push(source);
+        let source_id = self.sources.len() - 1;
+        let source_ref = &self.sources[source_id];
+
+        let parser = Self::parser(&self.syntax);
+
+        let (ast, errs) = parser.parse(source_ref.trim()).into_output_errors();
 
         self.templates.insert(
-            name.to_string(),
+            name.clone(),
             Template {
-                name: name.to_string(),
-                ast: {
-                    match ast {
-                        Some(v) => v,
-                        None => {
-                            self.show_errors(errs, source);
-                            std::process::exit(1)
-                        }
-                    }
-                },
-                source: source.to_owned(),
+                name,
+                source_id,
+                ast: ast.unwrap_or_else(|| {
+                    self.show_errors(errs, source_ref);
+                    std::process::exit(1);
+                }),
             },
         );
     }
 
-    pub fn remove_template(&mut self, name: &'src str) -> bool {
-        match self.templates.remove(name) {
+    pub fn remove_template(&mut self, name: String) -> bool {
+        match self.templates.remove(&name) {
             Some(_) => true,
             None => false,
         }
@@ -152,21 +162,22 @@ impl<'src> Engine<'src> {
         self.context.merge_json(context);
     }
 
-    pub fn render(&self, name: &'src str) -> String {
+    pub fn render(&self, name: &str) -> String {
         self.generate_template(self.templates.get(name).expect("Failed to get template"))
     }
 
-    fn parser(
-        &self,
-    ) -> impl Parser<'src, &'src str, Vec<Box<SpannedExpr<'src>>>, extra::Err<Rich<'src, char>>>
-    {
+    pub fn parser<'src>(
+        syntax: &'src EngineSyntax,
+    ) -> impl Parser<'src, &'src str, Vec<Box<SpannedExpr>>, extra::Err<Rich<'src, char>>> {
         recursive(|expr| {
+            // Dotted identifier as a sequence of spans
             let dotted_ident = text::ident()
-                .separated_by(just('.'))
+                .map_with(|_, e| e.span())
+                .separated_by(just('.').padded())
                 .at_least(1)
-                .collect::<Vec<&'src str>>()
-                .map_with(|v, e| SpannedExpr {
-                    expr: Expression::Keyword { keywords: v },
+                .collect::<Vec<SimpleSpan>>()
+                .map_with(|spans, e| SpannedExpr {
+                    expr: Expression::Keyword { keywords: spans },
                     span: e.span(),
                 });
 
@@ -191,7 +202,9 @@ impl<'src> Engine<'src> {
                 .or(ident)
                 .map_with(|value, e| SpannedValue::new(value, e.span()));
 
+            // Filter: name is span, args are spanned values
             let filter = text::ident()
+                .map_with(|_, e| e.span())
                 .then(
                     just(':')
                         .padded()
@@ -238,11 +251,11 @@ impl<'src> Engine<'src> {
                 }
             });
 
-            let keyword_full = just(self.syntax.keyword_left)
+            let keyword_full = just(syntax.keyword_left)
                 .padded()
                 .ignore_then(full_expr)
                 .padded()
-                .then_ignore(just(self.syntax.keyword_right))
+                .then_ignore(just(syntax.keyword_right))
                 .map_with(|expr, e| {
                     Box::new(SpannedExpr {
                         expr: expr.expr,
@@ -252,35 +265,31 @@ impl<'src> Engine<'src> {
 
             let for_end = just("endfor")
                 .padded()
-                .delimited_by(just(self.syntax.block_left), just(self.syntax.block_right));
+                .delimited_by(just(syntax.block_left), just(syntax.block_right));
 
             let raw = any()
                 .and_is(
-                    just(self.syntax.keyword_left[0])
-                        .or(just(self.syntax.block_left[0]))
+                    just(syntax.keyword_left[0])
+                        .or(just(syntax.block_left[0]))
                         .not(),
                 )
                 .repeated()
                 .at_least(1)
                 .collect::<String>()
-                .map_with(|text, span| {
+                .map_with(|_, span| {
                     Box::new(SpannedExpr {
-                        expr: Expression::Raw {
-                            value: text, // or use Box::leak(text.into_boxed_str())
-                        },
+                        expr: Expression::Raw { value: span.span() },
                         span: span.span(),
                     })
                 });
 
-            let for_loop = just(self.syntax.block_left)
-                .map_with(|expr, e| (expr, e.span()))
+            let for_loop = just(syntax.block_left)
                 .padded()
                 .ignore_then(just("for"))
                 .padded()
                 .ignore_then(
                     spanned_ident
-                        .padded()
-                        .separated_by(just(","))
+                        .separated_by(just(',').padded())
                         .at_least(1)
                         .collect::<Vec<SpannedValue>>(),
                 )
@@ -289,7 +298,7 @@ impl<'src> Engine<'src> {
                 .padded()
                 .then(dotted_ident)
                 .padded()
-                .then_ignore(just(self.syntax.block_right))
+                .then_ignore(just(syntax.block_right))
                 .padded()
                 .then(raw.or(expr).repeated().collect())
                 .then_ignore(for_end)
@@ -307,10 +316,10 @@ impl<'src> Engine<'src> {
             raw.or(keyword_full).or(for_loop)
         })
         .repeated()
-        .collect::<Vec<Box<SpannedExpr<'src>>>>()
+        .collect::<Vec<Box<SpannedExpr>>>()
     }
 
-    fn show_errors(&self, errs: Vec<Rich<'_, char>>, source: &'src str) {
+    fn show_errors(&self, errs: Vec<Rich<'_, char>>, source: &str) {
         errs.into_iter().for_each(|e| {
             Report::build(ReportKind::Error, ((), e.span().into_range()))
                 .with_config(ariadne::Config::default().with_index_type(ariadne::IndexType::Byte))
