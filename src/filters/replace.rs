@@ -1,6 +1,6 @@
 use crate::{
     expect_args,
-    parser::{Engine, FilterError, FilterReturnType, SpannedValue},
+    parser::{engine::format_color, Engine, FilterError, FilterReturnType, SpannedValue},
 };
 
 pub(crate) fn replace(
