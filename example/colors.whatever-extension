@@ -4,17 +4,6 @@ blue #0000FF;
 
 mode: {{ mode }}
 
-test {{ colors.source_color.default.rgb | set_lightness: 20.0 }}
-test {{ colors.source_color.default.rgb | set_lightness: -20.0 }}
-test {{ colors.source_color.default.rgb }}
-
-{{ colors.source_color.default.hex_stripped | set_lightness: 20.0 }}
-
-{{ colors.source_color.default.hex | set_lightness: 20.0 }}
-
-Should  not change at all
-{{ colors.source_color.default.red | set_lightness: 5.0 }}
-
 red {{colors.red.default.rgb}};
 red {{colors.red.default.rgba}};
 green {{colors.green.default.hsl}};
@@ -29,17 +18,3 @@ source_color {{colors.source_color.default.hex}};
 Only works with rgba and hsla
 
 {{ colors.source_color.default.rgba | set_alpha: 0.5 }}
-
-- 180
-{{ colors.source_color.default.rgba | set_hue: -180.0 }}
-
-+ 90
-{{ colors.source_color.default.rgba | set_hue: 90.0 }}
-
-grayscale
-{{ colors.source_color.default.rgba | grayscale }}
-
-invert
-{{ colors.source_color.default.rgba | invert }}
-
-chain together {{ colors.source_color.default.rgba | set_alpha: 0.7 | set_hue: -180.0 | invert }}

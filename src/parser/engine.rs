@@ -181,19 +181,39 @@ impl Engine {
                     span: e.span(),
                 });
 
-            let float = text::int(10)
-                .then_ignore(just('.'))
+            let plain_ident = text::ident().map(|s: &str| Value::Ident(s.to_string()));
+
+            let escape = just('\\').ignore_then(just('"').or(just('\\')));
+
+            let inner = escape
+                .or(none_of("\"\\"))
+                .repeated()
+                .collect::<String>()
+                .map(|s| Value::Ident(s));
+
+            let quoted_ident = inner.delimited_by(just('"'), just('"'));
+
+            let ident = quoted_ident.or(plain_ident);
+
+            let sign = just('-').or(just('+')).or_not();
+
+            let int = sign
                 .then(text::int(10))
-                .map(|(int_part, frac_part)| {
-                    let parsed = format!("{}.{}", int_part, frac_part)
-                        .parse::<f64>()
-                        .unwrap();
-                    Value::Float(parsed)
+                .map(|(sign, digits): (Option<char>, &str)| {
+                    let number = format!("{}{}", sign.unwrap_or('+'), digits);
+                    Value::Int(number.parse::<i64>().unwrap())
                 });
 
-            let int = text::int(10).map(|s: &str| Value::Int(s.parse::<i64>().unwrap()));
-
-            let ident = text::ident().map(|s: &str| Value::Ident(s.to_string()));
+            let float = sign
+                .then(text::int(10)) // int part
+                .then_ignore(just('.'))
+                .then(text::int(10)) // frac part
+                .map(
+                    |((sign, int_part), frac_part): ((Option<char>, &str), &str)| {
+                        let number = format!("{}{}.{}", sign.unwrap_or('+'), int_part, frac_part);
+                        Value::Float(number.parse::<f64>().unwrap())
+                    },
+                );
 
             let spanned_ident = ident.map_with(|value, e| SpannedValue::new(value, e.span()));
 

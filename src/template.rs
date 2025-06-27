@@ -3,6 +3,7 @@ use color_eyre::eyre::WrapErr;
 use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
 
+use crate::parser::Engine as NewEngine;
 // use matugen::template_util::template::add_engine_filters;
 use crate::template_util::template::render_template;
 use serde::{Deserialize, Serialize};
@@ -47,24 +48,15 @@ pub struct InputPathModes {
 
 pub struct TemplateFile<'a> {
     state: &'a State,
-    engine: &'a mut Engine<'a>,
-    render_data: &'a mut Value,
+    engine: &'a mut NewEngine,
 }
 
 impl TemplateFile<'_> {
-    pub fn new<'a>(
-        state: &'a State,
-        engine: &'a mut Engine<'a>,
-        render_data: &'a mut Value,
-    ) -> TemplateFile<'a> {
-        TemplateFile {
-            state,
-            engine,
-            render_data,
-        }
+    pub fn new<'a>(state: &'a State, engine: &'a mut NewEngine) -> TemplateFile<'a> {
+        TemplateFile { state, engine }
     }
 
-    pub fn generate(&mut self) -> Result<(), Report> {
+    pub fn generate_new(&mut self) -> Result<(), Report> {
         info!(
             "Loaded <b><cyan>{}</> templates.",
             &self.state.config_file.templates.len()
@@ -89,17 +81,6 @@ impl TemplateFile<'_> {
                 &template.output_path,
             )?;
 
-            if template.pre_hook.is_some() {
-                format_hook(
-                    self.engine,
-                    self.render_data,
-                    template.pre_hook.as_ref().unwrap(),
-                    &template.colors_to_compare,
-                    &template.compare_to,
-                )
-                .unwrap();
-            }
-
             if !input_path_absolute.exists() {
                 warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesnt exist, skipping...</>", name, input_path_absolute.display());
                 continue;
@@ -109,15 +90,7 @@ impl TemplateFile<'_> {
                 .wrap_err(format!("Could not read the {} template.", name))
                 .suggestion("Try converting the file to use UTF-8 encoding.")?;
 
-            self.engine.add_template(name, data).map_err(|error| {
-                let message = format!(
-                    "[{} - {}]\n{:#}",
-                    name,
-                    input_path_absolute.display(),
-                    error
-                );
-                Report::new(error).wrap_err(message)
-            })?;
+            self.engine.add_template(name.to_string(), data);
 
             debug!(
                 "Trying to write the {} template from {} to {}",
@@ -126,37 +99,103 @@ impl TemplateFile<'_> {
                 output_path_absolute.display()
             );
 
-            self.export_template(
-                name,
-                self.render_data,
-                output_path_absolute,
-                input_path_absolute,
-                i,
-            )?;
-
-            if template.post_hook.is_some() {
-                format_hook(
-                    self.engine,
-                    self.render_data,
-                    template.post_hook.as_ref().unwrap(),
-                    &template.colors_to_compare,
-                    &template.compare_to,
-                )
-                .unwrap();
-            }
+            self.export_template(name, output_path_absolute, input_path_absolute, i)?;
         }
         Ok(())
     }
 
+    // pub fn generate(&mut self) -> Result<(), Report> {
+    //     info!(
+    //         "Loaded <b><cyan>{}</> templates.",
+    //         &self.state.config_file.templates.len()
+    //     );
+
+    //     for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
+    //         // add_engine_filters(self.engine);
+
+    //         let input_path = if let Some(input_path_mode) = &template.input_path_modes {
+    //             match self.state.default_scheme {
+    //                 SchemesEnum::Light => &input_path_mode.light,
+    //                 SchemesEnum::Dark => &input_path_mode.dark,
+    //             }
+    //         } else {
+    //             &template.input_path
+    //         };
+
+    //         let (input_path_absolute, output_path_absolute) = get_absolute_paths(
+    //             &self.state.config_path,
+    //             template,
+    //             input_path,
+    //             &template.output_path,
+    //         )?;
+
+    //         if template.pre_hook.is_some() {
+    //             format_hook(
+    //                 self.engine,
+    //                 self.render_data,
+    //                 template.pre_hook.as_ref().unwrap(),
+    //                 &template.colors_to_compare,
+    //                 &template.compare_to,
+    //             )
+    //             .unwrap();
+    //         }
+
+    //         if !input_path_absolute.exists() {
+    //             warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesnt exist, skipping...</>", name, input_path_absolute.display());
+    //             continue;
+    //         }
+
+    //         let data = read_to_string(&input_path_absolute)
+    //             .wrap_err(format!("Could not read the {} template.", name))
+    //             .suggestion("Try converting the file to use UTF-8 encoding.")?;
+
+    //         self.engine.add_template(name, data).map_err(|error| {
+    //             let message = format!(
+    //                 "[{} - {}]\n{:#}",
+    //                 name,
+    //                 input_path_absolute.display(),
+    //                 error
+    //             );
+    //             Report::new(error).wrap_err(message)
+    //         })?;
+
+    //         debug!(
+    //             "Trying to write the {} template from {} to {}",
+    //             name,
+    //             input_path.display(),
+    //             output_path_absolute.display()
+    //         );
+
+    //         self.export_template(
+    //             name,
+    //             self.render_data,
+    //             output_path_absolute,
+    //             input_path_absolute,
+    //             i,
+    //         )?;
+
+    //         if template.post_hook.is_some() {
+    //             format_hook(
+    //                 self.engine,
+    //                 self.render_data,
+    //                 template.post_hook.as_ref().unwrap(),
+    //                 &template.colors_to_compare,
+    //                 &template.compare_to,
+    //             )
+    //             .unwrap();
+    //         }
+    //     }
+    //     Ok(())
+    // }
+
     fn export_template(
         &self,
         name: &String,
-        render_data: &Value,
         output_path_absolute: PathBuf,
         input_path_absolute: PathBuf,
         i: usize,
     ) -> Result<(), Report> {
-        let data = render_template(self.engine, name, render_data, input_path_absolute.to_str())?;
+        let data = self.engine.render(name);
 
         let out = if self.state.args.prefix.is_some() && !cfg!(windows) {
             let mut prefix_path = PathBuf::from(self.state.args.prefix.as_ref().unwrap());

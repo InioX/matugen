@@ -62,7 +62,7 @@ impl State {
             .mode
             .expect("Something went wrong while parsing the mode");
 
-        let schemes = get_custom_color_schemes(
+        let mut schemes = get_custom_color_schemes(
             source_color,
             scheme_dark,
             scheme_light,
@@ -70,6 +70,11 @@ impl State {
             &args.r#type,
             &args.contrast,
         );
+
+        schemes.dark.insert("source_color".to_owned(), source_color);
+        schemes
+            .light
+            .insert("source_color".to_owned(), source_color);
 
         Self {
             args,
@@ -82,10 +87,7 @@ impl State {
         }
     }
 
-    fn run_other_generator(&self) {
-        let src = std::fs::read_to_string("test.test").unwrap();
-        let src2 = std::fs::read_to_string("test2.test").unwrap();
-
+    fn init_engine(&self) -> Engine {
         let mut engine = Engine::new(self.schemes.clone(), self.default_scheme);
 
         let image = match &self.args.source {
@@ -112,14 +114,11 @@ impl State {
         engine.add_filter("set_red", crate::filters::set_red);
         engine.add_filter("set_green", crate::filters::set_green);
         engine.add_filter("set_blue", crate::filters::set_blue);
+        engine.add_filter("set_alpha", crate::filters::set_alpha);
 
-        engine.add_template("1".to_owned(), src);
-        engine.add_template("2".to_owned(), src2);
+        engine.add_filter("replace", crate::filters::replace);
 
-        let res = engine.render("1");
-        let res2 = engine.render("2");
-        println!("first: \n{}", res);
-        println!("second: \n{}", res2);
+        engine
     }
 
     fn update_themes(&mut self) {
@@ -185,21 +184,16 @@ impl State {
 
         let mut engine = self.init_engine();
         let mut render_data = self.init_render_data()?;
-        let template = TemplateFile::new(self, &mut engine, &mut render_data);
+        let mut template = TemplateFile::new(self, &mut engine);
 
-        self.run_other_generator();
-        // template.generate()?;
+        // self.run_other_generator();
+        template.generate_new()?;
 
         if let Some(_wallpaper_cfg) = &self.config_file.config.wallpaper {
             set_wallpaper(&self.args.source, _wallpaper_cfg)?;
         }
 
         Ok(())
-    }
-
-    fn init_engine(&self) -> upon::Engine {
-        let syntax = build_engine_syntax(self);
-        upon::Engine::with_syntax(syntax)
     }
 
     fn init_render_data(&self) -> Result<Value, Report> {
