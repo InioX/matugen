@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use chumsky::{span::SimpleSpan, Parser};
-use colorsys::{ColorAlpha, Hsl};
+use colorsys::{ColorAlpha, Hsl, Rgb};
 
 use crate::parser::{
     engine::{emit_resolve_error, Expression, SpannedExpr, Template},
@@ -27,8 +27,7 @@ pub fn get_str_vec<'a>(source: &'a str, spans: &Vec<SimpleSpan>) -> Vec<&'a str>
         .collect::<Vec<&str>>()
 }
 
-pub fn format_color(color: &material_colors::color::Argb, format: &str) -> impl Into<String> {
-    let base_color = rgb_from_argb(*color);
+pub fn format_color(base_color: Rgb, format: &str) -> impl Into<String> {
     let hsl_color = Hsl::from(&base_color);
 
     match format {
@@ -49,8 +48,7 @@ pub fn format_color(color: &material_colors::color::Argb, format: &str) -> impl 
     }
 }
 
-pub fn format_color_all(color: &material_colors::color::Argb) -> HashMap<String, Value> {
-    let base_color = rgb_from_argb(*color);
+pub fn format_color_all(base_color: Rgb) -> HashMap<String, Value> {
     let hsl_color = Hsl::from(&base_color);
 
     let mut map = HashMap::new();
@@ -220,7 +218,7 @@ impl Engine {
     fn get_replacement(&self, keywords: &[&str]) -> String {
         if keywords[0] == "colors" {
             let (r#type, name, colorscheme, format) = self.get_color_parts(&keywords);
-            let color = self.get_from_map(r#type, name, colorscheme);
+            let color = rgb_from_argb(*self.get_from_map(r#type, name, colorscheme));
             let format = &keywords[3];
 
             format_color(color, format).into()
@@ -270,7 +268,7 @@ impl Engine {
 
         match current_value {
             FilterReturnType::String(val) => val,
-            FilterReturnType::Color(argb) => format_color(&argb, self.get_format(&keywords)).into(),
+            FilterReturnType::Color(argb) => format_color(argb, self.get_format(&keywords)).into(),
         }
     }
 

@@ -16,15 +16,9 @@ pub(crate) fn lighten(
 
     match original {
         FilterReturnType::String(s) => Err(FilterError::new(FilterErrorKind::ColorFilterOnString)),
-        FilterReturnType::Color(argb) => {
-            let mut color = Rgb::from((argb.red, argb.green, argb.blue));
+        FilterReturnType::Color(mut color) => {
             color.lighten(amt);
-            Ok(FilterReturnType::Color(Argb {
-                alpha: color.alpha() as u8,
-                red: color.red() as u8,
-                green: color.green() as u8,
-                blue: color.blue() as u8,
-            }))
+            Ok(FilterReturnType::Color(color))
         }
     }
 }

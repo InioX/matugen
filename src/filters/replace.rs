@@ -14,7 +14,7 @@ pub(crate) fn replace(
     match original {
         FilterReturnType::String(s) => Ok(FilterReturnType::String(s.replace(&find, &replace))),
         FilterReturnType::Color(color) => {
-            let string = format_color(&color, keywords[3]);
+            let string = format_color(color, keywords[3]);
             let modified: String = string.into().replace(&find, &replace);
             Ok(FilterReturnType::String(modified))
         }

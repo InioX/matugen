@@ -87,11 +87,6 @@ pub struct Template {
     pub ast: Vec<Box<SpannedExpr>>,
 }
 
-pub(crate) struct ColorCache {
-    pub dark: HashMap<String, Argb>,
-    pub light: HashMap<String, Argb>,
-}
-
 pub(crate) struct EngineSyntax {
     keyword_left: [char; 2],
     keyword_right: [char; 2],
