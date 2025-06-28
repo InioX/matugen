@@ -4,9 +4,12 @@ use material_colors::color::Argb;
 
 use super::Engine;
 
-use crate::parser::{
-    engine::{format_color, format_color_all},
-    Value,
+use crate::{
+    color::format::rgb_from_argb,
+    parser::{
+        engine::{format_color, format_color_all},
+        Value,
+    },
 };
 
 use crate::scheme::SchemesEnum;
@@ -58,7 +61,7 @@ impl Engine {
                                 _ => return None,
                             };
 
-                            let color = scheme.get(color_name)?;
+                            let color = rgb_from_argb(*scheme.get(color_name)?);
                             let formats = format_color_all(color);
                             return formats.get(format_name).cloned();
                         }
@@ -75,7 +78,7 @@ impl Engine {
 
                         let color = scheme.get(color_name)?;
                         return Some(Value::LazyColor {
-                            color: *color,
+                            color: rgb_from_argb(*color),
                             scheme: Some(scheme_name.to_string()),
                         });
                     }
@@ -96,7 +99,7 @@ impl Engine {
                             scheme_map.insert(
                                 scheme_name.to_string(),
                                 Value::LazyColor {
-                                    color: *color,
+                                    color: rgb_from_argb(*color),
                                     scheme: Some(scheme_name.to_string()),
                                 },
                             );
@@ -122,7 +125,7 @@ impl Engine {
                             scheme_map.insert(
                                 scheme_name.to_string(),
                                 Value::LazyColor {
-                                    color: *color,
+                                    color: rgb_from_argb(*color),
                                     scheme: Some(scheme_name.to_string()),
                                 },
                             );
@@ -149,12 +152,12 @@ impl Engine {
                     current = map.get(next_key)?.clone();
                 }
                 Value::LazyColor { color, .. } => {
-                    let color_map = format_color_all(&color);
+                    let color_map = format_color_all(color);
                     current = Value::Ident(color_map.get(next_key)?.into());
                 }
                 Value::Color(argb) => {
                     // convert to map and keep walking
-                    let color_map = format_color_all(&argb);
+                    let color_map = format_color_all(argb);
                     current = Value::Ident(color_map.get(next_key)?.clone().into());
                 }
                 _ => {
@@ -188,7 +191,9 @@ impl Engine {
                 _ => return None,
             };
 
-            return scheme.get(color_name).copied().map(Value::Color);
+            return Some(Value::Color(rgb_from_argb(
+                *scheme.get(color_name).unwrap(),
+            )));
         }
 
         self.resolve_path(path)

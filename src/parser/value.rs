@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use chumsky::span::SimpleSpan;
+use colorsys::Rgb;
 use material_colors::color::Argb;
 
 #[derive(Debug, Clone)]
@@ -8,9 +9,9 @@ pub enum Value {
     Ident(String),
     Int(i64),
     Float(f64),
-    Color(material_colors::color::Argb),
+    Color(Rgb),
     LazyColor {
-        color: Argb,
+        color: Rgb,
         scheme: Option<String>, // If known, otherwise None
     },
     Bool(bool),
@@ -133,7 +134,7 @@ impl From<serde_json::Value> for Value {
                 }
             }
             serde_json::Value::String(s) => {
-                if let Ok(color) = Argb::from_str(&s) {
+                if let Ok(color) = Rgb::from_str(&s) {
                     Value::Color(color)
                 } else {
                     Value::Ident(s)

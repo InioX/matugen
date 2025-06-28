@@ -16,15 +16,9 @@ pub(crate) fn set_red(
 
     match original {
         FilterReturnType::String(s) => Err(FilterError::new(FilterErrorKind::ColorFilterOnString)),
-        FilterReturnType::Color(argb) => {
-            let mut color = Rgb::from((argb.red, argb.green, argb.blue));
+        FilterReturnType::Color(mut color) => {
             color.set_red(amt);
-            Ok(FilterReturnType::Color(Argb {
-                alpha: color.alpha() as u8,
-                red: color.red() as u8,
-                green: color.green() as u8,
-                blue: color.blue() as u8,
-            }))
+            Ok(FilterReturnType::Color(color))
         }
     }
 }
@@ -39,15 +33,9 @@ pub(crate) fn set_green(
 
     match original {
         FilterReturnType::String(s) => Err(FilterError::new(FilterErrorKind::ColorFilterOnString)),
-        FilterReturnType::Color(argb) => {
-            let mut color = Rgb::from((argb.red, argb.green, argb.blue));
+        FilterReturnType::Color(mut color) => {
             color.set_green(amt);
-            Ok(FilterReturnType::Color(Argb {
-                alpha: color.alpha() as u8,
-                red: color.red() as u8,
-                green: color.green() as u8,
-                blue: color.blue() as u8,
-            }))
+            Ok(FilterReturnType::Color(color))
         }
     }
 }
@@ -62,15 +50,9 @@ pub(crate) fn set_blue(
 
     match original {
         FilterReturnType::String(s) => Err(FilterError::new(FilterErrorKind::ColorFilterOnString)),
-        FilterReturnType::Color(argb) => {
-            let mut color = Rgb::from((argb.red, argb.green, argb.blue));
+        FilterReturnType::Color(mut color) => {
             color.set_blue(amt);
-            Ok(FilterReturnType::Color(Argb {
-                alpha: color.alpha() as u8,
-                red: color.red() as u8,
-                green: color.green() as u8,
-                blue: color.blue() as u8,
-            }))
+            Ok(FilterReturnType::Color(color))
         }
     }
 }
@@ -85,15 +67,9 @@ pub(crate) fn set_alpha(
 
     match original {
         FilterReturnType::String(s) => Err(FilterError::new(FilterErrorKind::ColorFilterOnString)),
-        FilterReturnType::Color(argb) => {
-            let mut color = Rgb::from((argb.red, argb.green, argb.blue));
+        FilterReturnType::Color(mut color) => {
             color.set_alpha(amt);
-            Ok(FilterReturnType::Color(Argb {
-                alpha: color.alpha() as u8,
-                red: color.red() as u8,
-                green: color.green() as u8,
-                blue: color.blue() as u8,
-            }))
+            Ok(FilterReturnType::Color(color))
         }
     }
 }

@@ -1,5 +1,6 @@
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::span::SimpleSpan;
+use colorsys::Rgb;
 use material_colors::color::Argb;
 
 use crate::parser::{Engine, SpannedValue, Value};
@@ -70,7 +71,7 @@ pub fn emit_filter_error(
 #[derive(Debug)]
 pub enum FilterReturnType {
     String(String),
-    Color(Argb),
+    Color(Rgb),
 }
 
 pub type FilterFn = fn(
@@ -143,15 +144,15 @@ impl From<&bool> for FilterReturnType {
     }
 }
 
-impl From<Argb> for FilterReturnType {
-    fn from(value: Argb) -> Self {
+impl From<Rgb> for FilterReturnType {
+    fn from(value: Rgb) -> Self {
         FilterReturnType::Color(value)
     }
 }
 
-impl From<&Argb> for FilterReturnType {
-    fn from(value: &Argb) -> Self {
-        FilterReturnType::Color(*value)
+impl From<&Rgb> for FilterReturnType {
+    fn from(value: &Rgb) -> Self {
+        FilterReturnType::Color(value.clone())
     }
 }
 
