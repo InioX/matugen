@@ -3,7 +3,7 @@ use material_colors::color::Argb;
 
 use crate::{
     expect_args,
-    parser::{Engine, FilterError, FilterErrorKind, FilterReturnType, SpannedValue},
+    parser::{Engine, FilterError, FilterReturnType, SpannedValue},
 };
 
 pub(crate) fn set_red(
@@ -15,7 +15,7 @@ pub(crate) fn set_red(
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::new(FilterErrorKind::ColorFilterOnString)),
+        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Color(mut color) => {
             color.set_red(amt);
             Ok(FilterReturnType::Color(color))
@@ -32,7 +32,7 @@ pub(crate) fn set_green(
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::new(FilterErrorKind::ColorFilterOnString)),
+        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Color(mut color) => {
             color.set_green(amt);
             Ok(FilterReturnType::Color(color))
@@ -49,7 +49,7 @@ pub(crate) fn set_blue(
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::new(FilterErrorKind::ColorFilterOnString)),
+        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Color(mut color) => {
             color.set_blue(amt);
             Ok(FilterReturnType::Color(color))
@@ -66,7 +66,7 @@ pub(crate) fn set_alpha(
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::new(FilterErrorKind::ColorFilterOnString)),
+        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Color(mut color) => {
             color.set_alpha(amt);
             Ok(FilterReturnType::Color(color))

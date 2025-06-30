@@ -13,7 +13,7 @@ pub(crate) use lighten::lighten;
 
 pub mod set;
 pub(crate) use replace::replace;
-pub(crate) use set::set_alpha;
-pub(crate) use set::set_blue;
-pub(crate) use set::set_green;
-pub(crate) use set::set_red;
+pub(crate) use set::*;
+
+pub mod other_color;
+pub(crate) use other_color::*;

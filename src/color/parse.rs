@@ -1,5 +1,3 @@
-use upon::Value;
-
 pub fn parse_color(string: &str) -> Option<&str> {
     if let Some(_s) = string.strip_prefix('#') {
         return Some("hex");
@@ -13,12 +11,5 @@ pub fn parse_color(string: &str) -> Option<&str> {
         return Some("hex_stripped");
     } else {
         None
-    }
-}
-
-pub fn check_string_value(value: &Value) -> Option<&String> {
-    match value {
-        Value::String(v) => Some(v),
-        _v => None,
     }
 }

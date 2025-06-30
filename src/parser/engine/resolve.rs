@@ -1,5 +1,6 @@
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::span::SimpleSpan;
+use colorsys::Rgb;
 use material_colors::color::Argb;
 
 use super::Engine;
@@ -15,25 +16,6 @@ use crate::{
 use crate::scheme::SchemesEnum;
 
 use std::collections::HashMap;
-
-pub fn emit_resolve_error(source_id: &str, source_code: &str, span: SimpleSpan) {
-    Report::build(ReportKind::Error, ((), span.into_range()))
-        .with_config(ariadne::Config::default().with_index_type(ariadne::IndexType::Byte))
-        .with_message("Failed to resolve path")
-        .with_label(
-            Label::new(((), span.into_range()))
-                .with_message(format!(
-                    "The value '{}' does not exist in the context",
-                    source_code
-                        .get(span.start..span.end)
-                        .unwrap_or("<invalid span>")
-                ))
-                .with_color(Color::Red),
-        )
-        .finish()
-        .print(Source::from(&source_code))
-        .unwrap();
-}
 
 impl Engine {
     pub fn resolve_path<'a, I>(&self, path: I) -> Option<Value>
@@ -175,11 +157,48 @@ impl Engine {
     {
         let mut iter = path.clone().into_iter().peekable();
 
-        if let Some(&"colors") = iter.peek() {
-            iter.next()?;
+        // 1. Try resolving through runtime scopes first (supports loop vars)
+        if let Some(&first) = iter.peek() {
+            let local_val = self
+                .runtime
+                .borrow()
+                .resolve_path(std::iter::once(first))
+                .or_else(|| self.context.data().get(first).cloned());
 
+            if let Some(mut current) = local_val {
+                for next_key in iter.skip(1) {
+                    match current {
+                        Value::Map(ref map) => {
+                            current = map.get(next_key)?.clone();
+                        }
+                        Value::LazyColor { color, .. } => {
+                            // turn .hex / .rgb etc. into Color
+                            current = Value::Color(color);
+                        }
+                        Value::Color(color) => {
+                            // convert .hex etc. into raw Color always
+                            current = Value::Color(color);
+                        }
+                        _ => return None,
+                    }
+                }
+
+                // force final value to be Color if it's LazyColor/Color
+                return match current {
+                    Value::Color(c) => Some(Value::Color(c)),
+                    Value::LazyColor { color, .. } => Some(Value::Color(color)),
+                    _ => Some(current),
+                };
+            }
+        }
+
+        // 2. Fallback: handle built-in color scheme paths like `colors.primary.light.rgb`
+        let mut iter = path.into_iter().peekable();
+        if let Some(&"colors") = iter.peek() {
+            iter.next()?; // consume "colors"
             let color_name = iter.next()?;
             let scheme_name = iter.next()?;
+            let _format = iter.next(); // ignore
 
             let scheme = match scheme_name {
                 "light" => &self.schemes.light,
@@ -191,12 +210,11 @@ impl Engine {
                 _ => return None,
             };
 
-            return Some(Value::Color(rgb_from_argb(
-                *scheme.get(color_name).unwrap(),
-            )));
+            let color = scheme.get(color_name)?;
+            return Some(Value::Color(rgb_from_argb(*color)));
         }
 
-        self.resolve_path(path)
+        None
     }
 
     fn validate_color_parts(&self, keywords: &[&str]) -> bool {
@@ -218,7 +236,9 @@ impl Engine {
     }
 
     pub fn get_format<'a>(&self, keywords: &[&'a str]) -> &'a str {
-        keywords[3]
+        keywords
+            .last()
+            .expect("Could not get format from {keywords}")
     }
 
     pub fn get_from_map(&self, r#type: &str, name: &str, colorscheme: &str) -> &Argb {

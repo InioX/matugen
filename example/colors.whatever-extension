@@ -4,6 +4,17 @@ blue #0000FF;
 
 mode: {{ mode }}
 
+test {{ colors.source_color.default.rgb | lighten: 20.0 }}
+test {{ colors.source_color.default.rgb | darken: -20.0 }}
+test {{ colors.source_color.default.rgb }}
+
+{{ colors.source_color.default.hex_stripped | lighten: 20.0 }}
+
+{{ colors.source_color.default.hex | lighten: 20.0 }}
+
+Should  not change at all
+{{ colors.source_color.default.red | lighten: 5.0 }}
+
 red {{colors.red.default.rgb}};
 red {{colors.red.default.rgba}};
 green {{colors.green.default.hsl}};
@@ -15,6 +26,24 @@ source_color {{colors.source_color.default.hex}};
     {{name | replace: "_", "-" }} {{value.default.hex}};
 <* endfor *>
 
+<* for name, value in colors *>
+    {{name | replace: "_", "-" }} {{value.default.hex | invert | invert }};
+<* endfor *>
+
 Only works with rgba and hsla
 
-{{ colors.source_color.default.rgba | set_alpha: 0.5 }}
+{{ colors.source_color.default.hex | set_alpha: 0.5 }}
+
+original:
+{{ colors.source_color.default.hex }}
+
+grayscale
+{{ colors.source_color.default.hex | grayscale }}
+
+invert
+{{ colors.source_color.default.hex | invert }}
+
+invert twice
+{{ colors.source_color.default.hex | invert | invert }}
+
+chain together {{ colors.source_color.default.hex | set_alpha: 0.7 | invert }}
