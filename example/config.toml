@@ -3,6 +3,15 @@
 # WARNING: Matugen needs to be compiled with the `update-informer` feature for this to work.
 version_check = false
 
+# Changing the syntax
+# Expr is for stuff like for loops etc.
+expr_prefix = ['<', '*']
+expr_postfix = ['*', '>']
+
+# Block is for keywords like {{ <keyword> }}
+block_prefix = ['{', '{']
+block_postfix = ['}', '}']
+
 [config.wallpaper]
 # The base command to run for applying the wallpaper, shouldn't have spaces in it.
 command = "swww"

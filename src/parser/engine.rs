@@ -11,7 +11,6 @@ use crate::{
     scheme::{Schemes, SchemesEnum},
 };
 
-
 use super::context::Context;
 
 use crate::parser::Value;
@@ -92,6 +91,33 @@ pub(crate) struct EngineSyntax {
     block_right: [char; 2],
 }
 
+impl Default for EngineSyntax {
+    fn default() -> Self {
+        Self {
+            keyword_left: ['{', '{'],
+            keyword_right: ['}', '}'],
+            block_left: ['<', '*'],
+            block_right: ['*', '>'],
+        }
+    }
+}
+
+impl EngineSyntax {
+    pub fn new(
+        keyword_left: [char; 2],
+        keyword_right: [char; 2],
+        block_left: [char; 2],
+        block_right: [char; 2],
+    ) -> Self {
+        Self {
+            keyword_left,
+            keyword_right,
+            block_left,
+            block_right,
+        }
+    }
+}
+
 impl Engine {
     pub fn new(schemes: Schemes, default_scheme: SchemesEnum) -> Self {
         let filters: HashMap<&str, FilterFn> = HashMap::new();
@@ -100,12 +126,7 @@ impl Engine {
 
         Self {
             filters,
-            syntax: EngineSyntax {
-                keyword_left: ['{', '{'],
-                keyword_right: ['}', '}'],
-                block_left: ['<', '*'],
-                block_right: ['*', '>'],
-            },
+            syntax: EngineSyntax::default(),
             schemes,
             default_scheme,
             context: ctx.clone(),
@@ -114,6 +135,10 @@ impl Engine {
             sources: vec![],
             errors: ErrorCollector::new(),
         }
+    }
+
+    pub fn set_syntax(&mut self, syntax: EngineSyntax) {
+        self.syntax = syntax;
     }
 
     pub fn add_filter(&mut self, name: &'static str, function: FilterFn) -> Option<FilterFn> {

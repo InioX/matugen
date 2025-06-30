@@ -19,10 +19,10 @@ pub struct Config {
     pub prefix: Option<String>,
     pub custom_keywords: Option<HashMap<String, String>>,
     pub custom_colors: Option<HashMap<String, crate::color::color::OwnCustomColor>>,
-    pub expr_prefix: Option<String>,
-    pub expr_postfix: Option<String>,
-    pub block_prefix: Option<String>,
-    pub block_postfix: Option<String>,
+    pub expr_prefix: Option<[char; 2]>,
+    pub expr_postfix: Option<[char; 2]>,
+    pub block_prefix: Option<[char; 2]>,
+    pub block_postfix: Option<[char; 2]>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
