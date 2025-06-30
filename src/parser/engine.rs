@@ -5,14 +5,12 @@ use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::error::Rich;
 use chumsky::prelude::*;
 use chumsky::span::SimpleSpan;
-use serde_json::json;
 
 use crate::{
     parser::{context::RuntimeContext, filtertype::FilterFn, Error, ErrorCollector, SpannedValue},
     scheme::{Schemes, SchemesEnum},
 };
 
-use material_colors::color::Argb;
 
 use super::context::Context;
 
@@ -22,7 +20,6 @@ mod replace;
 pub(crate) use replace::*;
 
 mod resolve;
-pub(crate) use resolve::*;
 
 #[derive(Debug, Clone)]
 enum Expression {
@@ -97,7 +94,7 @@ pub(crate) struct EngineSyntax {
 
 impl Engine {
     pub fn new(schemes: Schemes, default_scheme: SchemesEnum) -> Self {
-        let mut filters: HashMap<&str, FilterFn> = HashMap::new();
+        let filters: HashMap<&str, FilterFn> = HashMap::new();
 
         let ctx = Context::new();
 
@@ -149,10 +146,7 @@ impl Engine {
     }
 
     pub fn remove_template(&mut self, name: String) -> bool {
-        match self.templates.remove(&name) {
-            Some(_) => true,
-            None => false,
-        }
+        self.templates.remove(&name).is_some()
     }
 
     pub fn add_context(&mut self, context: serde_json::Value) {
@@ -163,10 +157,10 @@ impl Engine {
         let template = self
             .templates
             .get(name)
-            .expect(&format!("Failed to get template: {}", name));
+            .unwrap_or_else(|| panic!("Failed to get template: {}", name));
         self.sources
             .get(template.source_id)
-            .expect(&format!("Failed to get source of template: {}", name))
+            .unwrap_or_else(|| panic!("Failed to get source of template: {}", name))
     }
 
     pub fn render(&self, name: &str) -> Result<String, Vec<Error>> {
@@ -210,7 +204,7 @@ impl Engine {
                 .or(none_of("\"\\"))
                 .repeated()
                 .collect::<String>()
-                .map(|s| Value::Ident(s));
+                .map(Value::Ident);
 
             let quoted_ident = inner.delimited_by(just('"'), just('"'));
 

@@ -1,6 +1,3 @@
-use ariadne::{Color, Label, Report, ReportKind, Source};
-use chumsky::span::SimpleSpan;
-use colorsys::Rgb;
 use indexmap::IndexMap;
 use material_colors::color::Argb;
 
@@ -9,14 +6,13 @@ use super::Engine;
 use crate::{
     color::format::rgb_from_argb,
     parser::{
-        engine::{format_color, format_color_all},
+        engine::format_color_all,
         Value,
     },
 };
 
 use crate::scheme::SchemesEnum;
 
-use std::collections::HashMap;
 
 impl Engine {
     pub fn resolve_path<'a, I>(&self, path: I) -> Option<Value>
@@ -158,7 +154,6 @@ impl Engine {
     {
         let mut iter = path.clone().into_iter().peekable();
 
-        // 1. Try resolving through runtime scopes first (supports loop vars)
         if let Some(&first) = iter.peek() {
             let local_val = self
                 .runtime
@@ -173,18 +168,15 @@ impl Engine {
                             current = map.get(next_key)?.clone();
                         }
                         Value::LazyColor { color, .. } => {
-                            // turn .hex / .rgb etc. into Color
                             current = Value::Color(color);
                         }
                         Value::Color(color) => {
-                            // convert .hex etc. into raw Color always
                             current = Value::Color(color);
                         }
                         _ => return None,
                     }
                 }
 
-                // force final value to be Color if it's LazyColor/Color
                 return match current {
                     Value::Color(c) => Some(Value::Color(c)),
                     Value::LazyColor { color, .. } => Some(Value::Color(color)),
@@ -193,7 +185,6 @@ impl Engine {
             }
         }
 
-        // 2. Fallback: handle built-in color scheme paths like `colors.primary.light.rgb`
         let mut iter = path.into_iter().peekable();
         if let Some(&"colors") = iter.peek() {
             iter.next()?; // consume "colors"
@@ -244,7 +235,6 @@ impl Engine {
 
     pub fn get_from_map(&self, r#type: &str, name: &str, colorscheme: &str) -> &Argb {
         if r#type == "colors" {
-            // Just to check if the color exists, we get the color later
             let mut scheme = &self.schemes.dark;
 
             if !scheme.contains_key(name) {

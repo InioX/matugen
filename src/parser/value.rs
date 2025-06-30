@@ -3,7 +3,6 @@ use std::{fmt::Display, str::FromStr};
 use chumsky::span::SimpleSpan;
 use colorsys::Rgb;
 use indexmap::IndexMap;
-use material_colors::color::Argb;
 
 #[derive(Debug, Clone)]
 pub enum Value {

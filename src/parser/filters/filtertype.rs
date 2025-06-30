@@ -1,7 +1,4 @@
-use ariadne::{Color, Label, Report, ReportKind, Source};
-use chumsky::span::SimpleSpan;
 use colorsys::Rgb;
-use material_colors::color::Argb;
 
 use crate::parser::{Engine, FilterError, SpannedValue, Value};
 

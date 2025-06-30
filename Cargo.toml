@@ -27,10 +27,6 @@ ui = ["dep:egui", "dep:eframe", "dep:egui_file", "dep:rfd", "dep:egui_extras"]
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
 
-[[bench]]
-name = "template"
-harness = false
-
 [dependencies]
 # Engine
 indexmap = { version = "2.7.0" }

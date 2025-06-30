@@ -192,7 +192,7 @@ impl TemplateFile<'_> {
             Ok(v) => v,
             Err(errors) => {
                 for err in errors {
-                    err.emit(&self.engine.get_source(name));
+                    err.emit(self.engine.get_source(name));
                 }
                 std::process::exit(1);
             }
