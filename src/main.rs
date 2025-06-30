@@ -18,7 +18,6 @@ use crate::{
     template_util::template::get_render_data_new,
 };
 use helpers::{set_wallpaper, setup_logging};
-use serde_json::json;
 use template::TemplateFile;
 
 use crate::template::Template;

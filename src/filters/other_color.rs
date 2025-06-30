@@ -1,9 +1,6 @@
-use colorsys::{ColorAlpha, ColorTransform, Rgb};
+use colorsys::ColorTransform;
 
-use crate::{
-    expect_args,
-    parser::{Engine, FilterError, FilterReturnType, SpannedValue},
-};
+use crate::parser::{Engine, FilterError, FilterReturnType, SpannedValue};
 
 pub(crate) fn invert(
     keywords: &[&str],

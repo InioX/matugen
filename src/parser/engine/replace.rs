@@ -16,7 +16,7 @@ use crate::color::format::{
 use super::Engine;
 
 pub fn get_str<'a>(source: &'a str, span: &SimpleSpan) -> &'a str {
-    &source[span.start as usize..span.end as usize]
+    &source[span.start..span.end]
 }
 
 pub fn get_str_vec<'a>(source: &'a str, spans: &Vec<SimpleSpan>) -> Vec<&'a str> {
@@ -107,10 +107,10 @@ impl Engine {
     fn build_string(&self, exprs: &[Box<SpannedExpr>], source: &String) -> String {
         let src = &mut String::from("");
 
-        for expr in exprs.into_iter() {
+        for expr in exprs.iter() {
             let _range = expr.span.into_range();
 
-            self.eval(src, &*expr, &source);
+            self.eval(src, expr, source);
         }
 
         src.to_string()
@@ -209,7 +209,7 @@ impl Engine {
 
         for expr in exprs.into_iter() {
             let _range = expr.span.into_range();
-            self.eval(&mut output, &*expr, source);
+            self.eval(&mut output, &expr, source);
         }
 
         output
@@ -217,9 +217,9 @@ impl Engine {
 
     fn get_replacement(&self, keywords: &[&str], span: SimpleSpan) -> String {
         if keywords[0] == "colors" {
-            let (r#type, name, colorscheme, format) = self.get_color_parts(&keywords);
+            let (r#type, name, colorscheme, format) = self.get_color_parts(keywords);
             let color = rgb_from_argb(*self.get_from_map(r#type, name, colorscheme));
-            match format_color(color, self.get_format(&keywords)) {
+            match format_color(color, self.get_format(keywords)) {
                 Some(v) => v.into(),
                 None => {
                     let error = Error::ParseError {
@@ -231,10 +231,10 @@ impl Engine {
                 }
             }
         } else {
-            match self.resolve_path(keywords.into_iter().copied()) {
+            match self.resolve_path(keywords.iter().copied()) {
                 Some(v) => String::from(v),
                 None => {
-                    self.errors.add(Error::ResolveError { span: span });
+                    self.errors.add(Error::ResolveError { span });
                     String::from("")
                 }
             }
@@ -249,18 +249,18 @@ impl Engine {
         span: SimpleSpan,
     ) -> impl Into<String> {
         let mut current_value = if keywords[0] == "colors" {
-            match self.resolve_path_filter(keywords.into_iter().copied()) {
+            match self.resolve_path_filter(keywords.iter().copied()) {
                 Some(v) => FilterReturnType::from(v),
                 None => {
-                    self.errors.add(Error::ResolveError { span: span });
+                    self.errors.add(Error::ResolveError { span });
                     FilterReturnType::from(Rgb::from_hex_str("#ffffff").unwrap())
                 }
             }
         } else {
-            match self.resolve_path_filter(keywords.into_iter().copied()) {
+            match self.resolve_path_filter(keywords.iter().copied()) {
                 Some(v) => FilterReturnType::from(v),
                 None => {
-                    self.errors.add(Error::ResolveError { span: span });
+                    self.errors.add(Error::ResolveError { span });
                     FilterReturnType::from(String::from(""))
                 }
             }
@@ -280,7 +280,7 @@ impl Engine {
                 current_value = match self.apply_filter(
                     get_str(source, filter_name),
                     args,
-                    &keywords,
+                    keywords,
                     current_value,
                     filter.span,
                 ) {
@@ -303,7 +303,7 @@ impl Engine {
 
         match current_value {
             FilterReturnType::String(val) => val,
-            FilterReturnType::Color(argb) => match format_color(argb, self.get_format(&keywords)) {
+            FilterReturnType::Color(argb) => match format_color(argb, self.get_format(keywords)) {
                 Some(v) => v.into(),
                 None => {
                     let error = Error::ParseError {
@@ -332,7 +332,7 @@ impl Engine {
                     kind: ParseErrorKind::Filter(FilterError::FilterNotFound {
                         filter: filtername.to_owned(),
                     }),
-                    span: span,
+                    span,
                 };
                 self.errors.add(error);
                 Ok(FilterReturnType::from(

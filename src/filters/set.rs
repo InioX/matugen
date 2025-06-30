@@ -1,5 +1,4 @@
-use colorsys::{ColorAlpha, Rgb};
-use material_colors::color::Argb;
+use colorsys::ColorAlpha;
 
 use crate::{
     expect_args,
