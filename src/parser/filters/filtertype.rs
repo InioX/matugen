@@ -3,70 +3,7 @@ use chumsky::span::SimpleSpan;
 use colorsys::Rgb;
 use material_colors::color::Argb;
 
-use crate::parser::{Engine, SpannedValue, Value};
-
-#[derive(Debug)]
-pub struct FilterError {
-    pub kind: FilterErrorKind,
-}
-
-#[derive(Debug)]
-pub enum FilterErrorKind {
-    NotEnoughArguments,
-    InvalidArgumentType {
-        span: SimpleSpan,
-        expected: String,
-        actual: String,
-    },
-    ColorFilterOnString,
-}
-
-impl FilterError {
-    pub fn new(kind: FilterErrorKind) -> Self {
-        Self { kind }
-    }
-}
-
-pub fn emit_filter_error(
-    source_id: &str,
-    source_code: &str,
-    kind: &FilterErrorKind,
-    span: SimpleSpan,
-) {
-    let (message, span, name) = match kind {
-        FilterErrorKind::NotEnoughArguments => (
-            "Not enough arguments provided for filter".to_string(),
-            span,
-            "NotEnoughArguments",
-        ),
-        FilterErrorKind::InvalidArgumentType {
-            span,
-            expected,
-            actual,
-        } => (
-            format!("Found '{}' expected '{}'", actual, expected),
-            *span,
-            "InvalidArgumentType",
-        ),
-        FilterErrorKind::ColorFilterOnString => (
-            "Cannot use color filters on a string filter, consider using the 'to_color' filter"
-                .to_string(),
-            span,
-            "ColorFilterOnString",
-        ),
-    };
-    Report::build(ReportKind::Error, ((), span.into_range()))
-        .with_config(ariadne::Config::default().with_index_type(ariadne::IndexType::Byte))
-        .with_message(name)
-        .with_label(
-            Label::new(((), span.into_range()))
-                .with_message(message)
-                .with_color(Color::Red),
-        )
-        .finish()
-        .print(Source::from(&source_code))
-        .unwrap();
-}
+use crate::parser::{Engine, FilterError, SpannedValue, Value};
 
 #[derive(Debug)]
 pub enum FilterReturnType {
@@ -167,7 +104,7 @@ impl From<Value> for FilterReturnType {
             Value::Map(_hash_map) => panic!("Cant convert map to FilterReturnType"),
             Value::Array(_array) => panic!("Cant convert Array to String"),
             Value::Null => todo!(),
-            Value::LazyColor { color, scheme } => todo!(),
+            Value::LazyColor { color, scheme } => FilterReturnType::from(Value::Color(color)),
         }
     }
 }

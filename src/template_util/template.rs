@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use color_eyre::{eyre::Result, Report};
 use colorsys::{ColorAlpha, Hsl};
 use material_colors::color::Argb;
-use upon::{Engine, Value};
 
 use crate::color::format::{
     format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
@@ -33,62 +32,6 @@ pub struct ColorVariants {
     pub light: Color,
     pub dark: Color,
     pub default: Color,
-}
-
-// pub fn add_engine_filters(engine: &mut Engine) {
-//     // Color manipulation
-//     engine.add_filter("set_lightness", set_lightness);
-//     engine.add_filter("auto_lightness", auto_lightness);
-//     engine.add_filter("set_alpha", set_alpha);
-//     engine.add_filter("set_hue", set_hue);
-//     engine.add_filter("grayscale", grayscale);
-//     engine.add_filter("invert", invert);
-
-//     // String manipulation
-//     engine.add_filter("to_upper", str::to_uppercase);
-//     engine.add_filter("to_lower", str::to_lowercase);
-//     engine.add_filter("replace", |s: String, from: String, to: String| {
-//         s.replace(&from, &to)
-//     });
-//     engine.add_filter("camel_case", camel_case);
-// }
-
-pub fn render_template(
-    engine: &Engine,
-    name: &String,
-    render_data: &Value,
-    path: Option<&str>,
-) -> Result<String, Report> {
-    let data = engine
-        .template(name)
-        .render(render_data)
-        .to_string()
-        .map_err(|error| {
-            let message = format!("[{} - {}]\n{:#}", name, path.unwrap_or(""), &error);
-
-            Report::new(error).wrap_err(message)
-        })?;
-    Ok(data)
-}
-
-pub fn get_render_data(
-    schemes: &Schemes,
-    source_color: &Argb,
-    default_scheme: &SchemesEnum,
-    custom_keywords: &Option<HashMap<String, String>>,
-    image: Option<&String>,
-) -> Result<Value, Report> {
-    let colors = generate_colors(schemes, source_color, default_scheme)?;
-    let mut custom: HashMap<String, String> = Default::default();
-    for entry in custom_keywords.iter() {
-        for (name, value) in entry {
-            custom.insert(name.to_string(), value.to_string());
-        }
-    }
-
-    Ok(upon::value! {
-        colors: &colors, image: image, custom: &custom, mode: default_scheme,
-    })
 }
 
 pub fn get_render_data_new(

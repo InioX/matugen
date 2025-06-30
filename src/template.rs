@@ -5,12 +5,7 @@ use color_eyre::{eyre::Result, Report};
 
 use crate::parser::Engine as NewEngine;
 // use matugen::template_util::template::add_engine_filters;
-use crate::template_util::template::render_template;
 use serde::{Deserialize, Serialize};
-
-use upon::Value;
-
-use crate::exec::hook::format_hook;
 
 use std::path::Path;
 use std::str;
@@ -25,8 +20,6 @@ use resolve_path::PathResolveExt;
 
 use crate::SchemesEnum;
 use crate::State;
-
-use upon::{Engine, Syntax};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Template {
@@ -195,7 +188,15 @@ impl TemplateFile<'_> {
         input_path_absolute: PathBuf,
         i: usize,
     ) -> Result<(), Report> {
-        let data = self.engine.render(name);
+        let data = match self.engine.render(name) {
+            Ok(v) => v,
+            Err(errors) => {
+                for err in errors {
+                    err.emit(&self.engine.get_source(name));
+                }
+                std::process::exit(1);
+            }
+        };
 
         let out = if self.state.args.prefix.is_some() && !cfg!(windows) {
             let mut prefix_path = PathBuf::from(self.state.args.prefix.as_ref().unwrap());
@@ -308,37 +309,4 @@ fn get_absolute_paths(
         )
     };
     Ok((input_path_absolute, output_path_absolute))
-}
-
-pub fn build_engine_syntax(state: &State) -> Syntax {
-    Syntax::builder()
-        .expr(
-            state
-                .config_file
-                .config
-                .expr_prefix
-                .as_deref()
-                .unwrap_or("{{"),
-            state
-                .config_file
-                .config
-                .expr_postfix
-                .as_deref()
-                .unwrap_or("}}"),
-        )
-        .block(
-            state
-                .config_file
-                .config
-                .block_prefix
-                .as_deref()
-                .unwrap_or("<*"),
-            state
-                .config_file
-                .config
-                .block_postfix
-                .as_deref()
-                .unwrap_or("*>"),
-        )
-        .build()
 }

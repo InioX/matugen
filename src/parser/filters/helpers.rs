@@ -7,9 +7,9 @@ macro_rules! expect_args {
             stringify!($ty)
         ),*].len();
         if $args.len() < expected_len {
-            return Err($crate::parser::FilterError::new(
-                $crate::parser::FilterErrorKind::NotEnoughArguments,
-            ));
+            return Err(
+                $crate::parser::FilterError::NotEnoughArguments,
+            );
         }
 
         let mut _i = 0;
@@ -21,15 +21,14 @@ macro_rules! expect_args {
                     match <$ty as $crate::parser::helpers::ExpectFromValue>::expect_from(&spanned.value) {
                         Ok(v) => v,
                         Err(actual) => {
-                            return Err($crate::parser::FilterError::new(
-                                $crate::parser::FilterErrorKind::InvalidArgumentType {
+                            return Err(
+                                $crate::parser::FilterError::InvalidArgumentType {
                                     span: spanned.span,
                                     expected: stringify!($ty).to_string(),
                                     actual,
                                 }
-                            ));
-                        }
-                    }
+                            )
+                    }}
                 }
             ),*
         )

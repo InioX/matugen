@@ -8,7 +8,7 @@ use chumsky::span::SimpleSpan;
 use serde_json::json;
 
 use crate::{
-    parser::{context::RuntimeContext, filtertype::FilterFn, SpannedValue},
+    parser::{context::RuntimeContext, filtertype::FilterFn, Error, ErrorCollector, SpannedValue},
     scheme::{Schemes, SchemesEnum},
 };
 
@@ -79,6 +79,7 @@ pub struct Engine {
     runtime: RefCell<RuntimeContext>,
     templates: HashMap<String, Template>,
     sources: Vec<String>,
+    errors: ErrorCollector,
 }
 
 pub struct Template {
@@ -114,6 +115,7 @@ impl Engine {
             runtime: RuntimeContext::new(ctx.clone()).into(),
             templates: HashMap::new(),
             sources: vec![],
+            errors: ErrorCollector::new(),
         }
     }
 
@@ -157,8 +159,32 @@ impl Engine {
         self.context.merge_json(context);
     }
 
-    pub fn render(&self, name: &str) -> String {
-        self.generate_template(self.templates.get(name).expect("Failed to get template"))
+    pub fn get_source(&self, name: &str) -> &String {
+        let template = self
+            .templates
+            .get(name)
+            .expect(&format!("Failed to get template: {}", name));
+        self.sources
+            .get(template.source_id)
+            .expect(&format!("Failed to get source of template: {}", name))
+    }
+
+    pub fn render(&self, name: &str) -> Result<String, Vec<Error>> {
+        match self.templates.get(name) {
+            Some(template) => {
+                let res = self.generate_template(template);
+                if !self.errors.is_empty() {
+                    return Err(self.errors.take());
+                }
+                Ok(res)
+            }
+            None => {
+                self.errors.add(Error::TemplateNotFound {
+                    template: name.to_owned(),
+                });
+                Err(self.errors.take())
+            }
+        }
     }
 
     pub fn parser<'src>(

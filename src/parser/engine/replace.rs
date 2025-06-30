@@ -4,9 +4,8 @@ use chumsky::{span::SimpleSpan, Parser};
 use colorsys::{ColorAlpha, Hsl, Rgb};
 
 use crate::parser::{
-    engine::{emit_resolve_error, Expression, SpannedExpr, Template},
-    filtertype::emit_filter_error,
-    FilterError, FilterReturnType, SpannedValue, Value,
+    engine::{Expression, SpannedExpr, Template},
+    Error, FilterError, FilterReturnType, KeywordError, ParseErrorKind, SpannedValue, Value,
 };
 
 use crate::color::format::{
@@ -27,24 +26,24 @@ pub fn get_str_vec<'a>(source: &'a str, spans: &Vec<SimpleSpan>) -> Vec<&'a str>
         .collect::<Vec<&str>>()
 }
 
-pub fn format_color(base_color: Rgb, format: &str) -> impl Into<String> {
+pub fn format_color(base_color: Rgb, format: &str) -> Option<impl Into<String>> {
     let hsl_color = Hsl::from(&base_color);
 
     match format {
-        "hex" => format_hex(&base_color),
-        "hex_stripped" => format_hex_stripped(&base_color),
-        "rgb" => format_rgb(&base_color),
-        "rgba" => format_rgba(&base_color, true),
-        "hsl" => format_hsl(&hsl_color),
-        "hsla" => format_hsla(&hsl_color, true),
-        "red" => format!("{:?}", base_color.red() as u8),
-        "green" => format!("{:?}", base_color.green() as u8),
-        "blue" => format!("{:?}", base_color.blue() as u8),
-        "alpha" => format!("{:?}", base_color.alpha() as u8),
-        "hue" => format!("{:?}", &hsl_color.hue()),
-        "saturation" => format!("{:?}", &hsl_color.lightness()),
-        "lightness" => format!("{:?}", &hsl_color.saturation()),
-        _ => panic!("Invalid format"),
+        "hex" => Some(format_hex(&base_color)),
+        "hex_stripped" => Some(format_hex_stripped(&base_color)),
+        "rgb" => Some(format_rgb(&base_color)),
+        "rgba" => Some(format_rgba(&base_color, true)),
+        "hsl" => Some(format_hsl(&hsl_color)),
+        "hsla" => Some(format_hsla(&hsl_color, true)),
+        "red" => Some(format!("{:?}", base_color.red() as u8)),
+        "green" => Some(format!("{:?}", base_color.green() as u8)),
+        "blue" => Some(format!("{:?}", base_color.blue() as u8)),
+        "alpha" => Some(format!("{:?}", base_color.alpha() as u8)),
+        "hue" => Some(format!("{:?}", &hsl_color.hue())),
+        "saturation" => Some(format!("{:?}", &hsl_color.lightness())),
+        "lightness" => Some(format!("{:?}", &hsl_color.saturation())),
+        _ => None,
     }
 }
 
@@ -120,7 +119,7 @@ impl Engine {
     fn eval(&self, src: &mut String, expr: &SpannedExpr, source: &String) {
         match &expr.expr {
             Expression::Keyword { keywords } => {
-                src.push_str(&self.get_replacement(&get_str_vec(source, keywords)));
+                src.push_str(&self.get_replacement(&get_str_vec(source, keywords), expr.span));
             }
             Expression::KeywordWithFilters { keyword, filters } => {
                 let keywords = match &keyword.expr {
@@ -130,7 +129,7 @@ impl Engine {
 
                 src.push_str(
                     &self
-                        .get_replacement_filter(keywords, filters, source)
+                        .get_replacement_filter(keywords, filters, source, keyword.span)
                         .into(),
                 );
             }
@@ -143,17 +142,18 @@ impl Engine {
                     None => unreachable!(),
                 };
 
-                if values.is_none() {
+                let Some(values) = values else {
                     let spans = list.expr.as_spans().unwrap();
-                    emit_resolve_error(
-                        "test",
-                        source,
-                        SimpleSpan::from(spans.first().unwrap().start..spans.last().unwrap().end),
-                    );
-                    std::process::exit(1);
-                }
+                    let error = Error::ResolveError {
+                        span: SimpleSpan::from(
+                            spans.first().unwrap().start..spans.last().unwrap().end,
+                        ),
+                    };
+                    self.errors.add(error);
+                    return;
+                };
 
-                match values.unwrap() {
+                match values {
                     Value::Map(map) => {
                         for (key, value) in map {
                             self.runtime.borrow_mut().push_scope();
@@ -215,15 +215,29 @@ impl Engine {
         output
     }
 
-    fn get_replacement(&self, keywords: &[&str]) -> String {
+    fn get_replacement(&self, keywords: &[&str], span: SimpleSpan) -> String {
         if keywords[0] == "colors" {
             let (r#type, name, colorscheme, format) = self.get_color_parts(&keywords);
             let color = rgb_from_argb(*self.get_from_map(r#type, name, colorscheme));
-            let format = &keywords[3];
-
-            format_color(color, format).into()
+            match format_color(color, self.get_format(&keywords)) {
+                Some(v) => v.into(),
+                None => {
+                    let error = Error::ParseError {
+                        kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat),
+                        span,
+                    };
+                    self.errors.add(error);
+                    String::from("")
+                }
+            }
         } else {
-            String::from(self.resolve_path(keywords.into_iter().copied()).unwrap())
+            match self.resolve_path(keywords.into_iter().copied()) {
+                Some(v) => String::from(v),
+                None => {
+                    self.errors.add(Error::ResolveError { span: span });
+                    String::from("")
+                }
+            }
         }
     }
 
@@ -232,17 +246,29 @@ impl Engine {
         keywords: &[&str],
         filters: &[SpannedExpr],
         source: &String,
+        span: SimpleSpan,
     ) -> impl Into<String> {
         let mut current_value = if keywords[0] == "colors" {
-            FilterReturnType::from(
-                self.resolve_path_filter(keywords.into_iter().copied())
-                    .unwrap(),
-            )
+            match self.resolve_path_filter(keywords.into_iter().copied()) {
+                Some(v) => FilterReturnType::from(v),
+                None => {
+                    self.errors.add(Error::ResolveError { span: span });
+                    FilterReturnType::from(Rgb::from_hex_str("#ffffff").unwrap())
+                }
+            }
         } else {
-            FilterReturnType::from(
-                self.resolve_path(keywords.into_iter().copied())
-                    .expect("Invalid path in filter"),
-            )
+            match self.resolve_path_filter(keywords.into_iter().copied()) {
+                Some(v) => FilterReturnType::from(v),
+                None => {
+                    self.errors.add(Error::ResolveError { span: span });
+                    FilterReturnType::from(String::from(""))
+                }
+            }
+        };
+
+        let is_color = match &current_value {
+            FilterReturnType::Color(_) => true,
+            FilterReturnType::String(_) => false,
         };
 
         for filter in filters {
@@ -256,11 +282,20 @@ impl Engine {
                     args,
                     &keywords,
                     current_value,
+                    filter.span,
                 ) {
                     Ok(val) => val,
                     Err(e) => {
-                        emit_filter_error("test", source, &e.kind, filter.span);
-                        std::process::exit(1);
+                        let error = Error::ParseError {
+                            kind: ParseErrorKind::Filter(e),
+                            span: filter.span,
+                        };
+                        self.errors.add(error);
+
+                        match &is_color {
+                            false => FilterReturnType::from(String::from("")),
+                            true => FilterReturnType::from(Rgb::from_hex_str("#ffffff").unwrap()),
+                        }
                     }
                 };
             }
@@ -268,7 +303,17 @@ impl Engine {
 
         match current_value {
             FilterReturnType::String(val) => val,
-            FilterReturnType::Color(argb) => format_color(argb, self.get_format(&keywords)).into(),
+            FilterReturnType::Color(argb) => match format_color(argb, self.get_format(&keywords)) {
+                Some(v) => v.into(),
+                None => {
+                    let error = Error::ParseError {
+                        kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat),
+                        span,
+                    };
+                    self.errors.add(error);
+                    String::from("")
+                }
+            },
         }
     }
 
@@ -278,10 +323,23 @@ impl Engine {
         args: &[SpannedValue],
         keywords: &[&str],
         input: FilterReturnType,
+        span: SimpleSpan,
     ) -> Result<FilterReturnType, FilterError> {
         match self.filters.get(filtername) {
             Some(f) => f(keywords, args, input, self),
-            None => panic!("{}", format!("Could not find filter {:?}", filtername)),
+            None => {
+                let error = Error::ParseError {
+                    kind: ParseErrorKind::Filter(FilterError::FilterNotFound {
+                        filter: filtername.to_owned(),
+                    }),
+                    span: span,
+                };
+                self.errors.add(error);
+                Ok(FilterReturnType::from(
+                    // This is a color so that when you chain filters that aren't found, it wont return FilterError::ColorFilterOnString
+                    Rgb::from_hex_str("#ffffff").unwrap(),
+                ))
+            }
         }
     }
 }

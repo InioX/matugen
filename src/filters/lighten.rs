@@ -3,7 +3,7 @@ use material_colors::color::Argb;
 
 use crate::{
     expect_args,
-    parser::{Engine, FilterError, FilterErrorKind, FilterReturnType, SpannedValue},
+    parser::{Engine, FilterError, FilterReturnType, SpannedValue},
 };
 
 pub(crate) fn lighten(
@@ -15,7 +15,7 @@ pub(crate) fn lighten(
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::new(FilterErrorKind::ColorFilterOnString)),
+        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Color(mut color) => {
             color.lighten(amt);
             Ok(FilterReturnType::Color(color))

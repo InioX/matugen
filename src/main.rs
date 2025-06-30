@@ -15,11 +15,11 @@ mod wallpaper;
 use crate::{
     color::color::{get_source_color, Source},
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
-    template_util::template::{get_render_data, get_render_data_new},
+    template_util::template::get_render_data_new,
 };
 use helpers::{set_wallpaper, setup_logging};
 use serde_json::json;
-use template::{build_engine_syntax, TemplateFile};
+use template::TemplateFile;
 
 use crate::template::Template;
 use crate::util::{arguments::Cli, color::show_color, config::ConfigFile};
@@ -38,7 +38,6 @@ use crate::parser::Engine;
 use crate::scheme::{Schemes, SchemesEnum};
 
 use material_colors::{color::Argb, theme::Theme};
-use upon::Value;
 
 pub struct State {
     pub args: Cli,
@@ -116,6 +115,9 @@ impl State {
         engine.add_filter("set_blue", crate::filters::set_blue);
         engine.add_filter("set_alpha", crate::filters::set_alpha);
 
+        engine.add_filter("grayscale", crate::filters::grayscale);
+        engine.add_filter("invert", crate::filters::invert);
+
         engine.add_filter("replace", crate::filters::replace);
 
         engine
@@ -183,7 +185,6 @@ impl State {
         }
 
         let mut engine = self.init_engine();
-        let mut render_data = self.init_render_data()?;
         let mut template = TemplateFile::new(self, &mut engine);
 
         // self.run_other_generator();
@@ -194,23 +195,6 @@ impl State {
         }
 
         Ok(())
-    }
-
-    fn init_render_data(&self) -> Result<Value, Report> {
-        let image = match &self.args.source {
-            Source::Image { path } => Some(path),
-            #[cfg(feature = "web-image")]
-            Source::WebImage { .. } => None,
-            Source::Color { .. } => None,
-        };
-
-        get_render_data(
-            &self.schemes,
-            &self.source_color,
-            &self.default_scheme,
-            &self.config_file.config.custom_keywords,
-            image,
-        )
     }
 }
 
