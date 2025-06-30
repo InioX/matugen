@@ -114,6 +114,10 @@ pub enum FilterError {
     FilterNotFound {
         filter: String,
     },
+    UnexpectedStringValue {
+        expected: String,
+        span: SimpleSpan,
+    },
 }
 
 pub fn emit_keyword_error(source_code: &str, span: SimpleSpan, kind: &KeywordError) {
@@ -167,6 +171,11 @@ pub fn emit_filter_error(source_code: &str, kind: &FilterError, span: SimpleSpan
             format!("Could not fild filter {filter}").to_string(),
             span,
             "FilterNotFound",
+        ),
+        FilterError::UnexpectedStringValue { expected, span } => (
+            format!("Invalid String, expected one of: [{expected}]").to_string(),
+            *span,
+            "UnexpectedStringValue",
         ),
     };
     build_report(name, source_code, message, span);
