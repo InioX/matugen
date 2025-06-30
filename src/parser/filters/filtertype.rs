@@ -1,11 +1,12 @@
-use colorsys::Rgb;
+use colorsys::{Hsl, Rgb};
 
 use crate::parser::{Engine, FilterError, SpannedValue, Value};
 
 #[derive(Debug)]
 pub enum FilterReturnType {
     String(String),
-    Color(Rgb),
+    Rgb(Rgb),
+    Hsl(Hsl),
 }
 
 pub type FilterFn = fn(
@@ -19,7 +20,8 @@ impl ToString for FilterReturnType {
     fn to_string(&self) -> String {
         match self {
             FilterReturnType::String(value) => value.to_string(),
-            FilterReturnType::Color(argb) => todo!(),
+            FilterReturnType::Rgb(rgb) => todo!(),
+            FilterReturnType::Hsl(hsl) => todo!(),
         }
     }
 }
@@ -80,13 +82,13 @@ impl From<&bool> for FilterReturnType {
 
 impl From<Rgb> for FilterReturnType {
     fn from(value: Rgb) -> Self {
-        FilterReturnType::Color(value)
+        FilterReturnType::Rgb(value)
     }
 }
 
 impl From<&Rgb> for FilterReturnType {
     fn from(value: &Rgb) -> Self {
-        FilterReturnType::Color(value.clone())
+        FilterReturnType::Rgb(value.clone())
     }
 }
 

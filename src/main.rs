@@ -106,13 +106,17 @@ impl State {
             .unwrap(),
         );
 
-        engine.add_filter("lighten", crate::filters::lighten);
-        engine.add_filter("darken", crate::filters::darken);
-
         engine.add_filter("set_red", crate::filters::set_red);
         engine.add_filter("set_green", crate::filters::set_green);
         engine.add_filter("set_blue", crate::filters::set_blue);
         engine.add_filter("set_alpha", crate::filters::set_alpha);
+
+        engine.add_filter("set_hue", crate::filters::set_hue);
+        engine.add_filter("set_saturation", crate::filters::set_saturation);
+        engine.add_filter("set_lightness", crate::filters::set_lightness);
+
+        engine.add_filter("lighten", crate::filters::lighten);
+        engine.add_filter("saturate", crate::filters::saturate);
 
         engine.add_filter("grayscale", crate::filters::grayscale);
         engine.add_filter("invert", crate::filters::invert);

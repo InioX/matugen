@@ -1,6 +1,9 @@
 use crate::{
     expect_args,
-    parser::{engine::format_color, Engine, FilterError, FilterReturnType, SpannedValue},
+    parser::{
+        engine::{format_color, format_color_hsl},
+        Engine, FilterError, FilterReturnType, SpannedValue,
+    },
 };
 
 pub(crate) fn replace(
@@ -13,8 +16,13 @@ pub(crate) fn replace(
 
     match original {
         FilterReturnType::String(s) => Ok(FilterReturnType::String(s.replace(&find, &replace))),
-        FilterReturnType::Color(color) => {
+        FilterReturnType::Rgb(color) => {
             let string = format_color(color, keywords[3]);
+            let modified: String = string.unwrap().into().replace(&find, &replace);
+            Ok(FilterReturnType::String(modified))
+        }
+        FilterReturnType::Hsl(color) => {
+            let string = format_color_hsl(color, keywords[3]);
             let modified: String = string.unwrap().into().replace(&find, &replace);
             Ok(FilterReturnType::String(modified))
         }

@@ -47,6 +47,27 @@ pub fn format_color(base_color: Rgb, format: &str) -> Option<impl Into<String>> 
     }
 }
 
+pub fn format_color_hsl(hsl_color: Hsl, format: &str) -> Option<impl Into<String>> {
+    let base_color = Rgb::from(&hsl_color);
+
+    match format {
+        "hex" => Some(format_hex(&base_color)),
+        "hex_stripped" => Some(format_hex_stripped(&base_color)),
+        "rgb" => Some(format_rgb(&base_color)),
+        "rgba" => Some(format_rgba(&base_color, true)),
+        "hsl" => Some(format_hsl(&hsl_color)),
+        "hsla" => Some(format_hsla(&hsl_color, true)),
+        "red" => Some(format!("{:?}", base_color.red() as u8)),
+        "green" => Some(format!("{:?}", base_color.green() as u8)),
+        "blue" => Some(format!("{:?}", base_color.blue() as u8)),
+        "alpha" => Some(format!("{:?}", base_color.alpha() as u8)),
+        "hue" => Some(format!("{:?}", &hsl_color.hue())),
+        "saturation" => Some(format!("{:?}", &hsl_color.lightness())),
+        "lightness" => Some(format!("{:?}", &hsl_color.saturation())),
+        _ => None,
+    }
+}
+
 pub fn format_color_all(base_color: Rgb) -> HashMap<String, Value> {
     let hsl_color = Hsl::from(&base_color);
 
@@ -267,7 +288,8 @@ impl Engine {
         };
 
         let is_color = match &current_value {
-            FilterReturnType::Color(_) => true,
+            FilterReturnType::Rgb(_) => true,
+            FilterReturnType::Hsl(_) => true,
             FilterReturnType::String(_) => false,
         };
 
@@ -303,7 +325,18 @@ impl Engine {
 
         match current_value {
             FilterReturnType::String(val) => val,
-            FilterReturnType::Color(argb) => match format_color(argb, self.get_format(keywords)) {
+            FilterReturnType::Rgb(argb) => match format_color(argb, self.get_format(keywords)) {
+                Some(v) => v.into(),
+                None => {
+                    let error = Error::ParseError {
+                        kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat),
+                        span,
+                    };
+                    self.errors.add(error);
+                    String::from("")
+                }
+            },
+            FilterReturnType::Hsl(hsl) => match format_color_hsl(hsl, self.get_format(keywords)) {
                 Some(v) => v.into(),
                 None => {
                     let error = Error::ParseError {
