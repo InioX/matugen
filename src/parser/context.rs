@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use indexmap::IndexMap;
+
 use crate::parser::Value;
 
 #[derive(Debug, Clone)]
@@ -68,7 +70,7 @@ impl<'a> RuntimeContext {
 
 #[derive(Debug, Clone)]
 pub struct Context {
-    pub data: HashMap<String, Value>,
+    pub data: IndexMap<String, Value>,
 }
 
 impl Default for Context {
@@ -80,12 +82,12 @@ impl Default for Context {
 impl Context {
     pub fn new() -> Self {
         Self {
-            data: HashMap::new(),
+            data: IndexMap::new(),
         }
     }
 
     /// Deeply merge Object values into the context
-    pub fn merge(&mut self, incoming: &HashMap<String, Value>) {
+    pub fn merge(&mut self, incoming: &IndexMap<String, Value>) {
         merge_nested(&mut self.data, incoming);
     }
 
@@ -98,7 +100,7 @@ impl Context {
         }
     }
 
-    fn json_to_value_map(&self, json: serde_json::Value) -> Option<HashMap<String, Value>> {
+    fn json_to_value_map(&self, json: serde_json::Value) -> Option<IndexMap<String, Value>> {
         match Value::from(json) {
             Value::Map(map) => Some(map),
             _ => None,
@@ -136,16 +138,16 @@ impl Context {
             }
         }
 
-        current.remove(last_key).is_some()
+        current.swap_remove(last_key).is_some()
     }
 
-    pub fn data(&self) -> &HashMap<String, Value> {
+    pub fn data(&self) -> &IndexMap<String, Value> {
         &self.data
     }
 }
 
 /// Deep merge two `HashMap<String, Value>`, respecting nested `Object`s
-fn merge_nested(target: &mut HashMap<String, Value>, source: &HashMap<String, Value>) {
+fn merge_nested(target: &mut IndexMap<String, Value>, source: &IndexMap<String, Value>) {
     for (key, value) in source {
         match (target.get_mut(key), value) {
             (Some(Value::Map(target_obj)), Value::Map(source_obj)) => {
