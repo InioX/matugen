@@ -2,6 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use chumsky::span::SimpleSpan;
 use colorsys::Rgb;
+use indexmap::IndexMap;
 use material_colors::color::Argb;
 
 #[derive(Debug, Clone)]
@@ -15,7 +16,7 @@ pub enum Value {
         scheme: Option<String>, // If known, otherwise None
     },
     Bool(bool),
-    Map(std::collections::HashMap<String, Value>),
+    Map(IndexMap<String, Value>),
     Array(Vec<Value>),
     Null,
 }

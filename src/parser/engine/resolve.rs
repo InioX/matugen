@@ -1,6 +1,7 @@
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::span::SimpleSpan;
 use colorsys::Rgb;
+use indexmap::IndexMap;
 use material_colors::color::Argb;
 
 use super::Engine;
@@ -25,7 +26,7 @@ impl Engine {
         let mut iter = path.clone().into_iter().peekable();
 
         if let Some(&first) = iter.peek() {
-            let mut color_map: HashMap<String, Value> = HashMap::new();
+            let mut color_map: IndexMap<String, Value> = IndexMap::new();
 
             if first == "colors" {
                 iter.next()?;
@@ -65,7 +66,7 @@ impl Engine {
                         });
                     }
 
-                    let mut scheme_map = HashMap::new();
+                    let mut scheme_map = IndexMap::new();
                     for (scheme_name, scheme) in [
                         ("light", &self.schemes.light),
                         ("dark", &self.schemes.dark),
@@ -91,7 +92,7 @@ impl Engine {
                 }
 
                 for name in self.schemes.get_all_names() {
-                    let mut scheme_map = HashMap::new();
+                    let mut scheme_map = IndexMap::new();
 
                     let default_scheme = match self.default_scheme {
                         SchemesEnum::Light => self.schemes.light.clone(),
