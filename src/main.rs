@@ -14,6 +14,7 @@ mod wallpaper;
 
 use crate::{
     color::color::{get_source_color, Source},
+    parser::engine::EngineSyntax,
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
     template_util::template::get_render_data_new,
 };
@@ -88,6 +89,8 @@ impl State {
     fn init_engine(&self) -> Engine {
         let mut engine = Engine::new(self.schemes.clone(), self.default_scheme);
 
+        engine.set_syntax(self.get_syntax());
+
         let image = match &self.args.source {
             Source::Image { path } => Some(path),
             #[cfg(feature = "web-image")]
@@ -124,6 +127,20 @@ impl State {
         engine.add_filter("replace", crate::filters::replace);
 
         engine
+    }
+
+    fn get_syntax(&self) -> EngineSyntax {
+        match (
+            self.config_file.config.block_prefix,
+            self.config_file.config.block_postfix,
+            self.config_file.config.expr_prefix,
+            self.config_file.config.expr_postfix,
+        ) {
+            (Some(bprefix), Some(pbostfix), Some(eprefix), Some(epostfix)) => {
+                EngineSyntax::new(bprefix, pbostfix, eprefix, epostfix)
+            }
+            _ => EngineSyntax::default(),
+        }
     }
 
     fn update_themes(&mut self) {
