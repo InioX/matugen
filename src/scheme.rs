@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 use indexmap::IndexMap;
 use material_colors::scheme::Scheme;
+use serde::{Deserialize, Serialize};
 
 use crate::color::color::{generate_dynamic_scheme, make_custom_color, OwnCustomColor};
 
@@ -19,7 +20,8 @@ pub enum SchemeTypes {
     SchemeTonalSpot,
     SchemeVibrant,
 }
-#[derive(Debug, Clone)]
+
+#[derive(Debug, Clone, Serialize)]
 pub struct Schemes {
     pub light: IndexMap<std::string::String, material_colors::color::Argb>,
     pub dark: IndexMap<std::string::String, material_colors::color::Argb>,

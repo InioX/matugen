@@ -47,8 +47,8 @@ pub enum ProjectDirsTypes {
 pub fn get_proj_path(dir_type: &ProjectDirsTypes) -> Option<PathBuf> {
     if let Some(proj_dirs) = ProjectDirs::from("com", "InioX", "matugen") {
         let file = match dir_type {
-            ProjectDirsTypes::Config => PathBuf::from(proj_dirs.config_dir()).join("config.toml"),
-            ProjectDirsTypes::Cache => PathBuf::from(proj_dirs.cache_dir()).join("cache.toml"),
+            ProjectDirsTypes::Config => PathBuf::from(proj_dirs.config_dir()),
+            ProjectDirsTypes::Cache => PathBuf::from(proj_dirs.cache_dir()),
         };
 
         Some(file)
@@ -83,7 +83,8 @@ impl ConfigFile {
     }
 
     fn read_from_proj_path() -> Result<(ConfigFile, Option<PathBuf>), Report> {
-        if let Some(path) = get_proj_path(&ProjectDirsTypes::Config) {
+        if let Some(mut path) = get_proj_path(&ProjectDirsTypes::Config) {
+            path = path.join("config.toml");
             if path.exists() {
                 let content: String = fs::read_to_string(&path).unwrap();
                 match toml::from_str(&content) {

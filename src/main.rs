@@ -6,6 +6,7 @@ extern crate paris_log;
 use std::path::PathBuf;
 
 use material_colors::theme::ThemeBuilder;
+use serde_json::Value;
 
 mod helpers;
 pub mod template;
@@ -13,6 +14,7 @@ mod util;
 mod wallpaper;
 
 use crate::{
+    cache::ImageCache,
     color::color::{get_source_color, Source},
     parser::engine::EngineSyntax,
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
@@ -27,6 +29,7 @@ use crate::util::{arguments::Cli, color::show_color, config::ConfigFile};
 use clap::Parser;
 use color_eyre::Report;
 
+pub mod cache;
 pub mod color;
 pub mod exec;
 pub mod filters;
@@ -47,6 +50,7 @@ pub struct State {
     pub theme: Theme,
     pub schemes: Schemes,
     pub default_scheme: SchemesEnum,
+    pub image_hash: ImageCache,
 }
 
 impl State {
@@ -70,6 +74,8 @@ impl State {
             &args.contrast,
         );
 
+        let image_hash = ImageCache::new(&args.source);
+
         schemes.dark.insert("source_color".to_owned(), source_color);
         schemes
             .light
@@ -83,11 +89,34 @@ impl State {
             theme,
             schemes,
             default_scheme,
+            image_hash,
         }
     }
 
     fn init_engine(&self) -> Engine {
-        let mut engine = Engine::new(self.schemes.clone(), self.default_scheme);
+        let image = match &self.args.source {
+            Source::Image { path } => Some(path),
+            #[cfg(feature = "web-image")]
+            Source::WebImage { .. } => None,
+            Source::Color { .. } => None,
+        };
+
+        let (schemes, default_scheme, json) = match self.image_hash.load() {
+            Ok((schemes, default_scheme, json)) => (schemes, default_scheme, json),
+            Err(e) => {
+                let json = get_render_data_new(
+                    &self.schemes,
+                    &self.source_color,
+                    &self.default_scheme,
+                    &self.config_file.config.custom_keywords,
+                    image,
+                )
+                .unwrap();
+                (self.schemes.clone(), self.default_scheme, json)
+            }
+        };
+
+        let mut engine = Engine::new(schemes, default_scheme);
 
         engine.set_syntax(self.get_syntax());
 
@@ -98,17 +127,37 @@ impl State {
             Source::Color { .. } => None,
         };
 
-        engine.add_context(
-            get_render_data_new(
-                &self.schemes,
-                &self.source_color,
-                &self.default_scheme,
-                &self.config_file.config.custom_keywords,
-                image,
-            )
-            .unwrap(),
-        );
+        self.add_engine_filters(&mut engine);
 
+        self.save_cache(&json).expect("Failed saving cache");
+
+        engine.add_context(json);
+
+        engine
+    }
+
+    fn save_cache(&self, json: &Value) -> Result<(), Report> {
+        let json_modified = serde_json::json!({
+            "colors": {
+                "dark": &self.schemes.dark,
+                "light": &self.schemes.light,
+            }
+        });
+
+        let mut merged_json = json.clone();
+
+        if let Value::Object(ref mut map) = merged_json {
+            if let Value::Object(extra) = json_modified {
+                for (k, v) in extra {
+                    map.insert(k, v);
+                }
+            }
+        }
+
+        self.image_hash.save(&merged_json)
+    }
+
+    fn add_engine_filters(&self, engine: &mut Engine) {
         engine.add_filter("set_red", crate::filters::set_red);
         engine.add_filter("set_green", crate::filters::set_green);
         engine.add_filter("set_blue", crate::filters::set_blue);
@@ -125,8 +174,6 @@ impl State {
         engine.add_filter("invert", crate::filters::invert);
 
         engine.add_filter("replace", crate::filters::replace);
-
-        engine
     }
 
     fn get_syntax(&self) -> EngineSyntax {
