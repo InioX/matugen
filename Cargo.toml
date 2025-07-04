@@ -29,7 +29,7 @@ criterion = { version = "0.5", features = ["html_reports"] }
 
 [dependencies]
 # Engine
-indexmap = { version = "2.7.0" }
+indexmap = { version = "2.7.0", features = ["serde"] }
 ariadne = { version = "0.5.1" }
 chumsky = { version = "0.10.0" }
 thiserror = "2.0.12"
@@ -61,7 +61,7 @@ clap = { version = "4.2.4", features = [
   "derive",
   "std",
 ], default-features = true }
-material-colors = { version = "0.4.0", features = ["image"] }
+material-colors = { version = "0.4.0", features = ["image", "serde"] }
 image = { default-features = false, version = "0.25.2" }
 directories = "5.0"
 
@@ -90,3 +90,4 @@ egui_extras = { version = "0.29.1", optional = true, features = [
 eframe = { version = "0.29.1", optional = true }
 egui_file = { version = "0.19.0", optional = true }
 rfd = { version = "0.15.1", optional = true }
+sha2 = "0.10.9"
