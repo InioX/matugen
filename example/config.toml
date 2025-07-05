@@ -3,6 +3,11 @@
 # WARNING: Matugen needs to be compiled with the `update-informer` feature for this to work.
 version_check = false
 
+# Enables caching which will cache the colorscheme, custom colors, etc. into a cache folder located in
+# C:\Users\user\AppData\Roaming\InioX\matugen\cache\<image_name>.<image_extension>.<image_hash>.json
+# You can modify the cache and it will then be loaded when using the same image.
+caching = false
+
 # Changing the syntax
 # Expr is for stuff like for loops etc.
 expr_prefix = ['<', '*']

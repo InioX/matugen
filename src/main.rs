@@ -101,19 +101,31 @@ impl State {
             Source::Color { .. } => None,
         };
 
-        let (schemes, default_scheme, json) = match self.image_hash.load() {
-            Ok((schemes, default_scheme, json)) => (schemes, default_scheme, json),
-            Err(e) => {
-                let json = get_render_data_new(
-                    &self.schemes,
-                    &self.source_color,
-                    &self.default_scheme,
-                    &self.config_file.config.custom_keywords,
-                    image,
-                )
-                .unwrap();
-                (self.schemes.clone(), self.default_scheme, json)
+        let (schemes, default_scheme, json) = if self.config_file.config.caching.unwrap_or(false) {
+            match self.image_hash.load() {
+                Ok((schemes, default_scheme, json)) => (schemes, default_scheme, json),
+                Err(_) => {
+                    let json = get_render_data_new(
+                        &self.schemes,
+                        &self.source_color,
+                        &self.default_scheme,
+                        &self.config_file.config.custom_keywords,
+                        image,
+                    )
+                    .unwrap();
+                    (self.schemes.clone(), self.default_scheme, json)
+                }
             }
+        } else {
+            let json = get_render_data_new(
+                &self.schemes,
+                &self.source_color,
+                &self.default_scheme,
+                &self.config_file.config.custom_keywords,
+                image,
+            )
+            .unwrap();
+            (self.schemes.clone(), self.default_scheme, json)
         };
 
         let mut engine = Engine::new(schemes, default_scheme);
@@ -129,7 +141,9 @@ impl State {
 
         self.add_engine_filters(&mut engine);
 
-        self.save_cache(&json).expect("Failed saving cache");
+        if self.config_file.config.caching.unwrap_or(false) {
+            self.save_cache(&json).expect("Failed saving cache");
+        }
 
         engine.add_context(json);
 

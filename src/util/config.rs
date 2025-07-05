@@ -14,6 +14,7 @@ use crate::Template;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     pub version_check: Option<bool>,
+    pub caching: Option<bool>,
     pub wallpaper: Option<Wallpaper>,
     // TODO: Add a `Command` struct
     pub prefix: Option<String>,

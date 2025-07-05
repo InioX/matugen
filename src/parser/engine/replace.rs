@@ -238,8 +238,8 @@ impl Engine {
 
     fn get_replacement(&self, keywords: &[&str], span: SimpleSpan) -> String {
         if keywords[0] == "colors" {
-            let (r#type, name, colorscheme, format) = self.get_color_parts(keywords);
-            let color = rgb_from_argb(*self.get_from_map(r#type, name, colorscheme));
+            let (r#type, name, colorscheme, format) = self.get_color_parts(keywords, span);
+            let color = rgb_from_argb(*self.get_from_map(r#type, name, colorscheme, span));
             match format_color(color, self.get_format(keywords)) {
                 Some(v) => v.into(),
                 None => {

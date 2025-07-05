@@ -1,3 +1,4 @@
+use chumsky::span::SimpleSpan;
 use indexmap::IndexMap;
 use material_colors::color::Argb;
 
@@ -5,14 +6,10 @@ use super::Engine;
 
 use crate::{
     color::format::rgb_from_argb,
-    parser::{
-        engine::format_color_all,
-        Value,
-    },
+    parser::{engine::format_color_all, Error, KeywordError, ParseErrorKind, Value},
 };
 
 use crate::scheme::SchemesEnum;
-
 
 impl Engine {
     pub fn resolve_path<'a, I>(&self, path: I) -> Option<Value>
@@ -216,12 +213,14 @@ impl Engine {
     pub(crate) fn get_color_parts<'a>(
         &self,
         keywords: &[&'a str],
+        span: SimpleSpan,
     ) -> (&'a str, &'a str, &'a str, &'a str) {
         if !self.validate_color_parts(keywords) {
-            panic!(
-                "{}",
-                format!("Keyword length invalid: {:?}", keywords.len())
-            );
+            self.errors.add(Error::ParseError {
+                kind: crate::parser::ParseErrorKind::Keyword(KeywordError::InvalidColorDefinition),
+                span: span,
+            });
+            return ("colors", "source_color", "default", "hex");
         }
 
         (keywords[0], keywords[1], keywords[2], keywords[3])
@@ -233,13 +232,15 @@ impl Engine {
             .expect("Could not get format from {keywords}")
     }
 
-    pub fn get_from_map(&self, r#type: &str, name: &str, colorscheme: &str) -> &Argb {
+    pub fn get_from_map(
+        &self,
+        r#type: &str,
+        name: &str,
+        colorscheme: &str,
+        span: SimpleSpan,
+    ) -> &Argb {
         if r#type == "colors" {
             let mut scheme = &self.schemes.dark;
-
-            if !scheme.contains_key(name) {
-                panic!("{}", format!("The color {:?} does not exist.", name));
-            }
 
             scheme = match colorscheme {
                 "light" => &self.schemes.light,
@@ -248,12 +249,34 @@ impl Engine {
                     SchemesEnum::Light => &self.schemes.light,
                     SchemesEnum::Dark => &self.schemes.dark,
                 },
-                _ => panic!("{}", format!("Invalid color mode {:?}. The color mode can only be one of: [dark, light, default]", colorscheme))
+                _ => {
+                    self.errors.add(Error::ParseError {
+                        kind: ParseErrorKind::Keyword(KeywordError::InvalidScheme),
+                        span: span,
+                    });
+                    &self.schemes.dark
+                }
             };
 
-            scheme.get(name).unwrap()
+            match scheme.get(name) {
+                Some(v) => v,
+                None => {
+                    self.errors.add(Error::ParseError {
+                        kind: crate::parser::ParseErrorKind::Keyword(
+                            crate::parser::KeywordError::ColorDoesNotExist,
+                        ),
+                        span: span,
+                    });
+                    &Argb {
+                        alpha: 0,
+                        red: 0,
+                        green: 0,
+                        blue: 0,
+                    }
+                }
+            }
         } else {
-            todo!()
+            unreachable!()
         }
     }
 }
