@@ -100,6 +100,9 @@ pub enum ParseErrorKind {
 #[derive(Debug)]
 pub enum KeywordError {
     InvalidFormat,
+    InvalidScheme,
+    ColorDoesNotExist,
+    InvalidColorDefinition,
 }
 
 #[derive(Debug)]
@@ -121,12 +124,17 @@ pub enum FilterError {
 }
 
 pub fn emit_keyword_error(source_code: &str, span: SimpleSpan, kind: &KeywordError) {
+    let (name, message) = match kind {
+        KeywordError::InvalidFormat => ("InvalidColorFormat", "The format provided is not valid, make sure it is one of:\n\t\t[hex, hex_stripped, rgb, rgba, hsl, hsla, red, green, blue, red, alpha, hue, saturation, lightness]".to_owned()),
+        KeywordError::ColorDoesNotExist => ("ColorDoesNotExist", "This color does not exist. Check https://github.com/InioX/matugen/wiki/Configuration#example-of-all-the-color-keywords to get a list of all the colors.".to_owned()),
+        KeywordError::InvalidColorDefinition => ("InvalidColorDefinition", "The format for colors is 'colors.<color>.<scheme>.<format>'".to_owned()),
+        KeywordError::InvalidScheme => ("InvalidScheme", "Invalid color mode. The color mode can only be one of: [dark, light, default]".to_owned()),
+            };
+
     build_report(
-        "KeywordError",
+        &format!("KeywordError::{}", name),
         source_code,
-        match kind {
-            KeywordError::InvalidFormat => "The format provided is not valid, make sure it is one of:\n\t\t[hex, hex_stripped, rgb, rgba, hsl, hsla, red, green, blue, red, alpha, hue, saturation, lightness]".to_owned(),
-        },
+        message,
         span,
     );
 }
@@ -178,7 +186,12 @@ pub fn emit_filter_error(source_code: &str, kind: &FilterError, span: SimpleSpan
             "UnexpectedStringValue",
         ),
     };
-    build_report(name, source_code, message, span);
+    build_report(
+        &format!("FilterError::{}", name),
+        source_code,
+        message,
+        span,
+    );
 }
 
 fn build_report(name: &str, source_code: &str, message: String, span: SimpleSpan) {
