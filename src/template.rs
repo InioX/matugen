@@ -2,12 +2,17 @@ use color_eyre::eyre::ContextCompat;
 use color_eyre::eyre::WrapErr;
 use color_eyre::Help;
 use color_eyre::{eyre::Result, Report};
+use execute::shell;
+use execute::Execute;
+use serde_json::json;
 
+use crate::color::color::get_closest_color;
 use crate::parser::Engine as NewEngine;
 // use matugen::template_util::template::add_engine_filters;
 use serde::{Deserialize, Serialize};
 
 use std::path::Path;
+use std::process::Stdio;
 use std::str;
 
 use std::fs::create_dir_all;
@@ -56,7 +61,15 @@ impl TemplateFile<'_> {
         );
 
         for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
-            // add_engine_filters(self.engine);
+            if template.pre_hook.is_some() {
+                format_hook(
+                    self.engine,
+                    name,
+                    &template.pre_hook.clone().unwrap(),
+                    &template.colors_to_compare,
+                    &template.compare_to,
+                );
+            }
 
             let input_path = if let Some(input_path_mode) = &template.input_path_modes {
                 match self.state.default_scheme {
@@ -93,6 +106,16 @@ impl TemplateFile<'_> {
             );
 
             self.export_template(name, output_path_absolute, input_path_absolute, i)?;
+
+            if template.post_hook.is_some() {
+                format_hook(
+                    self.engine,
+                    name,
+                    &template.post_hook.clone().unwrap(),
+                    &template.colors_to_compare,
+                    &template.compare_to,
+                );
+            }
         }
         Ok(())
     }
@@ -240,6 +263,58 @@ impl TemplateFile<'_> {
 
         Ok(())
     }
+}
+
+fn format_hook(
+    mut engine: &mut NewEngine,
+    template_name: &String,
+    hook: &String,
+    colors_to_compare: &Option<Vec<crate::color::color::ColorDefinition>>,
+    compare_to: &Option<String>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if colors_to_compare.is_some() && compare_to.is_some() {
+        let res = match engine.compile(compare_to.as_ref().unwrap().to_string()) {
+            Ok(v) => v,
+            Err(errors) => {
+                eprintln!("Error when executing hook:\n{}", &hook);
+                for err in errors {
+                    err.emit(&hook);
+                }
+                std::process::exit(1);
+            }
+        };
+        let closest_color = get_closest_color(&colors_to_compare.as_ref().unwrap(), &res);
+        engine.add_context(json!({
+            "closest_color": closest_color
+        }));
+    }
+
+    let res = match engine.compile((&hook).to_string()) {
+        Ok(v) => v,
+        Err(errors) => {
+            eprintln!("Error when executing hook:\n{}", &hook);
+            for err in errors {
+                err.emit(engine.get_source(&hook));
+            }
+            std::process::exit(1);
+        }
+    };
+
+    let mut command = shell(&res);
+
+    command.stdout(Stdio::inherit());
+
+    let output = command.execute_output()?;
+
+    if let Some(exit_code) = output.status.code() {
+        if exit_code != 0 {
+            error!("Failed executing command: {:?}", &res)
+        }
+    } else {
+        eprintln!("Interrupted!");
+    }
+
+    Ok(())
 }
 
 #[allow(clippy::manual_strip)]
