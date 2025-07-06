@@ -170,8 +170,8 @@ impl Engine {
         );
     }
 
-    pub fn remove_template(&mut self, name: String) -> bool {
-        self.templates.remove(&name).is_some()
+    pub fn remove_template(&mut self, name: &String) -> bool {
+        self.templates.remove(name).is_some()
     }
 
     pub fn add_context(&mut self, context: serde_json::Value) {
@@ -186,6 +186,13 @@ impl Engine {
         self.sources
             .get(template.source_id)
             .unwrap_or_else(|| panic!("Failed to get source of template: {}", name))
+    }
+
+    pub fn compile(&mut self, source: String) -> Result<String, Vec<Error>> {
+        self.add_template(String::from("temporary"), source.clone());
+        let res = self.render("temporary");
+        self.remove_template(&String::from("temporary"));
+        res
     }
 
     pub fn render(&self, name: &str) -> Result<String, Vec<Error>> {

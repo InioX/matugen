@@ -34,25 +34,6 @@ pub struct ColorVariants {
     pub default: Color,
 }
 
-pub fn get_render_data_new(
-    schemes: &Schemes,
-    source_color: &Argb,
-    default_scheme: &SchemesEnum,
-    custom_keywords: &Option<HashMap<String, String>>,
-    image: Option<&String>,
-) -> Result<serde_json::Value, Report> {
-    let mut custom: HashMap<String, String> = Default::default();
-    for entry in custom_keywords.iter() {
-        for (name, value) in entry {
-            custom.insert(name.to_string(), value.to_string());
-        }
-    }
-
-    Ok(serde_json::json!({
-        "image": image, "custom": &custom, "mode": default_scheme,
-    }))
-}
-
 pub fn generate_colors(
     schemes: &Schemes,
     source_color: &Argb,

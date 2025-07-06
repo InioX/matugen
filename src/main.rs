@@ -3,7 +3,7 @@
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate paris_log;
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
 use material_colors::theme::ThemeBuilder;
 use serde_json::Value;
@@ -15,10 +15,9 @@ mod wallpaper;
 
 use crate::{
     cache::ImageCache,
-    color::color::{get_source_color, Source},
+    color::color::{get_closest_color, get_source_color, Source},
     parser::engine::EngineSyntax,
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
-    template_util::template::get_render_data_new,
 };
 use helpers::{set_wallpaper, setup_logging};
 use template::TemplateFile;
@@ -94,50 +93,22 @@ impl State {
     }
 
     fn init_engine(&self) -> Engine {
-        let image = match &self.args.source {
-            Source::Image { path } => Some(path),
-            #[cfg(feature = "web-image")]
-            Source::WebImage { .. } => None,
-            Source::Color { .. } => None,
-        };
-
         let (schemes, default_scheme, json) = if self.config_file.config.caching.unwrap_or(false) {
             match self.image_hash.load() {
                 Ok((schemes, default_scheme, json)) => (schemes, default_scheme, json),
                 Err(_) => {
-                    let json = get_render_data_new(
-                        &self.schemes,
-                        &self.source_color,
-                        &self.default_scheme,
-                        &self.config_file.config.custom_keywords,
-                        image,
-                    )
-                    .unwrap();
+                    let json = self.get_render_data().unwrap();
                     (self.schemes.clone(), self.default_scheme, json)
                 }
             }
         } else {
-            let json = get_render_data_new(
-                &self.schemes,
-                &self.source_color,
-                &self.default_scheme,
-                &self.config_file.config.custom_keywords,
-                image,
-            )
-            .unwrap();
+            let json = self.get_render_data().unwrap();
             (self.schemes.clone(), self.default_scheme, json)
         };
 
         let mut engine = Engine::new(schemes, default_scheme);
 
         engine.set_syntax(self.get_syntax());
-
-        let image = match &self.args.source {
-            Source::Image { path } => Some(path),
-            #[cfg(feature = "web-image")]
-            Source::WebImage { .. } => None,
-            Source::Color { .. } => None,
-        };
 
         self.add_engine_filters(&mut engine);
 
@@ -169,6 +140,26 @@ impl State {
         }
 
         self.image_hash.save(&merged_json)
+    }
+
+    pub fn get_render_data(&self) -> Result<serde_json::Value, Report> {
+        let image = match &self.args.source {
+            Source::Image { path } => Some(path),
+            #[cfg(feature = "web-image")]
+            Source::WebImage { .. } => None,
+            Source::Color { .. } => None,
+        };
+
+        let mut custom: HashMap<String, String> = Default::default();
+        for entry in self.config_file.config.custom_keywords.iter() {
+            for (name, value) in entry {
+                custom.insert(name.to_string(), value.to_string());
+            }
+        }
+
+        Ok(serde_json::json!({
+            "image": image, "custom": &custom, "mode": self.default_scheme,
+        }))
     }
 
     fn add_engine_filters(&self, engine: &mut Engine) {

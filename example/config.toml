@@ -4,7 +4,11 @@
 version_check = false
 
 # Enables caching which will cache the colorscheme, custom colors, etc. into a cache folder located in
-# C:\Users\user\AppData\Roaming\InioX\matugen\cache\<image_name>.<image_extension>.<image_hash>.json
+# Windows: C:\Users\user\AppData\Roaming\InioX\matugen\cache\<file>
+# Linux: $XDG_CACHE_HOME/matugen/<file> or $HOME/.cache/matugen/<file>
+# MacOS: $HOME/Library/Caches/matugen/
+# The file follows this naming: <image_name>.<image_extension>.<image_hash>.json
+# For example: testimage.png.0cfd2d624b3d09bf6246b7be9ca79e207e7aa1189d961d44949628b99811bb9d.json
 # You can modify the cache and it will then be loaded when using the same image.
 caching = false
 
