@@ -37,6 +37,15 @@ pub enum Source {
     Color(crate::color::color::ColorFormat),
 }
 
+impl Source {
+    pub fn is_image(&self) -> bool {
+        match self {
+            Source::Image { path } => true,
+            _ => false,
+        }
+    }
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct ColorDefinition {
     pub name: String,

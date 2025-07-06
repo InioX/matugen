@@ -62,22 +62,24 @@ fn convert_scheme(scheme: &IndexMap<String, ArgbHelper>) -> IndexMap<String, Arg
 }
 
 pub struct ImageCache {
-    pub hash: String,
-    source: PathBuf,
+    pub hash: Option<String>,
+    source: Option<PathBuf>,
     cache_folder: PathBuf,
 }
 
 impl ImageCache {
     pub fn new(source: &Source) -> Self {
         let pathbuf = match source {
-            Source::Image { path } => PathBuf::from(path),
-            _ => panic!("Cache only works with image"),
+            Source::Image { path } => Some(PathBuf::from(path)),
+            _ => None,
         };
 
-        let cache_folder = get_proj_path(&ProjectDirsTypes::Cache).unwrap();
+        let cache_folder = get_proj_path(&ProjectDirsTypes::Cache)
+            .unwrap()
+            .join("images");
 
         Self {
-            hash: get_cache(source).unwrap(),
+            hash: get_cache(source),
             source: pathbuf,
             cache_folder,
         }
@@ -104,7 +106,7 @@ impl ImageCache {
 
         success!(
             "Saved cache of <b><green>{}</> to <d><u>{}</>",
-            self.source.display(),
+            self.source.as_ref().unwrap().display(),
             path.display()
         );
 
@@ -114,7 +116,7 @@ impl ImageCache {
     pub fn load(&self) -> Result<(Schemes, SchemesEnum, Value), Report> {
         let path = self.cache_folder.join(self.get_name());
 
-        let string = read_to_string(path)?;
+        let string = read_to_string(&path)?;
 
         let json: CacheFile = serde_json::from_str(&string)?;
 
@@ -129,14 +131,21 @@ impl ImageCache {
             "mode": json.mode,
         });
 
+        success!("Loaded cache from <<d><u>{}</>", path.display());
+
         Ok((schemes_enum, json.mode, value))
     }
 
     fn get_name(&self) -> PathBuf {
         let name = format!(
             "{}.{}.json",
-            self.source.file_name().unwrap().to_string_lossy(),
-            self.hash
+            self.source
+                .as_ref()
+                .unwrap()
+                .file_name()
+                .unwrap()
+                .to_string_lossy(),
+            self.hash.as_ref().unwrap()
         );
 
         let mut file = PathBuf::new();

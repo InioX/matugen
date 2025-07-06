@@ -93,18 +93,19 @@ impl State {
     }
 
     fn init_engine(&self) -> Engine {
-        let (schemes, default_scheme, json) = if self.config_file.config.caching.unwrap_or(false) {
-            match self.image_hash.load() {
-                Ok((schemes, default_scheme, json)) => (schemes, default_scheme, json),
-                Err(_) => {
-                    let json = self.get_render_data().unwrap();
-                    (self.schemes.clone(), self.default_scheme, json)
+        let (schemes, default_scheme, json, loaded_cache) =
+            if self.config_file.config.caching.unwrap_or(false) && self.args.source.is_image() {
+                match self.image_hash.load() {
+                    Ok((schemes, default_scheme, json)) => (schemes, default_scheme, json, true),
+                    Err(_) => {
+                        let json = self.get_render_data().unwrap();
+                        (self.schemes.clone(), self.default_scheme, json, false)
+                    }
                 }
-            }
-        } else {
-            let json = self.get_render_data().unwrap();
-            (self.schemes.clone(), self.default_scheme, json)
-        };
+            } else {
+                let json = self.get_render_data().unwrap();
+                (self.schemes.clone(), self.default_scheme, json, false)
+            };
 
         let mut engine = Engine::new(schemes, default_scheme);
 
@@ -112,7 +113,10 @@ impl State {
 
         self.add_engine_filters(&mut engine);
 
-        if self.config_file.config.caching.unwrap_or(false) {
+        if self.config_file.config.caching.unwrap_or(false)
+            && self.args.source.is_image()
+            && !loaded_cache
+        {
             self.save_cache(&json).expect("Failed saving cache");
         }
 
@@ -260,7 +264,7 @@ impl State {
         let mut template = TemplateFile::new(self, &mut engine);
 
         // self.run_other_generator();
-        template.generate_new()?;
+        template.generate()?;
 
         if let Some(_wallpaper_cfg) = &self.config_file.config.wallpaper {
             set_wallpaper(&self.args.source, _wallpaper_cfg)?;

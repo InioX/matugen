@@ -54,7 +54,7 @@ impl TemplateFile<'_> {
         TemplateFile { state, engine }
     }
 
-    pub fn generate_new(&mut self) -> Result<(), Report> {
+    pub fn generate(&mut self) -> Result<(), Report> {
         info!(
             "Loaded <b><cyan>{}</> templates.",
             &self.state.config_file.templates.len()

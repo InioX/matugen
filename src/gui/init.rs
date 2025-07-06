@@ -3,17 +3,17 @@ use std::{ffi::OsStr, path::PathBuf};
 #[cfg(feature = "ui")]
 use indexmap::IndexMap;
 
-#[cfg(feature = "ui")]
-use eframe::egui;
-use egui::{Color32, Ui, Vec2};
-use material_colors::{color::Argb, scheme::variant::SchemeFidelity};
-use matugen::{
+use crate::{
     color::{
         color::Source,
         format::{format_hex, rgb_from_argb},
     },
     scheme::{SchemeTypes, Schemes},
 };
+#[cfg(feature = "ui")]
+use eframe::egui;
+use egui::{Color32, Ui, Vec2};
+use material_colors::{color::Argb, scheme::variant::SchemeFidelity};
 use serde::{Deserialize, Serialize};
 
 use crate::{template::TemplateFile, util::arguments::Cli, State};
@@ -298,8 +298,7 @@ impl MyApp {
 
     fn generate_tempalates(&mut self) {
         let mut engine = self.app.init_engine();
-        let mut render_data = self.app.init_render_data().unwrap();
-        let mut template = TemplateFile::new(&self.app, &mut engine, &mut render_data);
+        let mut template = TemplateFile::new(&self.app, &mut engine);
         template.generate().unwrap();
     }
 
@@ -342,6 +341,7 @@ impl eframe::App for MyApp {
                     if ui
                         .selectable_value(&mut self.selected_tab, Tabs::Images, "Images")
                         .clicked()
+                        && self.image_folder.is_some()
                     {
                         save_cache(
                             self.image_folder.clone().unwrap(),
@@ -351,6 +351,7 @@ impl eframe::App for MyApp {
                     if ui
                         .selectable_value(&mut self.selected_tab, Tabs::Settings, "Settings")
                         .clicked()
+                        && self.image_folder.is_some()
                     {
                         save_cache(
                             self.image_folder.clone().unwrap(),
@@ -360,6 +361,7 @@ impl eframe::App for MyApp {
                     if ui
                         .selectable_value(&mut self.selected_tab, Tabs::Colors, "Colors")
                         .clicked()
+                        && self.image_folder.is_some()
                     {
                         save_cache(
                             self.image_folder.clone().unwrap(),
