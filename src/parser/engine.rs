@@ -335,11 +335,7 @@ impl Engine {
                 .delimited_by(just(syntax.block_left), just(syntax.block_right));
 
             let raw = any()
-                .and_is(
-                    just(syntax.keyword_left[0])
-                        .or(just(syntax.block_left[0]))
-                        .not(),
-                )
+                .and_is(just(syntax.keyword_left).or(just(syntax.block_left)).not())
                 .repeated()
                 .at_least(1)
                 .collect::<String>()
