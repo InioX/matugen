@@ -348,66 +348,6 @@ impl MyApp {
         self.colors.light = light;
     }
 
-    // fn apply_app_theme(
-    //     &self,
-    //     ctx: &egui::Context,
-    //     dark: &IndexMap<String, egui::Color32>,
-    //     light: &IndexMap<String, egui::Color32>,
-    // ) {
-    //     let is_dark_mode = ctx.style().visuals.dark_mode;
-    //     let (base_visuals, palette) = if is_dark_mode {
-    //         (egui::Visuals::dark(), dark)
-    //     } else {
-    //         (egui::Visuals::light(), light)
-    //     };
-
-    //     let mut visuals = base_visuals;
-
-    //     let bg = *palette.get("background").unwrap();
-    //     let on_bg = *palette.get("on_background").unwrap();
-    //     let surf = *palette.get("surface").unwrap();
-    //     let on_surf = *palette.get("on_surface").unwrap();
-    //     let prim = *palette.get("primary").unwrap();
-    //     let on_prim = *palette.get("on_primary").unwrap();
-
-    //     // Helper to construct WidgetVisuals properly
-    //     let make_widget_visuals =
-    //         |bg: Color32, fg: Color32, weak: Color32| egui::style::WidgetVisuals {
-    //             bg_fill: bg,
-    //             weak_bg_fill: weak,
-    //             bg_stroke: egui::Stroke::new(1.0, fg),
-    //             fg_stroke: egui::Stroke::new(1.0, fg),
-    //             rounding: egui::Rounding::same(4.0),
-    //             expansion: 2.0,
-    //         };
-
-    //     // Apply to all widget states
-    //     visuals.widgets.inactive = make_widget_visuals(bg, on_bg, surf);
-    //     visuals.widgets.hovered = make_widget_visuals(surf, on_surf, prim);
-    //     visuals.widgets.active = make_widget_visuals(prim, on_prim, prim);
-    //     visuals.widgets.open = make_widget_visuals(surf, on_surf, prim);
-
-    //     // Fix selection color (for list items, text, etc.)
-    //     visuals.selection.bg_fill = prim;
-    //     visuals.selection.stroke.color = on_prim;
-
-    //     // Fix text colors
-    //     visuals.override_text_color = Some(on_surf);
-
-    //     // Fix window background
-    //     visuals.window_fill = bg;
-
-    //     // Fix special backgrounds
-    //     visuals.extreme_bg_color = bg;
-    //     visuals.code_bg_color = surf;
-
-    //     visuals.extreme_bg_color = *dark.get("background").unwrap();
-
-    //     let mut style = (*ctx.style()).clone();
-    //     style.visuals = visuals;
-    //     ctx.set_style(style);
-    // }
-
     #[cfg(feature = "ui")]
     pub fn apply_app_theme(&self, ctx: &Context) {
         use egui::{

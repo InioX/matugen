@@ -14,7 +14,7 @@ mod util;
 mod wallpaper;
 
 use crate::{
-    cache::ImageCache,
+    cache::{convert_argb_scheme, ImageCache},
     color::color::{get_closest_color, get_source_color, Source},
     parser::engine::EngineSyntax,
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
@@ -128,8 +128,8 @@ impl State {
     fn save_cache(&self, json: &Value) -> Result<(), Report> {
         let json_modified = serde_json::json!({
             "colors": {
-                "dark": &self.schemes.dark,
-                "light": &self.schemes.light,
+                "dark": convert_argb_scheme(&self.schemes.dark),
+                "light": convert_argb_scheme(&self.schemes.light),
             }
         });
 
