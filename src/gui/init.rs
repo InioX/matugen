@@ -1,6 +1,10 @@
 use std::{ffi::OsStr, path::PathBuf};
 
 #[cfg(feature = "ui")]
+use colorsys::Rgb;
+#[cfg(feature = "ui")]
+use egui::Context;
+#[cfg(feature = "ui")]
 use indexmap::IndexMap;
 
 use crate::{
@@ -10,13 +14,14 @@ use crate::{
     },
     scheme::{SchemeTypes, Schemes},
 };
+use crate::{template::TemplateFile, util::arguments::Cli, State};
 #[cfg(feature = "ui")]
 use eframe::egui;
+use egui::Stroke;
+use egui::Visuals;
 use egui::{Color32, Ui, Vec2};
 use material_colors::{color::Argb, scheme::variant::SchemeFidelity};
 use serde::{Deserialize, Serialize};
-
-use crate::{template::TemplateFile, util::arguments::Cli, State};
 
 use super::cache::{read_cache, save_cache};
 
@@ -40,12 +45,35 @@ pub struct MyApp {
     images_vec: Vec<PathBuf>,
     image_folder: Option<PathBuf>,
     load_cache: bool,
+    ran_once: bool,
 }
 
 #[cfg(feature = "ui")]
 pub struct ColorsMap {
-    pub light: Option<IndexMap<String, Color32>>,
-    pub dark: Option<IndexMap<String, Color32>>,
+    pub light: IndexMap<String, Color32>,
+    pub dark: IndexMap<String, Color32>,
+}
+
+impl Default for ColorsMap {
+    fn default() -> Self {
+        use material_colors::{scheme::Scheme, theme::ThemeBuilder};
+
+        let theme = ThemeBuilder::with_source(Argb::new(255, 66, 133, 244)).build();
+
+        let (scheme_dark, scheme_light) = (theme.schemes.dark, theme.schemes.light);
+
+        let mut dark: IndexMap<String, Color32> = IndexMap::new();
+        let mut light: IndexMap<String, Color32> = IndexMap::new();
+
+        for (name, color) in scheme_dark {
+            dark.insert(name.to_string(), argb_to_color32(&color));
+        }
+        for (name, color) in scheme_light {
+            light.insert(name.to_string(), argb_to_color32(&color));
+        }
+
+        Self { light, dark }
+    }
 }
 
 fn get_images_in_folder(folder_path: &PathBuf) -> Vec<PathBuf> {
@@ -85,17 +113,15 @@ impl MyApp {
             selected_file: None,
             app: crate::State::new(*cli.clone()),
             cli,
-            colors: ColorsMap {
-                light: None,
-                dark: None,
-            },
+            colors: ColorsMap::default(),
             selected_tab,
             images_vec: vec![],
             load_cache: if is_cache { true } else { false },
             image_folder,
+            ran_once: false,
         }
     }
-    fn body(&mut self, ui: &mut Ui) {
+    fn body(&mut self, ui: &mut Ui, ctx: &Context) {
         if self.load_cache {
             self.update_images_tab(ui);
             self.load_cache = false;
@@ -103,7 +129,7 @@ impl MyApp {
         match self.selected_tab {
             Tabs::Settings => self.settings(ui),
             Tabs::Colors => self.colors(ui),
-            Tabs::Images => self.images(ui),
+            Tabs::Images => self.images(ui, ctx),
         }
     }
 
@@ -171,28 +197,26 @@ impl MyApp {
         &self,
         ui: &mut Ui,
         text: &str,
-        colors: &Option<IndexMap<String, Color32>>,
+        colors: &IndexMap<String, Color32>,
     ) {
         ui.vertical(|ui| {
             ui.label(egui::RichText::new(text).strong());
-            if let Some(colors) = &colors {
-                for (name, color) in colors {
-                    let hex_label = format_hex(&rgb_from_argb(Argb {
-                        alpha: color.a(),
-                        red: color.r(),
-                        green: color.g(),
-                        blue: color.b(),
-                    }));
-                    ui.horizontal(|ui| {
-                        ui.label(name);
-                        egui::widgets::color_picker::show_color(
-                            ui,
-                            *color,
-                            Vec2::new(COLOR_RECT_SIZE[0], COLOR_RECT_SIZE[1]),
-                        );
-                        ui.label(hex_label);
-                    });
-                }
+            for (name, color) in colors {
+                let hex_label = format_hex(&rgb_from_argb(Argb {
+                    alpha: color.a(),
+                    red: color.r(),
+                    green: color.g(),
+                    blue: color.b(),
+                }));
+                ui.horizontal(|ui| {
+                    ui.label(name);
+                    egui::widgets::color_picker::show_color(
+                        ui,
+                        *color,
+                        Vec2::new(COLOR_RECT_SIZE[0], COLOR_RECT_SIZE[1]),
+                    );
+                    ui.label(hex_label);
+                });
             }
         });
     }
@@ -205,30 +229,26 @@ impl MyApp {
 
     fn colors(&mut self, ui: &mut Ui) {
         egui::ScrollArea::vertical().show(ui, |ui| {
-            if self.colors.dark != None || self.colors.light != None {
-                ui.horizontal(|ui| {
-                    self.show_colors(ui);
-                });
-            } else {
-                ui.label("No colors generated yet");
-            }
+            ui.horizontal(|ui| {
+                self.show_colors(ui);
+            });
         });
     }
 
-    fn images(&mut self, ui: &mut Ui) {
+    fn images(&mut self, ui: &mut Ui, ctx: &Context) {
         if self.images_vec.is_empty() {
             ui.label("No image folder selected or no images to show.");
         } else {
             ui.with_layout(
                 egui::Layout::left_to_right(egui::Align::Max).with_cross_justify(true),
                 |ui| {
-                    self.show_images(ui);
+                    self.show_images(ui, ctx);
                 },
             );
         }
     }
 
-    fn show_images(&mut self, ui: &mut Ui) {
+    fn show_images(&mut self, ui: &mut Ui, ctx: &Context) {
         egui::ScrollArea::vertical().show(ui, |ui| {
             egui::Grid::new("image_grid")
                 .num_columns(3) // Set number of columns
@@ -246,6 +266,7 @@ impl MyApp {
                             if ui.add(img_widget.sense(egui::Sense::click())).clicked() {
                                 self.selected_file = Some(path.to_path_buf());
                                 self.run();
+                                self.apply_app_theme(ctx);
                             }
 
                             ui.label(format!("{}", path_str));
@@ -271,11 +292,11 @@ impl MyApp {
         self.images_vec = images;
     }
 
-    fn top_buttons(&mut self, ui: &mut Ui) {
+    fn top_buttons(&mut self, ui: &mut Ui, ctx: &Context) {
         if ui.button("Image Folder").clicked() {
             if let Some(path) = rfd::FileDialog::new().pick_folder() {
                 self.image_folder = Some(path);
-                self.update_images_tab(ui)
+                self.update_images_tab(ui);
             }
         }
         if ui.button("Select image").clicked() {
@@ -284,7 +305,8 @@ impl MyApp {
             }
         }
         if ui.button("Run").clicked() {
-            self.run()
+            self.run();
+            self.apply_app_theme(ctx);
         }
     }
 
@@ -294,6 +316,7 @@ impl MyApp {
         };
         self.generate_tempalates();
         self.update_colors_tab();
+        self.ran_once = true;
     }
 
     fn generate_tempalates(&mut self) {
@@ -321,8 +344,157 @@ impl MyApp {
         for (name, color) in &self.app.schemes.light {
             light.insert(name.to_string(), argb_to_color32(color));
         }
-        self.colors.dark = Some(dark);
-        self.colors.light = Some(light);
+        self.colors.dark = dark;
+        self.colors.light = light;
+    }
+
+    // fn apply_app_theme(
+    //     &self,
+    //     ctx: &egui::Context,
+    //     dark: &IndexMap<String, egui::Color32>,
+    //     light: &IndexMap<String, egui::Color32>,
+    // ) {
+    //     let is_dark_mode = ctx.style().visuals.dark_mode;
+    //     let (base_visuals, palette) = if is_dark_mode {
+    //         (egui::Visuals::dark(), dark)
+    //     } else {
+    //         (egui::Visuals::light(), light)
+    //     };
+
+    //     let mut visuals = base_visuals;
+
+    //     let bg = *palette.get("background").unwrap();
+    //     let on_bg = *palette.get("on_background").unwrap();
+    //     let surf = *palette.get("surface").unwrap();
+    //     let on_surf = *palette.get("on_surface").unwrap();
+    //     let prim = *palette.get("primary").unwrap();
+    //     let on_prim = *palette.get("on_primary").unwrap();
+
+    //     // Helper to construct WidgetVisuals properly
+    //     let make_widget_visuals =
+    //         |bg: Color32, fg: Color32, weak: Color32| egui::style::WidgetVisuals {
+    //             bg_fill: bg,
+    //             weak_bg_fill: weak,
+    //             bg_stroke: egui::Stroke::new(1.0, fg),
+    //             fg_stroke: egui::Stroke::new(1.0, fg),
+    //             rounding: egui::Rounding::same(4.0),
+    //             expansion: 2.0,
+    //         };
+
+    //     // Apply to all widget states
+    //     visuals.widgets.inactive = make_widget_visuals(bg, on_bg, surf);
+    //     visuals.widgets.hovered = make_widget_visuals(surf, on_surf, prim);
+    //     visuals.widgets.active = make_widget_visuals(prim, on_prim, prim);
+    //     visuals.widgets.open = make_widget_visuals(surf, on_surf, prim);
+
+    //     // Fix selection color (for list items, text, etc.)
+    //     visuals.selection.bg_fill = prim;
+    //     visuals.selection.stroke.color = on_prim;
+
+    //     // Fix text colors
+    //     visuals.override_text_color = Some(on_surf);
+
+    //     // Fix window background
+    //     visuals.window_fill = bg;
+
+    //     // Fix special backgrounds
+    //     visuals.extreme_bg_color = bg;
+    //     visuals.code_bg_color = surf;
+
+    //     visuals.extreme_bg_color = *dark.get("background").unwrap();
+
+    //     let mut style = (*ctx.style()).clone();
+    //     style.visuals = visuals;
+    //     ctx.set_style(style);
+    // }
+
+    #[cfg(feature = "ui")]
+    pub fn apply_app_theme(&self, ctx: &Context) {
+        use egui::{
+            style::{Selection, WidgetVisuals, Widgets},
+            Shadow, Style,
+        };
+
+        let is_dark_mode = ctx.style().visuals.dark_mode;
+
+        let colors = if is_dark_mode {
+            &self.colors.dark
+        } else {
+            &self.colors.light
+        };
+
+        macro_rules! get {
+            ($key:expr) => {
+                colors.get($key).copied().unwrap_or(Color32::DEBUG_COLOR)
+            };
+        }
+
+        fn widget_style(fill: Color32, on_fill: Color32) -> WidgetVisuals {
+            WidgetVisuals {
+                bg_fill: fill,
+                weak_bg_fill: fill,
+                bg_stroke: Stroke {
+                    color: fill,
+                    width: 1.0,
+                },
+                fg_stroke: Stroke {
+                    color: on_fill,
+                    width: 1.0,
+                },
+                expansion: 0.0,
+                rounding: 5.0.into(),
+            }
+        }
+
+        let widgets = Widgets {
+            noninteractive: widget_style(get!("surface"), get!("on_surface")),
+            inactive: widget_style(get!("primary_container"), get!("on_primary_container")),
+            hovered: widget_style(get!("tertiary_container"), get!("on_tertiary_container")),
+            active: widget_style(get!("tertiary"), get!("on_tertiary")),
+            open: widget_style(get!("primary_container"), get!("on_primary_container")),
+        };
+
+        let visuals = Visuals {
+            override_text_color: Some(get!("on_surface")),
+            hyperlink_color: get!("on_primary"),
+            faint_bg_color: get!("surface_container"),
+            extreme_bg_color: get!("surface_variant"),
+            code_bg_color: get!("surface_dim"),
+            window_fill: get!("surface_container_highest"),
+            panel_fill: get!("surface"),
+            warn_fg_color: get!("error_container"),
+            error_fg_color: get!("error"),
+
+            selection: Selection {
+                bg_fill: get!("secondary"),
+                stroke: Stroke {
+                    width: 1.5,
+                    color: get!("on_secondary"),
+                },
+            },
+
+            widgets,
+            window_shadow: Shadow {
+                color: get!("shadow"),
+                ..Default::default()
+            },
+            popup_shadow: Shadow {
+                color: get!("shadow"),
+                ..Default::default()
+            },
+            collapsing_header_frame: true,
+            window_highlight_topmost: false,
+            ..if is_dark_mode {
+                Visuals::dark()
+            } else {
+                Visuals::light()
+            }
+        };
+
+        ctx.set_style(Style {
+            visuals,
+            ..Default::default()
+        });
     }
 }
 
@@ -335,6 +507,11 @@ fn argb_to_color32(color: &Argb) -> Color32 {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui_extras::install_image_loaders(ctx);
+
+        if !self.ran_once {
+            self.apply_app_theme(ctx);
+        }
+
         egui::TopBottomPanel::top("my_panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.horizontal(|ui| {
@@ -371,10 +548,10 @@ impl eframe::App for MyApp {
                 });
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::TOP), |ui| {
-                    self.top_buttons(ui);
+                    self.top_buttons(ui, ctx);
                 });
             });
         });
-        egui::CentralPanel::default().show(ctx, |ui| self.body(ui));
+        egui::CentralPanel::default().show(ctx, |ui| self.body(ui, ctx));
     }
 }

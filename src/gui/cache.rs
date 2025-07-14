@@ -20,7 +20,6 @@ pub fn save_cache(image_folder: PathBuf, selected_tab: Tabs) {
     let toml = toml::to_string(&config).unwrap();
     if let Some(mut path) = get_proj_path(&ProjectDirsTypes::Cache) {
         path = path.join("ui_cache.toml");
-        dbg!(&path);
 
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent).expect("Failed to create cache folder");
