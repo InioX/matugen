@@ -1,4 +1,4 @@
-use colorsys::{ColorAlpha, ColorTransform, Hsl, Rgb};
+use colorsys::{ColorAlpha, Hsl, Rgb};
 
 use crate::{
     expect_args,

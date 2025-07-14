@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use indexmap::IndexMap;
 use material_colors::scheme::Scheme;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::color::color::{generate_dynamic_scheme, make_custom_color, OwnCustomColor};
 
