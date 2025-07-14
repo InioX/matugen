@@ -1,25 +1,27 @@
 use std::collections::HashMap;
+use std::fmt;
 use std::fs::create_dir_all;
 use std::fs::read_to_string;
 use std::fs::File;
 use std::io::BufWriter;
+use std::io::Write;
 use std::path::PathBuf;
 
 use crate::color::color::Source;
 use crate::scheme::Schemes;
 use crate::scheme::SchemesEnum;
-use crate::util::config::get_proj_path;
-use crate::util::config::ProjectDirsTypes;
+use crate::util::config::{get_proj_path, ProjectDirsTypes};
 use chumsky::container::Seq;
 use color_eyre::Report;
 use image::ImageReader;
 use indexmap::IndexMap;
 use material_colors::color::Argb;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{
+    de::{self, Visitor},
+    Deserialize, Deserializer, Serialize, Serializer,
+};
 use serde_json::Value;
-use sha2::Digest;
-use sha2::Sha256;
+use sha2::{Digest, Sha256};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CacheFile {
@@ -35,26 +37,98 @@ struct SchemesCache {
     dark: IndexMap<String, ArgbHelper>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
-struct ArgbHelper {
+#[derive(Debug, Copy, Clone)]
+pub struct ArgbHelper {
     alpha: u8,
     red: u8,
     green: u8,
     blue: u8,
 }
 
+impl Serialize for ArgbHelper {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let hex_string = format!(
+            "#{:02X}{:02X}{:02X}{:02X}",
+            self.alpha, self.red, self.green, self.blue
+        );
+        serializer.serialize_str(&hex_string)
+    }
+}
+
+impl<'de> Deserialize<'de> for ArgbHelper {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct ArgbVisitor;
+
+        impl<'de> Visitor<'de> for ArgbVisitor {
+            type Value = ArgbHelper;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a hex string in the format #AARRGGBB")
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                let v = v
+                    .strip_prefix('#')
+                    .ok_or_else(|| E::custom("missing '#' prefix"))?;
+                if v.len() != 8 {
+                    return Err(E::custom("hex string must be 8 characters (AARRGGBB)"));
+                }
+                let alpha = u8::from_str_radix(&v[0..2], 16).map_err(E::custom)?;
+                let red = u8::from_str_radix(&v[2..4], 16).map_err(E::custom)?;
+                let green = u8::from_str_radix(&v[4..6], 16).map_err(E::custom)?;
+                let blue = u8::from_str_radix(&v[6..8], 16).map_err(E::custom)?;
+                Ok(ArgbHelper {
+                    alpha,
+                    red,
+                    green,
+                    blue,
+                })
+            }
+        }
+
+        deserializer.deserialize_str(ArgbVisitor)
+    }
+}
+
 impl From<ArgbHelper> for Argb {
-    fn from(h: ArgbHelper) -> Self {
+    fn from(value: ArgbHelper) -> Self {
         Argb {
-            alpha: h.alpha,
-            red: h.red,
-            green: h.green,
-            blue: h.blue,
+            alpha: value.alpha,
+            red: value.red,
+            green: value.green,
+            blue: value.blue,
         }
     }
 }
 
-fn convert_scheme(scheme: &IndexMap<String, ArgbHelper>) -> IndexMap<String, Argb> {
+impl From<Argb> for ArgbHelper {
+    fn from(value: Argb) -> Self {
+        ArgbHelper {
+            alpha: value.alpha,
+            red: value.red,
+            green: value.green,
+            blue: value.blue,
+        }
+    }
+}
+
+fn convert_helper_scheme(scheme: &IndexMap<String, ArgbHelper>) -> IndexMap<String, Argb> {
+    scheme
+        .iter()
+        .map(|(k, v)| (k.clone(), (*v).into()))
+        .collect()
+}
+
+pub fn convert_argb_scheme(scheme: &IndexMap<String, Argb>) -> IndexMap<String, ArgbHelper> {
     scheme
         .iter()
         .map(|(k, v)| (k.clone(), (*v).into()))
@@ -100,9 +174,13 @@ impl ImageCache {
             }
         };
 
-        let writer = BufWriter::new(file);
+        let header = "// All colors are in the #AARRGGBB format.\n";
 
-        serde_json::to_writer_pretty(writer, value)?;
+        let json_body = serde_json::to_string_pretty(value)?;
+        let full_text = format!("{}{}\n", header, json_body);
+
+        let mut writer = BufWriter::new(file);
+        writer.write_all(full_text.as_bytes())?;
 
         success!(
             "Saved cache of <b><green>{}</> to <d><u>{}</>",
@@ -121,8 +199,8 @@ impl ImageCache {
         let json: CacheFile = serde_json::from_str(&string)?;
 
         let schemes_enum = Schemes {
-            dark: convert_scheme(&json.colors.dark),
-            light: convert_scheme(&json.colors.light),
+            dark: convert_helper_scheme(&json.colors.dark),
+            light: convert_helper_scheme(&json.colors.light),
         };
 
         let value = serde_json::json!({
