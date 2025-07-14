@@ -22,8 +22,10 @@ use crate::{
 use helpers::{set_wallpaper, setup_logging};
 use template::TemplateFile;
 
-use crate::template::Template;
-use crate::util::{arguments::Cli, color::show_color, config::ConfigFile};
+use crate::{
+    template::Template,
+    util::{arguments::Cli, color::show_color, config::ConfigFile},
+};
 
 use clap::Parser;
 use color_eyre::Report;
@@ -36,8 +38,10 @@ pub mod parser;
 pub mod scheme;
 pub mod template_util;
 
-use crate::parser::Engine;
-use crate::scheme::{Schemes, SchemesEnum};
+use crate::{
+    parser::Engine,
+    scheme::{Schemes, SchemesEnum},
+};
 
 use material_colors::{color::Argb, theme::Theme};
 

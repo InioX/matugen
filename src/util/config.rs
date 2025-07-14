@@ -1,15 +1,16 @@
 use directories::ProjectDirs;
-use std::collections::HashMap;
-use std::fs::{self};
-use std::path::PathBuf;
+use std::{
+    collections::HashMap,
+    fs::{self},
+    path::PathBuf,
+};
 
 use color_eyre::{Help, Report};
 
 use serde::{Deserialize, Serialize};
 
 use super::arguments::Cli;
-use crate::wallpaper::Wallpaper;
-use crate::Template;
+use crate::{wallpaper::Wallpaper, Template};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {

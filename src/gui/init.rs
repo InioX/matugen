@@ -13,13 +13,13 @@ use crate::{
         format::{format_hex, rgb_from_argb},
     },
     scheme::{SchemeTypes, Schemes},
+    template::TemplateFile,
+    util::arguments::Cli,
+    State,
 };
-use crate::{template::TemplateFile, util::arguments::Cli, State};
 #[cfg(feature = "ui")]
 use eframe::egui;
-use egui::Stroke;
-use egui::Visuals;
-use egui::{Color32, Ui, Vec2};
+use egui::{Color32, Stroke, Ui, Vec2, Visuals};
 use material_colors::{color::Argb, scheme::variant::SchemeFidelity};
 use serde::{Deserialize, Serialize};
 

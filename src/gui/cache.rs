@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 
-use crate::util::config::get_proj_path;
-use crate::util::config::ProjectDirsTypes;
+use crate::util::config::{get_proj_path, ProjectDirsTypes};
 
 use super::init::Tabs;
 

@@ -1,8 +1,7 @@
 use material_colors::color::Argb;
 use owo_colors::{OwoColorize, Style};
 
-use material_colors::palette::TonalPalette;
-use material_colors::theme::Palettes;
+use material_colors::{palette::TonalPalette, theme::Palettes};
 use prettytable::{format, Cell, Row, Table};
 
 use colorsys::Rgb;
