@@ -218,7 +218,7 @@ impl Engine {
         if !self.validate_color_parts(keywords) {
             self.errors.add(Error::ParseError {
                 kind: crate::parser::ParseErrorKind::Keyword(KeywordError::InvalidColorDefinition),
-                span: span,
+                span,
             });
             return ("colors", "source_color", "default", "hex");
         }
@@ -252,7 +252,7 @@ impl Engine {
                 _ => {
                     self.errors.add(Error::ParseError {
                         kind: ParseErrorKind::Keyword(KeywordError::InvalidScheme),
-                        span: span,
+                        span,
                     });
                     &self.schemes.dark
                 }
@@ -265,7 +265,7 @@ impl Engine {
                         kind: crate::parser::ParseErrorKind::Keyword(
                             crate::parser::KeywordError::ColorDoesNotExist,
                         ),
-                        span: span,
+                        span,
                     });
                     &Argb {
                         alpha: 0,

@@ -15,7 +15,7 @@ mod wallpaper;
 
 use crate::{
     cache::{convert_argb_scheme, ImageCache},
-    color::color::{get_closest_color, get_source_color, Source},
+    color::color::{get_source_color, Source},
     parser::engine::EngineSyntax,
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
 };

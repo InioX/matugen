@@ -261,7 +261,7 @@ impl TemplateFile<'_> {
 }
 
 fn format_hook(
-    mut engine: &mut NewEngine,
+    engine: &mut NewEngine,
     template_name: &String,
     hook: &String,
     colors_to_compare: &Option<Vec<crate::color::color::ColorDefinition>>,
@@ -273,12 +273,12 @@ fn format_hook(
             Err(errors) => {
                 eprintln!("Error when executing hook:\n{}", &hook);
                 for err in errors {
-                    err.emit(&hook);
+                    err.emit(hook);
                 }
                 std::process::exit(1);
             }
         };
-        let closest_color = get_closest_color(&colors_to_compare.as_ref().unwrap(), &res);
+        let closest_color = get_closest_color(colors_to_compare.as_ref().unwrap(), &res);
         engine.add_context(json!({
             "closest_color": closest_color
         }));
@@ -289,7 +289,7 @@ fn format_hook(
         Err(errors) => {
             eprintln!("Error when executing hook:\n{}", &hook);
             for err in errors {
-                err.emit(engine.get_source(&hook));
+                err.emit(engine.get_source(hook));
             }
             std::process::exit(1);
         }
