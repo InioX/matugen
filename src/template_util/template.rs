@@ -4,11 +4,13 @@ use color_eyre::{eyre::Result, Report};
 use colorsys::{ColorAlpha, Hsl};
 use material_colors::color::Argb;
 
-use crate::color::format::{
-    format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
-    rgb_from_argb,
+use crate::{
+    color::format::{
+        format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
+        rgb_from_argb,
+    },
+    scheme::{Schemes, SchemesEnum},
 };
-use crate::scheme::{Schemes, SchemesEnum};
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct Color {

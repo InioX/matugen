@@ -1,5 +1,7 @@
-use crate::color::color::Source;
-use crate::wallpaper::{self, Wallpaper};
+use crate::{
+    color::color::Source,
+    wallpaper::{self, Wallpaper},
+};
 use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
 use std::io::Write;

@@ -1,17 +1,16 @@
-use std::collections::HashMap;
-use std::fmt;
-use std::fs::create_dir_all;
-use std::fs::read_to_string;
-use std::fs::File;
-use std::io::BufWriter;
-use std::io::Write;
-use std::path::PathBuf;
+use std::{
+    collections::HashMap,
+    fmt,
+    fs::{create_dir_all, read_to_string, File},
+    io::{BufWriter, Write},
+    path::PathBuf,
+};
 
-use crate::color::color::Source;
-use crate::scheme::Schemes;
-use crate::scheme::SchemesEnum;
-use crate::util::config::{get_proj_path, ProjectDirsTypes};
-use chumsky::container::Seq;
+use crate::{
+    color::color::Source,
+    scheme::{Schemes, SchemesEnum},
+    util::config::{get_proj_path, ProjectDirsTypes},
+};
 use color_eyre::Report;
 use image::ImageReader;
 use indexmap::IndexMap;

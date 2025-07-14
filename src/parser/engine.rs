@@ -1,10 +1,7 @@
-use std::cell::RefCell;
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap};
 
 use ariadne::{Color, Label, Report, ReportKind, Source};
-use chumsky::error::Rich;
-use chumsky::prelude::*;
-use chumsky::span::SimpleSpan;
+use chumsky::{error::Rich, prelude::*, span::SimpleSpan};
 
 use crate::{
     parser::{context::RuntimeContext, filtertype::FilterFn, Error, ErrorCollector, SpannedValue},

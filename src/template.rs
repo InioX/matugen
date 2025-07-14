@@ -1,30 +1,25 @@
-use color_eyre::eyre::ContextCompat;
-use color_eyre::eyre::WrapErr;
-use color_eyre::Help;
-use color_eyre::{eyre::Result, Report};
-use execute::shell;
-use execute::Execute;
+use color_eyre::{
+    eyre::{ContextCompat, Result, WrapErr},
+    Help, Report,
+};
+use execute::{shell, Execute};
 use serde_json::json;
 
-use crate::color::color::get_closest_color;
-use crate::parser::Engine as NewEngine;
+use crate::{color::color::get_closest_color, parser::Engine as NewEngine};
 // use matugen::template_util::template::add_engine_filters;
 use serde::{Deserialize, Serialize};
 
-use std::path::Path;
-use std::process::Stdio;
-use std::str;
+use std::{path::Path, process::Stdio, str};
 
-use std::fs::create_dir_all;
-use std::fs::read_to_string;
-use std::fs::OpenOptions;
-use std::io::Write;
-use std::path::PathBuf;
+use std::{
+    fs::{create_dir_all, read_to_string, OpenOptions},
+    io::Write,
+    path::PathBuf,
+};
 
 use resolve_path::PathResolveExt;
 
-use crate::SchemesEnum;
-use crate::State;
+use crate::{SchemesEnum, State};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Template {
