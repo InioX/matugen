@@ -10,7 +10,7 @@ version_check = false
 # The file follows this naming: <image_name>.<image_extension>.<image_hash>.json
 # For example: testimage.png.0cfd2d624b3d09bf6246b7be9ca79e207e7aa1189d961d44949628b99811bb9d.json
 # You can modify the cache and it will then be loaded when using the same image.
-caching = true
+caching = false
 
 # Changing the syntax
 # Expr is for stuff like for loops etc.

@@ -51,7 +51,7 @@ impl Serialize for ArgbHelper {
     {
         let hex_string = format!(
             "#{:02X}{:02X}{:02X}{:02X}",
-            self.alpha, self.red, self.green, self.blue
+            self.red, self.green, self.blue, self.alpha
         );
         serializer.serialize_str(&hex_string)
     }
@@ -68,7 +68,7 @@ impl<'de> Deserialize<'de> for ArgbHelper {
             type Value = ArgbHelper;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str("a hex string in the format #AARRGGBB")
+                formatter.write_str("a hex string in the format #RRGGBBAA")
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
@@ -81,10 +81,11 @@ impl<'de> Deserialize<'de> for ArgbHelper {
                 if v.len() != 8 {
                     return Err(E::custom("hex string must be 8 characters (AARRGGBB)"));
                 }
-                let alpha = u8::from_str_radix(&v[0..2], 16).map_err(E::custom)?;
-                let red = u8::from_str_radix(&v[2..4], 16).map_err(E::custom)?;
-                let green = u8::from_str_radix(&v[4..6], 16).map_err(E::custom)?;
-                let blue = u8::from_str_radix(&v[6..8], 16).map_err(E::custom)?;
+                let red = u8::from_str_radix(&v[0..2], 16).map_err(E::custom)?;
+                let green = u8::from_str_radix(&v[2..4], 16).map_err(E::custom)?;
+                let blue = u8::from_str_radix(&v[4..6], 16).map_err(E::custom)?;
+                let alpha = u8::from_str_radix(&v[6..8], 16).map_err(E::custom)?;
+
                 Ok(ArgbHelper {
                     alpha,
                     red,
@@ -173,7 +174,7 @@ impl ImageCache {
             }
         };
 
-        let header = "// All colors are in the #AARRGGBB format.\n";
+        let header = "// All colors are in the #RRGGBBAA format.\n";
 
         let json_body = serde_json::to_string_pretty(value)?;
         let full_text = format!("{}{}\n", header, json_body);
