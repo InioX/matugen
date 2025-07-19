@@ -174,13 +174,10 @@ impl ImageCache {
             }
         };
 
-        let header = "// All colors are in the #RRGGBBAA format.\n";
-
-        let json_body = serde_json::to_string_pretty(value)?;
-        let full_text = format!("{}{}\n", header, json_body);
+        let json = serde_json::to_string_pretty(value)?;
 
         let mut writer = BufWriter::new(file);
-        writer.write_all(full_text.as_bytes())?;
+        writer.write_all(json.as_bytes())?;
 
         success!(
             "Saved cache of <b><green>{}</> to <d><u>{}</>",
