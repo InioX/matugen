@@ -182,6 +182,7 @@ impl State {
         engine.add_filter("set_lightness", crate::filters::set_lightness);
 
         engine.add_filter("lighten", crate::filters::lighten);
+        engine.add_filter("auto_lightness", crate::filters::auto_lighten);
         engine.add_filter("saturate", crate::filters::saturate);
 
         engine.add_filter("grayscale", crate::filters::grayscale);
