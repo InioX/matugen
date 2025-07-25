@@ -58,9 +58,10 @@ pub struct State {
 
 impl State {
     pub fn new(args: Cli) -> Self {
-        let (config_file, config_path) = ConfigFile::read(&args).unwrap();
+        let (config_file, config_path) =
+            ConfigFile::read(&args).expect("Failed to read config file.");
 
-        let source_color = get_source_color(&args.source).unwrap();
+        let source_color = get_source_color(&args.source).expect("Failed to get source color.");
         let theme = ThemeBuilder::with_source(source_color).build();
         let (scheme_dark, scheme_light) = get_schemes(source_color, &args.r#type, &args.contrast);
 
