@@ -73,17 +73,17 @@ impl Error {
         }
     }
 
-    pub fn emit(&self, source: &str) {
+    pub fn emit(&self, source: &str, file_name: &str) {
         match self {
             Error::ParseError { kind, span } => match kind {
                 ParseErrorKind::Filter(filter_error) => {
-                    emit_filter_error(source, filter_error, *span)
+                    emit_filter_error(source, filter_error, *span, file_name)
                 }
                 ParseErrorKind::Keyword(keyword_error) => {
-                    emit_keyword_error(source, *span, keyword_error)
+                    emit_keyword_error(source, *span, keyword_error, file_name)
                 }
             },
-            Error::ResolveError { span } => emit_resolve_error(source, *span),
+            Error::ResolveError { span } => emit_resolve_error(source, *span, file_name),
             Error::TemplateNotFound { template } => {
                 eprintln!("{}", format!("Could not find template: {}", template))
             }
@@ -123,7 +123,12 @@ pub enum FilterError {
     },
 }
 
-pub fn emit_keyword_error(source_code: &str, span: SimpleSpan, kind: &KeywordError) {
+pub fn emit_keyword_error(
+    source_code: &str,
+    span: SimpleSpan,
+    kind: &KeywordError,
+    file_name: &str,
+) {
     let (name, message) = match kind {
         KeywordError::InvalidFormat => ("InvalidColorFormat", "The format provided is not valid, make sure it is one of:\n\t\t[hex, hex_stripped, rgb, rgba, hsl, hsla, red, green, blue, red, alpha, hue, saturation, lightness]".to_owned()),
         KeywordError::ColorDoesNotExist => ("ColorDoesNotExist", "This color does not exist. Check https://github.com/InioX/matugen/wiki/Configuration#example-of-all-the-color-keywords to get a list of all the colors.".to_owned()),
@@ -136,10 +141,11 @@ pub fn emit_keyword_error(source_code: &str, span: SimpleSpan, kind: &KeywordErr
         source_code,
         message,
         span,
+        file_name,
     );
 }
 
-pub fn emit_resolve_error(source_code: &str, span: SimpleSpan) {
+pub fn emit_resolve_error(source_code: &str, span: SimpleSpan, file_name: &str) {
     build_report(
         "ResolveError",
         source_code,
@@ -150,10 +156,11 @@ pub fn emit_resolve_error(source_code: &str, span: SimpleSpan) {
                 .unwrap_or("<invalid span>")
         ),
         span,
+        file_name,
     );
 }
 
-pub fn emit_filter_error(source_code: &str, kind: &FilterError, span: SimpleSpan) {
+pub fn emit_filter_error(source_code: &str, kind: &FilterError, span: SimpleSpan, file_name: &str) {
     let (message, span, name) = match kind {
         FilterError::NotEnoughArguments => (
             "Not enough arguments provided for filter".to_string(),
@@ -191,19 +198,20 @@ pub fn emit_filter_error(source_code: &str, kind: &FilterError, span: SimpleSpan
         source_code,
         message,
         span,
+        file_name,
     );
 }
 
-fn build_report(name: &str, source_code: &str, message: String, span: SimpleSpan) {
-    Report::build(ReportKind::Error, ((), span.into_range()))
+fn build_report(name: &str, source_code: &str, message: String, span: SimpleSpan, file_name: &str) {
+    Report::build(ReportKind::Error, (file_name, span.into_range()))
         .with_config(ariadne::Config::default().with_index_type(ariadne::IndexType::Byte))
         .with_message(name)
         .with_label(
-            Label::new(((), span.into_range()))
+            Label::new((file_name, span.into_range()))
                 .with_message(message)
                 .with_color(Color::Red),
         )
         .finish()
-        .print(Source::from(&source_code))
+        .print((file_name, Source::from(&source_code)))
         .unwrap();
 }
