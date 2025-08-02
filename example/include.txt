@@ -1,0 +1,5 @@
+{{ colors.source_color.default.hex }}
+{{ colors.source_color.default.hex }}
+{{ colors.source_color.default.hex }}
+{{ colors.source_color.default.hex }}
+{{ colors.source_color.default.hex }}
