@@ -22,6 +22,7 @@ impl ErrorCollector {
             Error::TemplateNotFound { template } => false,
             Error::ParseError { kind, span } => self.seen_spans.borrow().contains(span),
             Error::ResolveError { span } => self.seen_spans.borrow().contains(span),
+            Error::IncludeError { span } => self.seen_spans.borrow().contains(span),
         };
         if !seen {
             let span = error.get_span();
@@ -62,6 +63,9 @@ pub enum Error {
     ResolveError {
         span: SimpleSpan,
     },
+    IncludeError {
+        span: SimpleSpan,
+    },
 }
 
 impl Error {
@@ -70,6 +74,7 @@ impl Error {
             Error::TemplateNotFound { template } => None,
             Error::ParseError { kind, span } => Some(*span),
             Error::ResolveError { span } => Some(*span),
+            Error::IncludeError { span } => Some(*span),
         }
     }
 
@@ -87,6 +92,7 @@ impl Error {
             Error::TemplateNotFound { template } => {
                 eprintln!("{}", format!("Could not find template: {}", template))
             }
+            Error::IncludeError { span } => emit_include_error(source, *span, file_name),
         }
     }
 }
@@ -121,6 +127,21 @@ pub enum FilterError {
         expected: String,
         span: SimpleSpan,
     },
+}
+
+pub fn emit_include_error(source_code: &str, span: SimpleSpan, file_name: &str) {
+    build_report(
+        "ResolveError",
+        source_code,
+        format!(
+            "Could not find the '{}' template. Make sure it is in config.toml and named correctly.",
+            source_code
+                .get(span.start..span.end)
+                .unwrap_or("<invalid span>")
+        ),
+        span,
+        file_name,
+    );
 }
 
 pub fn emit_keyword_error(

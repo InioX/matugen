@@ -38,6 +38,9 @@ enum Expression {
     Raw {
         value: SimpleSpan,
     },
+    Include {
+        name: SpannedValue,
+    },
 }
 
 impl Expression {
@@ -327,10 +330,6 @@ impl Engine {
                     })
                 });
 
-            let for_end = just("endfor")
-                .padded()
-                .delimited_by(just(syntax.block_left), just(syntax.block_right));
-
             let raw = any()
                 .and_is(just(syntax.keyword_left).or(just(syntax.block_left)).not())
                 .repeated()
@@ -343,8 +342,19 @@ impl Engine {
                     })
                 });
 
-            let for_loop = just(syntax.block_left)
-                .ignore_then(just("for").padded())
+            let include = just("include")
+                .padded()
+                .ignore_then(spanned_ident.padded())
+                .delimited_by(just(syntax.block_left), just(syntax.block_right))
+                .map_with(|name, e| {
+                    Box::new(SpannedExpr {
+                        expr: Expression::Include { name },
+                        span: e.span(),
+                    })
+                });
+
+            let for_loop = just("for")
+                .padded()
                 .ignore_then(
                     spanned_ident
                         .separated_by(just(',').padded())
@@ -356,7 +366,12 @@ impl Engine {
                 .then(dotted_ident.padded())
                 .then_ignore(just(syntax.block_right))
                 .then(raw.or(expr).repeated().collect())
-                .then_ignore(for_end)
+                .delimited_by(
+                    just(syntax.block_left),
+                    just("endfor")
+                        .padded()
+                        .delimited_by(just(syntax.block_left), just(syntax.block_right)),
+                )
                 .map_with(|((var, list), body), e| {
                     Box::new(SpannedExpr {
                         expr: Expression::ForLoop {
@@ -368,7 +383,7 @@ impl Engine {
                     })
                 });
 
-            raw.or(keyword_full).or(for_loop)
+            raw.or(keyword_full).or(for_loop).or(include)
         })
         .repeated()
         .collect::<Vec<Box<SpannedExpr>>>()

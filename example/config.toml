@@ -36,6 +36,10 @@ arguments = ["img", "--transition-type", "center"]
 [config.custom_keywords]
 test = "aaaa"
 
+[templates.includeme]
+input_path = "./include.txt"
+output_path = "./a/include.txt"
+
 [templates.name1]
 # Relative paths will be resolved from the path `config.toml` is in.
 input_path = "./colors.whatever-extension"

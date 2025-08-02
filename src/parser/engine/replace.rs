@@ -221,7 +221,24 @@ impl Engine {
                     }
                 }
             }
-            _ => {}
+            Expression::Include { name } => match &name.value {
+                Value::Ident(s) => {
+                    let template = self.templates.get(s);
+                    match template {
+                        Some(v) => {
+                            let res = self.build_string(&v.ast, &self.sources[v.source_id]);
+                            src.push_str(&res);
+                        }
+                        None => {
+                            let error = Error::IncludeError { span: name.span };
+                            self.errors.add(error);
+                            return;
+                        }
+                    };
+                }
+                _ => {}
+            },
+            Expression::Filter { name: _, args: _ } => unreachable!(),
         }
     }
 
