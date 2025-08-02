@@ -344,9 +344,7 @@ impl Engine {
                 });
 
             let for_loop = just(syntax.block_left)
-                .padded()
-                .ignore_then(just("for"))
-                .padded()
+                .ignore_then(just("for").padded())
                 .ignore_then(
                     spanned_ident
                         .separated_by(just(',').padded())
@@ -354,12 +352,9 @@ impl Engine {
                         .collect::<Vec<SpannedValue>>(),
                 )
                 .padded()
-                .then_ignore(just("in"))
-                .padded()
-                .then(dotted_ident)
-                .padded()
+                .then_ignore(just("in").padded())
+                .then(dotted_ident.padded())
                 .then_ignore(just(syntax.block_right))
-                .padded()
                 .then(raw.or(expr).repeated().collect())
                 .then_ignore(for_end)
                 .map_with(|((var, list), body), e| {
