@@ -423,10 +423,7 @@ impl Engine {
                     })
                 });
 
-            raw.or(keyword_full)
-                .or(for_loop)
-                .or(if_statement)
-                .or(include)
+            choice((raw, keyword_full, for_loop, if_statement, include))
         })
         .repeated()
         .collect::<Vec<Box<SpannedExpr>>>()
