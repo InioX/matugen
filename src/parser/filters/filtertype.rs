@@ -7,6 +7,7 @@ pub enum FilterReturnType {
     String(String),
     Rgb(Rgb),
     Hsl(Hsl),
+    Bool(bool),
 }
 
 pub type FilterFn = fn(
@@ -20,8 +21,12 @@ impl ToString for FilterReturnType {
     fn to_string(&self) -> String {
         match self {
             FilterReturnType::String(value) => value.to_string(),
-            FilterReturnType::Rgb(rgb) => todo!(),
-            FilterReturnType::Hsl(hsl) => todo!(),
+            FilterReturnType::Rgb(_rgb) => unreachable!(),
+            FilterReturnType::Hsl(_hsl) => unreachable!(),
+            FilterReturnType::Bool(boolean) => match boolean {
+                true => "true".to_owned(),
+                false => "false".to_owned(),
+            },
         }
     }
 }
@@ -99,7 +104,7 @@ impl From<Value> for FilterReturnType {
             Value::Int(v) => v.into(),
             Value::Float(v) => v.into(),
             Value::Color(v) => v.into(),
-            Value::Bool(v) => v.into(),
+            Value::Bool(boolean) => Self::Bool(boolean),
             Value::Map(_hash_map) => panic!("Cant convert map to FilterReturnType"),
             Value::Array(_array) => panic!("Cant convert Array to String"),
             Value::Null => todo!(),

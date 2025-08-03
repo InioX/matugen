@@ -24,6 +24,7 @@ pub(crate) fn set_red(
             rgb.set_red(amt);
             Ok(FilterReturnType::Rgb(rgb))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
 
@@ -46,6 +47,7 @@ pub(crate) fn set_green(
             rgb.set_green(amt);
             Ok(FilterReturnType::Rgb(rgb))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
 
@@ -68,6 +70,7 @@ pub(crate) fn set_blue(
             rgb.set_blue(amt);
             Ok(FilterReturnType::Rgb(rgb))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
 
@@ -89,6 +92,7 @@ pub(crate) fn set_alpha(
             color.set_alpha(amt);
             Ok(FilterReturnType::Hsl(color))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
 
@@ -111,6 +115,7 @@ pub(crate) fn set_hue(
             color.set_hue(amt);
             Ok(FilterReturnType::Hsl(color))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
 
@@ -133,6 +138,7 @@ pub(crate) fn set_saturation(
             color.set_saturation(amt);
             Ok(FilterReturnType::Hsl(color))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
 
@@ -155,5 +161,6 @@ pub(crate) fn set_lightness(
             color.set_lightness(amt);
             Ok(FilterReturnType::Hsl(color))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }

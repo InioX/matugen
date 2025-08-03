@@ -120,6 +120,7 @@ pub enum FilterError {
         actual: String,
     },
     ColorFilterOnString,
+    ColorFilterOnBool,
     FilterNotFound {
         filter: String,
     },
@@ -202,6 +203,11 @@ pub fn emit_filter_error(source_code: &str, kind: &FilterError, span: SimpleSpan
                 .to_string(),
             span,
             "ColorFilterOnString",
+        ),
+        FilterError::ColorFilterOnBool => (
+            "Cannot use color filters on a boolean value".to_string(),
+            span,
+            "ColorFilterOnBool",
         ),
         FilterError::FilterNotFound { filter } => (
             format!("Could not fild filter {filter}").to_string(),
