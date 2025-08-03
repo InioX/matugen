@@ -41,6 +41,7 @@ pub(crate) fn invert(
             color.invert();
             Ok(FilterReturnType::Hsl(color))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
 
@@ -60,6 +61,7 @@ pub(crate) fn grayscale(
             color.invert();
             Ok(FilterReturnType::Hsl(color))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
 
@@ -82,6 +84,7 @@ pub(crate) fn lighten(
             color.lighten(amt);
             Ok(FilterReturnType::Hsl(color))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
 
@@ -105,6 +108,7 @@ pub(crate) fn auto_lighten(
             adjust_hsl_lightness(&mut color, amt, threshold);
             Ok(FilterReturnType::Hsl(color))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
 
@@ -137,6 +141,7 @@ pub(crate) fn saturate(
             color.saturate(saturation);
             Ok(FilterReturnType::Hsl(color))
         }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
 

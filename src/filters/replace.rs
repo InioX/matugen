@@ -26,5 +26,9 @@ pub(crate) fn replace(
             let modified: String = string.unwrap().into().replace(&find, &replace);
             Ok(FilterReturnType::String(modified))
         }
+        FilterReturnType::Bool(boolean) => match boolean {
+            true => Ok(FilterReturnType::String("true".replace(&find, &replace))),
+            false => Ok(FilterReturnType::String("false".replace(&find, &replace))),
+        },
     }
 }

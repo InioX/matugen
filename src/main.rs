@@ -159,6 +159,11 @@ impl State {
             Source::Color { .. } => None,
         };
 
+        let is_dark_mode = match self.default_scheme {
+            SchemesEnum::Dark => true,
+            SchemesEnum::Light => false,
+        };
+
         let mut custom: HashMap<String, String> = Default::default();
         for entry in self.config_file.config.custom_keywords.iter() {
             for (name, value) in entry {
@@ -167,7 +172,7 @@ impl State {
         }
 
         Ok(serde_json::json!({
-            "image": image, "custom": &custom, "mode": self.default_scheme,
+            "image": image, "custom": &custom, "mode": self.default_scheme, "is_dark_mode": is_dark_mode
         }))
     }
 

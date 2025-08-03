@@ -41,6 +41,11 @@ enum Expression {
     Include {
         name: SpannedValue,
     },
+    If {
+        condition: Box<SpannedExpr>,
+        then_branch: Vec<Box<SpannedExpr>>,
+        else_branch: Option<Vec<Box<SpannedExpr>>>,
+    },
 }
 
 impl Expression {
@@ -262,11 +267,16 @@ impl Engine {
                     },
                 );
 
+            let boolean = just("true")
+                .to(Value::Bool(true))
+                .or(just("false").to(Value::Bool(false)));
+
             let spanned_ident = ident.map_with(|value, e| SpannedValue::new(value, e.span()));
 
             let arg = float
                 .or(int)
                 .or(ident)
+                .or(boolean)
                 .map_with(|value, e| SpannedValue::new(value, e.span()));
 
             // Filter: name is span, args are spanned values
@@ -353,6 +363,36 @@ impl Engine {
                     })
                 });
 
+            let if_statement = just("if")
+                .padded()
+                .ignore_then(keyword_full.clone().padded())
+                .then_ignore(just(syntax.block_right).padded())
+                .then(raw.or(expr.clone()).repeated().collect())
+                .then(
+                    just(syntax.block_left)
+                        .padded()
+                        .ignore_then(just("else").padded())
+                        .ignore_then(just(syntax.block_right).padded())
+                        .ignore_then(raw.or(expr.clone()).repeated().collect())
+                        .or_not(),
+                )
+                .delimited_by(
+                    just(syntax.block_left),
+                    just("endif")
+                        .padded()
+                        .delimited_by(just(syntax.block_left), just(syntax.block_right)),
+                )
+                .map_with(|((condition, then_branch), else_branch), e| {
+                    Box::new(SpannedExpr {
+                        expr: Expression::If {
+                            condition: condition,
+                            then_branch: then_branch,
+                            else_branch: else_branch,
+                        },
+                        span: e.span(),
+                    })
+                });
+
             let for_loop = just("for")
                 .padded()
                 .ignore_then(
@@ -383,7 +423,10 @@ impl Engine {
                     })
                 });
 
-            raw.or(keyword_full).or(for_loop).or(include)
+            raw.or(keyword_full)
+                .or(for_loop)
+                .or(if_statement)
+                .or(include)
         })
         .repeated()
         .collect::<Vec<Box<SpannedExpr>>>()

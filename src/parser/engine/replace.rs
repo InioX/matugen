@@ -151,7 +151,7 @@ impl Engine {
                 src.push_str(
                     &self
                         .get_replacement_filter(keywords, filters, source, keyword.span)
-                        .into(),
+                        .to_string(),
                 );
             }
             Expression::Raw { value } => {
@@ -238,6 +238,43 @@ impl Engine {
                 }
                 _ => {}
             },
+            Expression::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => {
+                match &condition.expr {
+                    Expression::Keyword { keywords } => {
+                        let res = self.get_replacement_filter(
+                            &get_str_vec(source, keywords),
+                            &vec![],
+                            source,
+                            condition.span,
+                        );
+                        match res {
+                            FilterReturnType::Bool(boolean) => {
+                                if boolean {
+                                    let str = self.build_string(&then_branch, source);
+                                    src.push_str(&str);
+                                } else {
+                                    if let Some(else_branch) = else_branch {
+                                        let str = self.build_string(&else_branch, source);
+                                        src.push_str(&str);
+                                    }
+                                }
+                            }
+                            _ => {
+                                println!("You can only use if with booleans1");
+                                return;
+                            }
+                        }
+                    }
+                    _ => {
+                        // TODO: ERROR
+                        println!("You can only use if with booleans2")
+                    }
+                }
+            }
             Expression::Filter { name: _, args: _ } => unreachable!(),
         }
     }
@@ -285,7 +322,7 @@ impl Engine {
         filters: &[SpannedExpr],
         source: &String,
         span: SimpleSpan,
-    ) -> impl Into<String> {
+    ) -> FilterReturnType {
         let mut current_value = if keywords[0] == "colors" {
             match self.resolve_path_filter(keywords.iter().copied()) {
                 Some(v) => FilterReturnType::from(v),
@@ -308,6 +345,7 @@ impl Engine {
             FilterReturnType::Rgb(_) => true,
             FilterReturnType::Hsl(_) => true,
             FilterReturnType::String(_) => false,
+            FilterReturnType::Bool(_) => false,
         };
 
         for filter in filters {
@@ -341,29 +379,30 @@ impl Engine {
         }
 
         match current_value {
-            FilterReturnType::String(val) => val,
+            FilterReturnType::String(_) => current_value,
             FilterReturnType::Rgb(argb) => match format_color(argb, self.get_format(keywords)) {
-                Some(v) => v.into(),
+                Some(v) => FilterReturnType::String(v.into()),
                 None => {
                     let error = Error::ParseError {
                         kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat),
                         span,
                     };
                     self.errors.add(error);
-                    String::from("")
+                    FilterReturnType::String(String::from(""))
                 }
             },
             FilterReturnType::Hsl(hsl) => match format_color_hsl(hsl, self.get_format(keywords)) {
-                Some(v) => v.into(),
+                Some(v) => FilterReturnType::String(v.into()),
                 None => {
                     let error = Error::ParseError {
                         kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat),
                         span,
                     };
                     self.errors.add(error);
-                    String::from("")
+                    FilterReturnType::String(String::from(""))
                 }
             },
+            FilterReturnType::Bool(_) => current_value,
         }
     }
 
