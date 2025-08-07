@@ -19,10 +19,8 @@ test {{ colors.source_color.default.rgb }}
 
 {{ colors.source_color.default.hex_stripped | lighten: 20.0 }}
 
+{{ colors.source_color.default.hex }}
 {{ colors.source_color.default.hex | lighten: 20.0 }}
-
-Should  not change at all
-{{ colors.source_color.default.red | lighten: 5.0 }}
 
 red {{colors.red.default.rgb}};
 red {{colors.red.default.rgba}};
