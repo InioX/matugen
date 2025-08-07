@@ -12,7 +12,156 @@ use crate::{
 use crate::scheme::SchemesEnum;
 
 impl Engine {
-    pub fn resolve_path<'a, I>(&self, path: I) -> Option<Value>
+    pub fn resolve_path_md3_color<'a>(
+        &self,
+        mut path: impl Iterator<Item = &'a str>,
+        format_value: bool,
+    ) -> Option<Value> {
+        let color_name = path.next();
+        let scheme_name = path.next();
+        let format_name = path.next();
+
+        match (color_name, scheme_name, format_name) {
+            (None, None, None) => {
+                let mut color_map: IndexMap<String, Value> = IndexMap::new();
+
+                for name in self.schemes.get_all_names() {
+                    let mut scheme_map = IndexMap::new();
+
+                    let default_scheme = match self.default_scheme {
+                        SchemesEnum::Light => self.schemes.light.clone(),
+                        SchemesEnum::Dark => self.schemes.dark.clone(),
+                    };
+
+                    for (scheme_name, scheme) in [
+                        ("light", self.schemes.light.clone()),
+                        ("dark", self.schemes.dark.clone()),
+                        ("default", default_scheme),
+                    ] {
+                        if let Some(color) = scheme.get(name) {
+                            scheme_map.insert(
+                                scheme_name.to_string(),
+                                Value::LazyColor {
+                                    color: rgb_from_argb(*color),
+                                    scheme: Some(scheme_name.to_string()),
+                                },
+                            );
+                        }
+                    }
+                    color_map.insert(name.clone(), Value::Map(scheme_map));
+                }
+
+                return Some(Value::Map(color_map));
+            }
+            (Some(color_name), None, None) => {
+                let mut scheme_map = IndexMap::new();
+                for (scheme_name, scheme) in [
+                    ("light", &self.schemes.light),
+                    ("dark", &self.schemes.dark),
+                    (
+                        "default",
+                        match self.default_scheme {
+                            SchemesEnum::Light => &self.schemes.light,
+                            SchemesEnum::Dark => &self.schemes.dark,
+                        },
+                    ),
+                ] {
+                    if let Some(color) = scheme.get(color_name) {
+                        scheme_map.insert(
+                            scheme_name.to_string(),
+                            Value::LazyColor {
+                                color: rgb_from_argb(*color),
+                                scheme: Some(scheme_name.to_string()),
+                            },
+                        );
+                    }
+                }
+                return Some(Value::Map(scheme_map));
+            }
+            (Some(color_name), Some(scheme_name), None) => {
+                let scheme = match scheme_name {
+                    "light" => &self.schemes.light,
+                    "dark" => &self.schemes.dark,
+                    "default" => match self.default_scheme {
+                        SchemesEnum::Light => &self.schemes.light,
+                        SchemesEnum::Dark => &self.schemes.dark,
+                    },
+                    _ => return None,
+                };
+
+                let color = scheme.get(color_name)?;
+                return Some(Value::LazyColor {
+                    color: rgb_from_argb(*color),
+                    scheme: Some(scheme_name.to_string()),
+                });
+            }
+            (Some(color_name), Some(scheme_name), Some(format_name)) => {
+                let scheme = match scheme_name {
+                    "light" => &self.schemes.light,
+                    "dark" => &self.schemes.dark,
+                    "default" => match self.default_scheme {
+                        SchemesEnum::Light => &self.schemes.light,
+                        SchemesEnum::Dark => &self.schemes.dark,
+                    },
+                    _ => return None,
+                };
+
+                let color = rgb_from_argb(*scheme.get(color_name)?);
+                let formats = format_color_all(color);
+                return formats.get(format_name).cloned();
+            }
+            _ => return None,
+        }
+    }
+
+    pub fn resolve_path<'a, I>(&self, path: I, format_value: bool) -> Option<Value>
+    where
+        I: IntoIterator<Item = &'a str> + Clone,
+    {
+        let mut iter = path.clone().into_iter().peekable();
+
+        if let Some(&first) = iter.peek() {
+            match first {
+                "colors" => {
+                    iter.next();
+                    return self.resolve_path_md3_color(iter, format_value);
+                }
+                _ => {}
+            }
+        }
+
+        let first = iter.next()?;
+
+        let mut current = self
+            .runtime
+            .borrow()
+            .resolve_path(std::iter::once(first))
+            .or_else(|| self.context.data().get(first).cloned())?;
+
+        for next_key in iter {
+            match current {
+                Value::Map(ref map) => {
+                    current = map.get(next_key)?.clone();
+                }
+                Value::LazyColor { color, .. } => {
+                    let color_map = format_color_all(color);
+                    current = Value::Ident(color_map.get(next_key)?.into());
+                }
+                Value::Color(argb) => {
+                    // convert to map and keep walking
+                    let color_map = format_color_all(argb);
+                    current = Value::Ident(color_map.get(next_key)?.clone().into());
+                }
+                _ => {
+                    return None;
+                }
+            }
+        }
+
+        Some(current)
+    }
+
+    pub fn resolve_path_aaa<'a, I>(&self, path: I) -> Option<Value>
     where
         I: IntoIterator<Item = &'a str> + Clone,
     {

@@ -158,8 +158,9 @@ impl Engine {
                 src.push_str(get_str(source, value));
             }
             Expression::ForLoop { var, list, body } => {
+                let format_color = true;
                 let values = match list.expr.as_keywords(source) {
-                    Some(v) => self.resolve_path(v),
+                    Some(v) => self.resolve_path(v, format_color),
                     None => unreachable!(),
                 };
 
@@ -306,7 +307,8 @@ impl Engine {
                 }
             }
         } else {
-            match self.resolve_path(keywords.iter().copied()) {
+            let format_color = true;
+            match self.resolve_path(keywords.iter().copied(), format_color) {
                 Some(v) => String::from(v),
                 None => {
                     self.errors.add(Error::ResolveError { span });
