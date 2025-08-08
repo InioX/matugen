@@ -346,8 +346,9 @@ impl Engine {
         source: &String,
         span: SimpleSpan,
     ) -> FilterReturnType {
+        let format_color_string = false;
         let mut current_value = if keywords[0] == "colors" {
-            match self.resolve_path_filter(keywords.iter().copied()) {
+            match self.resolve_path(keywords.iter().copied(), format_color_string) {
                 Some(v) => FilterReturnType::from(v),
                 None => {
                     self.errors.add(Error::ResolveError { span });
@@ -355,7 +356,7 @@ impl Engine {
                 }
             }
         } else {
-            match self.resolve_path_filter(keywords.iter().copied()) {
+            match self.resolve_path(keywords.iter().copied(), format_color_string) {
                 Some(v) => FilterReturnType::from(v),
                 None => {
                     self.errors.add(Error::ResolveError { span });
