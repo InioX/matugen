@@ -24,7 +24,7 @@ enum Expression {
     },
     Filter {
         name: SimpleSpan,
-        args: Vec<SpannedValue>,
+        args: Vec<Box<SpannedExpr>>,
     },
     KeywordWithFilters {
         keyword: Box<SpannedExpr>,
@@ -32,7 +32,7 @@ enum Expression {
     },
     ForLoop {
         var: Vec<SpannedValue>,
-        list: Box<SpannedExpr>,
+        iter: Box<SpannedExpr>,
         body: Vec<Box<SpannedExpr>>,
     },
     Raw {
@@ -50,6 +50,15 @@ enum Expression {
         start: i64,
         end: i64,
     },
+    LiteralValue {
+        value: SpannedValue,
+    },
+}
+
+#[derive(Debug, Clone)]
+enum FilterArgEnum {
+    Value(SpannedValue),
+    Expression(SpannedExpr),
 }
 
 impl Expression {
@@ -288,11 +297,17 @@ impl Engine {
 
             let spanned_ident = ident.map_with(|value, e| SpannedValue::new(value, e.span()));
 
-            let arg = float
-                .or(int)
-                .or(ident)
-                .or(boolean)
-                .map_with(|value, e| SpannedValue::new(value, e.span()));
+            let arg = float.or(int).or(ident).or(boolean).map_with(|value, e| {
+                Box::new(SpannedExpr {
+                    expr: Expression::LiteralValue {
+                        value: SpannedValue {
+                            value,
+                            span: e.span(),
+                        },
+                    },
+                    span: e.span(),
+                })
+            });
 
             // Filter: name is span, args are spanned values
             let filter = text::ident()
@@ -301,19 +316,22 @@ impl Engine {
                     just(':')
                         .padded()
                         .ignore_then(
-                            arg.padded()
+                            arg.or(expr.clone())
+                                .padded()
                                 .separated_by(just(',').padded())
-                                .collect::<Vec<SpannedValue>>(),
+                                .collect::<Vec<Box<SpannedExpr>>>(),
                         )
                         .or_not(),
                 )
-                .map_with(|(name, args), e| SpannedExpr {
-                    expr: Expression::Filter {
-                        name,
-                        args: args.unwrap_or_default(),
+                .map_with(
+                    |(name, args), e: &mut chumsky::input::MapExtra<'_, '_, _, _>| SpannedExpr {
+                        expr: Expression::Filter {
+                            name,
+                            args: args.unwrap_or_default(),
+                        },
+                        span: e.span(),
                     },
-                    span: e.span(),
-                });
+                );
 
             let filters = just('|')
                 .padded()
@@ -431,7 +449,7 @@ impl Engine {
                     Box::new(SpannedExpr {
                         expr: Expression::ForLoop {
                             var,
-                            list: Box::new(list),
+                            iter: Box::new(list),
                             body,
                         },
                         span: e.span(),

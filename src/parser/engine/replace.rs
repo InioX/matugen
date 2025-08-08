@@ -140,7 +140,11 @@ impl Engine {
     fn eval(&self, src: &mut String, expr: &SpannedExpr, source: &String) {
         match &expr.expr {
             Expression::Keyword { keywords } => {
-                src.push_str(&self.get_replacement(&get_str_vec(source, keywords), expr.span));
+                let format_value = true;
+                let value: String = self
+                    .get_replacement(&get_str_vec(source, keywords), expr.span, format_value)
+                    .into();
+                src.push_str(&value);
             }
             Expression::KeywordWithFilters { keyword, filters } => {
                 let keywords = match &keyword.expr {
@@ -157,10 +161,10 @@ impl Engine {
             Expression::Raw { value } => {
                 src.push_str(get_str(source, value));
             }
-            Expression::ForLoop { var, list, body } => {
+            Expression::ForLoop { var, iter, body } => {
                 let format_color = true;
 
-                match &list.expr {
+                match &iter.expr {
                     //     Expression::KeywordWithFilters { keyword, filters } => todo!(),
                     Expression::Range { start, end } => {
                         for i in *start..*end {
@@ -173,13 +177,13 @@ impl Engine {
                         }
                     }
                     Expression::Keyword { keywords } => {
-                        let values = match list.expr.as_keywords(source) {
+                        let values = match iter.expr.as_keywords(source) {
                             Some(v) => self.resolve_path(v, format_color),
                             None => unreachable!(),
                         };
 
                         let Some(values) = values else {
-                            let spans = list.expr.as_spans().unwrap();
+                            let spans = iter.expr.as_spans().unwrap();
                             let error = Error::ResolveError {
                                 span: SimpleSpan::from(
                                     spans.first().unwrap().start..spans.last().unwrap().end,
@@ -295,9 +299,9 @@ impl Engine {
                     }
                 }
             }
-            // These will never be on their own inside of templates
             Expression::Filter { name: _, args: _ } => unreachable!(),
             Expression::Range { start: _, end: _ } => unreachable!(),
+            Expression::LiteralValue { value: _ } => unreachable!(),
         }
     }
 
@@ -312,28 +316,38 @@ impl Engine {
         output
     }
 
-    fn get_replacement(&self, keywords: &[&str], span: SimpleSpan) -> String {
+    fn get_replacement(&self, keywords: &[&str], span: SimpleSpan, format_value: bool) -> Value {
         if keywords[0] == "colors" {
             let (r#type, name, colorscheme, format) = self.get_color_parts(keywords, span);
             let color = rgb_from_argb(*self.get_from_map(r#type, name, colorscheme, span));
+
+            if !format_value {
+                return Value::Color(color);
+            }
+
             match format_color(color, self.get_format(keywords)) {
-                Some(v) => v.into(),
+                Some(v) => Value::Ident(v.into()),
                 None => {
                     let error = Error::ParseError {
                         kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat),
                         span,
                     };
                     self.errors.add(error);
-                    String::from("")
+                    Value::Ident(String::from(""))
                 }
             }
         } else {
-            let format_color = true;
-            match self.resolve_path(keywords.iter().copied(), format_color) {
-                Some(v) => String::from(v),
+            match self.resolve_path(keywords.iter().copied(), format_value) {
+                Some(v) => {
+                    if format_value {
+                        Value::Ident(String::from(v))
+                    } else {
+                        v
+                    }
+                }
                 None => {
                     self.errors.add(Error::ResolveError { span });
-                    String::from("")
+                    Value::Ident(String::from(""))
                 }
             }
         }
@@ -378,9 +392,39 @@ impl Engine {
                 args,
             } = &filter.expr
             {
+                let format_value = false;
+                let mut args_resolved = vec![];
+                for arg in args {
+                    match &arg.expr {
+                        Expression::Keyword { keywords } => args_resolved.push(SpannedValue {
+                            value: self.get_replacement(
+                                &get_str_vec(source, keywords),
+                                span,
+                                false,
+                            ),
+                            span: arg.span,
+                        }),
+                        Expression::KeywordWithFilters { keyword, filters } => {
+                            let keywords = match &keyword.expr {
+                                Expression::Keyword { keywords } => &get_str_vec(source, keywords),
+                                _ => panic!(""),
+                            };
+                            args_resolved.push(SpannedValue {
+                                value: Value::from(
+                                    self.get_replacement_filter(keywords, filters, source, span),
+                                ),
+                                span: arg.span,
+                            });
+                        }
+                        Expression::LiteralValue { value } => args_resolved.push(value.clone()),
+                        _ => {
+                            panic!("Unsupported filter arg")
+                        }
+                    }
+                }
                 current_value = match self.apply_filter(
                     get_str(source, filter_name),
-                    args,
+                    &args_resolved,
                     keywords,
                     current_value,
                     filter.span,

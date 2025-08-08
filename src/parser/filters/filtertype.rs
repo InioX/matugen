@@ -97,6 +97,18 @@ impl From<&Rgb> for FilterReturnType {
     }
 }
 
+impl From<Hsl> for FilterReturnType {
+    fn from(value: Hsl) -> Self {
+        FilterReturnType::Hsl(value)
+    }
+}
+
+impl From<&Hsl> for FilterReturnType {
+    fn from(value: &Hsl) -> Self {
+        FilterReturnType::Hsl(value.clone())
+    }
+}
+
 impl From<Value> for FilterReturnType {
     fn from(value: Value) -> Self {
         match value {
@@ -104,6 +116,7 @@ impl From<Value> for FilterReturnType {
             Value::Int(v) => v.into(),
             Value::Float(v) => v.into(),
             Value::Color(v) => v.into(),
+            Value::HslColor(v) => v.into(),
             Value::Bool(boolean) => Self::Bool(boolean),
             Value::Map(_hash_map) => panic!("Cant convert map to FilterReturnType"),
             Value::Array(_array) => panic!("Cant convert Array to String"),
@@ -120,6 +133,7 @@ impl From<&Value> for FilterReturnType {
             Value::Int(v) => v.into(),
             Value::Float(v) => v.into(),
             Value::Color(v) => v.into(),
+            Value::HslColor(v) => v.into(),
             Value::Bool(v) => v.into(),
             Value::Map(_hash_map) => panic!("Cant convert map to FilterReturnType"),
             Value::Array(_array) => panic!("Cant convert Array to String"),
