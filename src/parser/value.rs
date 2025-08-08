@@ -117,6 +117,14 @@ impl Value {
         }
         .to_string()
     }
+
+    pub fn get_int(&self) -> Option<i64> {
+        match self {
+            Value::Int(v) => Some(*v),
+            // Value::Float(_) => todo!(),
+            _ => None,
+        }
+    }
 }
 
 impl From<serde_json::Value> for Value {

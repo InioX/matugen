@@ -159,67 +159,86 @@ impl Engine {
             }
             Expression::ForLoop { var, list, body } => {
                 let format_color = true;
-                let values = match list.expr.as_keywords(source) {
-                    Some(v) => self.resolve_path(v, format_color),
-                    None => unreachable!(),
-                };
 
-                let Some(values) = values else {
-                    let spans = list.expr.as_spans().unwrap();
-                    let error = Error::ResolveError {
-                        span: SimpleSpan::from(
-                            spans.first().unwrap().start..spans.last().unwrap().end,
-                        ),
-                    };
-                    self.errors.add(error);
-                    return;
-                };
-
-                match values {
-                    Value::Map(map) => {
-                        for (key, value) in map {
+                match &list.expr {
+                    //     Expression::KeywordWithFilters { keyword, filters } => todo!(),
+                    Expression::Range { start, end } => {
+                        for i in *start..*end {
                             self.runtime.borrow_mut().push_scope();
 
-                            if var.len() == 1 {
-                                self.runtime
-                                    .borrow_mut()
-                                    .insert(var[0].value.clone(), Value::Ident(key.clone()));
-                            } else if var.len() == 2 {
-                                self.runtime
-                                    .borrow_mut()
-                                    .insert(var[0].value.clone(), Value::Ident(key.clone()));
-                                self.runtime
-                                    .borrow_mut()
-                                    .insert(var[1].value.clone(), value.clone());
-                            } else {
-                                panic!("for-loop supports only one or two variables");
-                            }
-
-                            // Evaluate the body with these bindings
-                            src.push_str(&self.eval_loop_body(body.clone(), source));
-
-                            self.runtime.borrow_mut().pop_scope();
-                        }
-                    }
-                    Value::Array(arr) => {
-                        for item in arr {
-                            self.runtime.borrow_mut().push_scope();
-
-                            if var.len() == 1 {
-                                self.runtime
-                                    .borrow_mut()
-                                    .insert(var[0].value.clone(), item.clone());
-                            } else {
-                                panic!("for-loop over list supports only one variable");
-                            }
+                            self.runtime.borrow_mut().insert("i", Value::Int(i));
 
                             src.push_str(&self.eval_loop_body(body.clone(), source));
                             self.runtime.borrow_mut().pop_scope();
                         }
                     }
-                    _ => {
-                        panic!("Cannot loop over non-iterable value");
+                    Expression::Keyword { keywords } => {
+                        let values = match list.expr.as_keywords(source) {
+                            Some(v) => self.resolve_path(v, format_color),
+                            None => unreachable!(),
+                        };
+
+                        let Some(values) = values else {
+                            let spans = list.expr.as_spans().unwrap();
+                            let error = Error::ResolveError {
+                                span: SimpleSpan::from(
+                                    spans.first().unwrap().start..spans.last().unwrap().end,
+                                ),
+                            };
+                            self.errors.add(error);
+                            return;
+                        };
+
+                        match values {
+                            Value::Map(map) => {
+                                for (key, value) in map {
+                                    self.runtime.borrow_mut().push_scope();
+
+                                    if var.len() == 1 {
+                                        self.runtime.borrow_mut().insert(
+                                            var[0].value.clone(),
+                                            Value::Ident(key.clone()),
+                                        );
+                                    } else if var.len() == 2 {
+                                        self.runtime.borrow_mut().insert(
+                                            var[0].value.clone(),
+                                            Value::Ident(key.clone()),
+                                        );
+                                        self.runtime
+                                            .borrow_mut()
+                                            .insert(var[1].value.clone(), value.clone());
+                                    } else {
+                                        panic!("for-loop supports only one or two variables");
+                                    }
+
+                                    // Evaluate the body with these bindings
+                                    src.push_str(&self.eval_loop_body(body.clone(), source));
+
+                                    self.runtime.borrow_mut().pop_scope();
+                                }
+                            }
+                            Value::Array(arr) => {
+                                for item in arr {
+                                    self.runtime.borrow_mut().push_scope();
+
+                                    if var.len() == 1 {
+                                        self.runtime
+                                            .borrow_mut()
+                                            .insert(var[0].value.clone(), item.clone());
+                                    } else {
+                                        panic!("for-loop over list supports only one variable");
+                                    }
+
+                                    src.push_str(&self.eval_loop_body(body.clone(), source));
+                                    self.runtime.borrow_mut().pop_scope();
+                                }
+                            }
+                            _ => {
+                                panic!("Cannot loop over non-iterable value");
+                            }
+                        }
                     }
+                    _ => {}
                 }
             }
             Expression::Include { name } => match &name.value {
@@ -276,7 +295,9 @@ impl Engine {
                     }
                 }
             }
+            // These will never be on their own inside of templates
             Expression::Filter { name: _, args: _ } => unreachable!(),
+            Expression::Range { start: _, end: _ } => unreachable!(),
         }
     }
 

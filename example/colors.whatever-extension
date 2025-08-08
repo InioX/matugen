@@ -29,6 +29,10 @@ blue {{colors.blue.default.hsla}};
 
 source_color {{colors.source_color.default.hex}};
 
+<* for i in 0..5 *>
+    {{ i }}
+<* endfor *>
+
 <* for name, value in colors *>
     {{name | replace: "_", "-" }} {{value.default.hex}};
 <* endfor *>
