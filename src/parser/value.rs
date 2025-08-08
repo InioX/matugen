@@ -1,8 +1,10 @@
 use std::{fmt::Display, str::FromStr};
 
 use chumsky::span::SimpleSpan;
-use colorsys::Rgb;
+use colorsys::{Hsl, Rgb};
 use indexmap::IndexMap;
+
+use crate::parser::FilterReturnType;
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -10,6 +12,7 @@ pub enum Value {
     Int(i64),
     Float(f64),
     Color(Rgb),
+    HslColor(Hsl),
     LazyColor {
         color: Rgb,
         scheme: Option<String>, // If known, otherwise None
@@ -70,6 +73,7 @@ impl From<&Value> for String {
             Value::Float(v) => v.to_string(),
             Value::Bool(v) => v.to_string(),
             Value::Color(_v) => unreachable!(),
+            Value::HslColor(_v) => unreachable!(),
             Value::Map(_hash_map) => panic!("Cant convert map to String"),
             Value::Array(_array) => panic!("Cant convert Array to String"),
             Value::Null => String::from(""),
@@ -86,12 +90,24 @@ impl From<Value> for String {
             Value::Float(v) => v.to_string(),
             Value::Bool(v) => v.to_string(),
             Value::Color(_v) => unreachable!(),
+            Value::HslColor(_v) => unreachable!(),
             Value::LazyColor { color, scheme } => unreachable!(),
             Value::Map(_hash_map) => {
                 panic!("Cant convert map to String")
             }
             Value::Array(_array) => panic!("Cant convert Array to String"),
             Value::Null => String::from(""),
+        }
+    }
+}
+
+impl From<FilterReturnType> for Value {
+    fn from(value: FilterReturnType) -> Self {
+        match value {
+            FilterReturnType::String(s) => Value::Ident(s),
+            FilterReturnType::Rgb(rgb) => Value::Color(rgb),
+            FilterReturnType::Hsl(hsl) => Value::HslColor(hsl),
+            FilterReturnType::Bool(b) => Value::Bool(b),
         }
     }
 }
@@ -110,6 +126,7 @@ impl Value {
             Value::Float(_) => "Float",
             Value::Bool(_) => "Bool",
             Value::Color(_) => "Color",
+            Value::HslColor(hsl) => "Hsl Color",
             Value::LazyColor { color, scheme } => "Color",
             Value::Map(_) => "Map",
             Value::Null => "Null",
