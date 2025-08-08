@@ -53,6 +53,25 @@ enum Expression {
     LiteralValue {
         value: SpannedValue,
     },
+    BinaryOp {
+        lhs: Box<SpannedExpr>,
+        op: SpannedBinaryOperator,
+        rhs: Box<SpannedExpr>,
+    },
+}
+
+#[derive(Debug, Clone, Copy)]
+struct SpannedBinaryOperator {
+    op: BinaryOperator,
+    span: SimpleSpan,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum BinaryOperator {
+    Add,
+    Sub,
+    Mul,
+    Div,
 }
 
 #[derive(Debug, Clone)]
@@ -231,6 +250,32 @@ impl Engine {
         }
     }
 
+    // fn binary_expr_parser<'src>(
+    //     atom: impl Parser<'src, &'src str, Box<SpannedExpr>, extra::Err<Rich<'src, char>>>
+    //         + Clone
+    //         + 'src,
+    // ) -> impl Parser<'src, &'src str, Box<SpannedExpr>, extra::Err<Rich<'src, char>>> {
+    //     let op = just('+')
+    //         .to(BinaryOperator::Add)
+    //         .or(just('-').to(BinaryOperator::Sub))
+    //         .or(just('*').to(BinaryOperator::Mul))
+    //         .or(just('/').to(BinaryOperator::Div))
+    //         .map_with(|op, e| (op, e.span()));
+
+    //     let op_rhs = op.then(atom.clone());
+
+    //     atom.clone().foldl(
+    //         op_rhs,
+    //         |lhs: Box<SpannedExpr>, (op, rhs): (BinaryOperator, Box<SpannedExpr>)| {
+    //             let span = SimpleSpan::new((), lhs.span.start..rhs.span.end);
+    //             Box::new(SpannedExpr {
+    //                 expr: Expression::BinaryOp { op, lhs, rhs },
+    //                 span,
+    //             })
+    //         },
+    //     )
+    // }
+
     pub fn parser<'src>(
         syntax: &'src EngineSyntax,
     ) -> impl Parser<'src, &'src str, Vec<Box<SpannedExpr>>, extra::Err<Rich<'src, char>>> {
@@ -297,7 +342,7 @@ impl Engine {
 
             let spanned_ident = ident.map_with(|value, e| SpannedValue::new(value, e.span()));
 
-            let arg = float.or(int).or(ident).or(boolean).map_with(|value, e| {
+            let literal = float.or(int).or(ident).or(boolean).map_with(|value, e| {
                 Box::new(SpannedExpr {
                     expr: Expression::LiteralValue {
                         value: SpannedValue {
@@ -309,6 +354,31 @@ impl Engine {
                 })
             });
 
+            let op = just('+')
+                .to(BinaryOperator::Add)
+                .or(just('-').to(BinaryOperator::Sub))
+                .or(just('*').to(BinaryOperator::Mul))
+                .or(just('/').to(BinaryOperator::Div))
+                .map_with(|op, e| SpannedBinaryOperator { op, span: e.span() });
+
+            let arg = literal
+                .clone()
+                .or(expr.clone())
+                .padded()
+                .clone()
+                .then(op.padded())
+                .then(literal.clone().or(expr.clone()).padded())
+                .map_with(|((a, b), c), e| {
+                    Box::new(SpannedExpr {
+                        expr: Expression::BinaryOp {
+                            lhs: a,
+                            op: b,
+                            rhs: c,
+                        },
+                        span: e.span(),
+                    })
+                });
+
             // Filter: name is span, args are spanned values
             let filter = text::ident()
                 .map_with(|_, e| e.span())
@@ -316,7 +386,9 @@ impl Engine {
                     just(':')
                         .padded()
                         .ignore_then(
-                            arg.or(expr.clone())
+                            literal
+                                .or(arg)
+                                .or(expr.clone())
                                 .padded()
                                 .separated_by(just(',').padded())
                                 .collect::<Vec<Box<SpannedExpr>>>(),

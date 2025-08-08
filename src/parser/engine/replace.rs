@@ -4,7 +4,7 @@ use chumsky::{span::SimpleSpan, Parser};
 use colorsys::{ColorAlpha, Hsl, Rgb};
 
 use crate::parser::{
-    engine::{Expression, SpannedExpr, Template},
+    engine::{BinaryOperator, Expression, SpannedBinaryOperator, SpannedExpr, Template},
     Error, FilterError, FilterReturnType, KeywordError, ParseErrorKind, SpannedValue, Value,
 };
 
@@ -302,6 +302,7 @@ impl Engine {
             Expression::Filter { name: _, args: _ } => unreachable!(),
             Expression::Range { start: _, end: _ } => unreachable!(),
             Expression::LiteralValue { value: _ } => unreachable!(),
+            Expression::BinaryOp { lhs, op, rhs } => todo!(),
         }
     }
 
@@ -349,6 +350,54 @@ impl Engine {
                     self.errors.add(Error::ResolveError { span });
                     Value::Ident(String::from(""))
                 }
+            }
+        }
+    }
+
+    fn replace_binary_op(
+        &self,
+        lhs: &Box<SpannedExpr>,
+        op: SpannedBinaryOperator,
+        rhs: &Box<SpannedExpr>,
+        source: &String,
+    ) -> Value {
+        let left = self.get_value(lhs, source).get_int();
+        let right = self.get_value(rhs, source).get_int();
+
+        match (left, right) {
+            (Some(l), Some(r)) => self.apply_binary_op(l, r, op.op),
+            _ => {
+                panic!("TODO")
+            }
+        }
+    }
+
+    fn apply_binary_op(&self, left: i64, right: i64, op: BinaryOperator) -> Value {
+        match op {
+            BinaryOperator::Add => left + right,
+            BinaryOperator::Sub => left - right,
+            BinaryOperator::Mul => left * right,
+            BinaryOperator::Div => left / right,
+        }
+        .into()
+    }
+
+    fn get_value(&self, expr: &SpannedExpr, source: &String) -> Value {
+        match &expr.expr {
+            Expression::Keyword { keywords } => {
+                let format_value = false;
+                self.get_replacement(&get_str_vec(source, keywords), expr.span, format_value)
+            }
+            Expression::KeywordWithFilters { keyword, filters } => {
+                let keywords = match &keyword.expr {
+                    Expression::Keyword { keywords } => &get_str_vec(source, keywords),
+                    _ => panic!(""),
+                };
+                Value::from(self.get_replacement_filter(keywords, filters, source, keyword.span))
+            }
+            Expression::LiteralValue { value } => value.value.clone(),
+            _ => {
+                panic!("");
             }
         }
     }
@@ -417,6 +466,12 @@ impl Engine {
                             });
                         }
                         Expression::LiteralValue { value } => args_resolved.push(value.clone()),
+                        Expression::BinaryOp { lhs, op, rhs } => {
+                            args_resolved.push(SpannedValue {
+                                value: self.replace_binary_op(lhs, *op, rhs, source),
+                                span: arg.span,
+                            });
+                        }
                         _ => {
                             panic!("Unsupported filter arg")
                         }
