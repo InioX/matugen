@@ -46,6 +46,10 @@ enum Expression {
         then_branch: Vec<Box<SpannedExpr>>,
         else_branch: Option<Vec<Box<SpannedExpr>>>,
     },
+    Range {
+        start: i64,
+        end: i64,
+    },
 }
 
 impl Expression {
@@ -267,6 +271,17 @@ impl Engine {
                     },
                 );
 
+            let range = int
+                .then_ignore(just(".."))
+                .then(int)
+                .map_with(|(start, end), e| SpannedExpr {
+                    expr: Expression::Range {
+                        start: start.get_int().expect("Failed to get int from range"),
+                        end: end.get_int().expect("Failed to get int from range"),
+                    },
+                    span: e.span(),
+                });
+
             let boolean = just("true")
                 .to(Value::Bool(true))
                 .or(just("false").to(Value::Bool(false)));
@@ -403,7 +418,7 @@ impl Engine {
                 )
                 .padded()
                 .then_ignore(just("in").padded())
-                .then(dotted_ident.padded())
+                .then(dotted_ident.or(range).padded())
                 .then_ignore(just(syntax.block_right))
                 .then(raw.or(expr).repeated().collect())
                 .delimited_by(
