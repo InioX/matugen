@@ -1,4 +1,7 @@
-use std::{fmt::Display, str::FromStr};
+use std::{
+    fmt::{self, Display},
+    str::FromStr,
+};
 
 use chumsky::span::SimpleSpan;
 use colorsys::{Hsl, Rgb};
@@ -21,6 +24,11 @@ pub enum Value {
     Map(IndexMap<String, Value>),
     Array(Vec<Value>),
     Null,
+}
+
+pub enum ColorValue {
+    Rgb(Rgb),
+    Hsl(Hsl),
 }
 
 #[derive(Debug, Clone)]
@@ -71,42 +79,6 @@ impl From<bool> for Value {
     }
 }
 
-impl From<&Value> for String {
-    fn from(value: &Value) -> Self {
-        match value {
-            Value::Ident(v) => v.to_string(),
-            Value::Int(v) => v.to_string(),
-            Value::Float(v) => v.to_string(),
-            Value::Bool(v) => v.to_string(),
-            Value::Color(_v) => unreachable!(),
-            Value::HslColor(_v) => unreachable!(),
-            Value::Map(_hash_map) => panic!("Cant convert map to String"),
-            Value::Array(_array) => panic!("Cant convert Array to String"),
-            Value::Null => String::from(""),
-            Value::LazyColor { color, scheme } => todo!(),
-        }
-    }
-}
-
-impl From<Value> for String {
-    fn from(value: Value) -> Self {
-        match value {
-            Value::Ident(v) => v.to_string(),
-            Value::Int(v) => v.to_string(),
-            Value::Float(v) => v.to_string(),
-            Value::Bool(v) => v.to_string(),
-            Value::Color(_v) => unreachable!(),
-            Value::HslColor(_v) => unreachable!(),
-            Value::LazyColor { color, scheme } => unreachable!(),
-            Value::Map(_hash_map) => {
-                panic!("Cant convert map to String")
-            }
-            Value::Array(_array) => panic!("Cant convert Array to String"),
-            Value::Null => String::from(""),
-        }
-    }
-}
-
 impl From<FilterReturnType> for Value {
     fn from(value: FilterReturnType) -> Self {
         match value {
@@ -118,9 +90,20 @@ impl From<FilterReturnType> for Value {
     }
 }
 
-impl Display for Value {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Value::Ident(v) => write!(f, "{}", v),
+            Value::Int(v) => write!(f, "{}", v),
+            Value::Float(v) => write!(f, "{}", v),
+            Value::Bool(v) => write!(f, "{}", v),
+            Value::Color(_) => unreachable!(),
+            Value::HslColor(_) => unreachable!(),
+            Value::LazyColor { .. } => todo!(),
+            Value::Map(_) => panic!("Can't convert map to String"),
+            Value::Array(_) => panic!("Can't convert array to String"),
+            Value::Null => write!(f, "Null"),
+        }
     }
 }
 
@@ -145,6 +128,24 @@ impl Value {
         match self {
             Value::Int(v) => Some(*v),
             // Value::Float(_) => todo!(),
+            _ => None,
+        }
+    }
+
+    pub fn is_color(&self) -> bool {
+        match self {
+            Value::Color(color) => true,
+            Value::LazyColor { color, scheme } => true,
+            Value::HslColor(color) => true,
+            _ => false,
+        }
+    }
+
+    pub fn get_color(self) -> Option<ColorValue> {
+        match self {
+            Value::Color(color) => Some(ColorValue::Rgb(color)),
+            Value::LazyColor { color, scheme } => Some(ColorValue::Rgb(color)),
+            Value::HslColor(color) => Some(ColorValue::Hsl(color)),
             _ => None,
         }
     }

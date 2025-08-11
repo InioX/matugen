@@ -18,12 +18,12 @@ pub(crate) fn replace(
         FilterReturnType::String(s) => Ok(FilterReturnType::String(s.replace(&find, &replace))),
         FilterReturnType::Rgb(color) => {
             let string = format_color(color, keywords[3]);
-            let modified: String = string.unwrap().into().replace(&find, &replace);
+            let modified: String = string.unwrap().replace(&find, &replace);
             Ok(FilterReturnType::String(modified))
         }
         FilterReturnType::Hsl(color) => {
             let string = format_color_hsl(color, keywords[3]);
-            let modified: String = string.unwrap().into().replace(&find, &replace);
+            let modified: String = string.unwrap().replace(&find, &replace);
             Ok(FilterReturnType::String(modified))
         }
         FilterReturnType::Bool(boolean) => match boolean {

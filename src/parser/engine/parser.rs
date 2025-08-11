@@ -16,9 +16,11 @@ impl Engine {
                 .separated_by(just('.').padded())
                 .at_least(1)
                 .collect::<Vec<SimpleSpan>>()
-                .map_with(|spans, e| SpannedExpr {
-                    expr: Expression::Keyword { keywords: spans },
-                    span: e.span(),
+                .map_with(|spans, e| {
+                    Box::new(SpannedExpr {
+                        expr: Expression::Access { keywords: spans },
+                        span: e.span(),
+                    })
                 });
 
             let plain_ident = text::ident().map(|s: &str| Value::Ident(s.to_string()));
@@ -34,6 +36,7 @@ impl Engine {
             let quoted_ident = inner.delimited_by(just('"'), just('"'));
 
             let ident = quoted_ident.or(plain_ident);
+            // let ident = quoted_ident;
 
             let sign = just('-').or(just('+')).or_not();
 
@@ -58,12 +61,14 @@ impl Engine {
             let range = int
                 .then_ignore(just(".."))
                 .then(int)
-                .map_with(|(start, end), e| SpannedExpr {
-                    expr: Expression::Range {
-                        start: start.get_int().expect("Failed to get int from range"),
-                        end: end.get_int().expect("Failed to get int from range"),
-                    },
-                    span: e.span(),
+                .map_with(|(start, end), e| {
+                    Box::new(SpannedExpr {
+                        expr: Expression::Range {
+                            start: start.get_int().expect("Failed to get int from range"),
+                            end: end.get_int().expect("Failed to get int from range"),
+                        },
+                        span: e.span(),
+                    })
                 });
 
             let boolean = just("true")
@@ -117,7 +122,8 @@ impl Engine {
                         .padded()
                         .ignore_then(
                             literal
-                                .or(arg)
+                                .clone()
+                                .or(arg.clone())
                                 .or(expr.clone())
                                 .padded()
                                 .separated_by(just(',').padded())
@@ -141,33 +147,41 @@ impl Engine {
                 .repeated()
                 .collect::<Vec<_>>();
 
-            let full_expr = dotted_ident.then(filters).map(|(keyword, filters)| {
-                if filters.is_empty() {
-                    keyword
-                } else {
-                    let span = SimpleSpan::new(
-                        (),
-                        keyword.span.start
-                            ..filters
-                                .last()
-                                .map(|f| f.span.end)
-                                .unwrap_or(keyword.span.end),
-                    );
-                    SpannedExpr {
-                        expr: Expression::KeywordWithFilters {
-                            keyword: Box::new(keyword),
-                            filters,
-                        },
-                        span,
+            let full_expr = dotted_ident
+                .or(literal.clone())
+                .or(arg)
+                .or(expr.clone())
+                .padded()
+                .then(filters)
+                .map(|(access, filters)| {
+                    let keyword = SpannedExpr {
+                        span: access.span.clone(),
+                        expr: Expression::Keyword { keywords: access },
+                    };
+                    if filters.is_empty() {
+                        keyword
+                    } else {
+                        let span = SimpleSpan::new(
+                            (),
+                            keyword.span.start
+                                ..filters
+                                    .last()
+                                    .map(|f| f.span.end)
+                                    .unwrap_or(keyword.span.end),
+                        );
+                        SpannedExpr {
+                            expr: Expression::KeywordWithFilters {
+                                keyword: Box::new(keyword),
+                                filters,
+                            },
+                            span,
+                        }
                     }
-                }
-            });
+                });
 
-            let keyword_full = just(syntax.keyword_left)
+            let keyword_full = full_expr
                 .padded()
-                .ignore_then(full_expr)
-                .padded()
-                .then_ignore(just(syntax.keyword_right))
+                .delimited_by(just(syntax.keyword_left), just(syntax.keyword_right))
                 .map_with(|expr, e| {
                     Box::new(SpannedExpr {
                         expr: expr.expr,
@@ -247,13 +261,9 @@ impl Engine {
                         .padded()
                         .delimited_by(just(syntax.block_left), just(syntax.block_right)),
                 )
-                .map_with(|((var, list), body), e| {
+                .map_with(|((var, iter), body), e| {
                     Box::new(SpannedExpr {
-                        expr: Expression::ForLoop {
-                            var,
-                            iter: Box::new(list),
-                            body,
-                        },
+                        expr: Expression::ForLoop { var, iter, body },
                         span: e.span(),
                     })
                 });

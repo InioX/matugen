@@ -19,7 +19,7 @@ mod resolve;
 #[derive(Debug, Clone)]
 enum Expression {
     Keyword {
-        keywords: Vec<SimpleSpan>,
+        keywords: Box<SpannedExpr>,
     },
     Filter {
         name: SimpleSpan,
@@ -57,6 +57,9 @@ enum Expression {
         op: SpannedBinaryOperator,
         rhs: Box<SpannedExpr>,
     },
+    Access {
+        keywords: Vec<SimpleSpan>,
+    },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -81,14 +84,14 @@ enum FilterArgEnum {
 
 impl Expression {
     pub fn as_keywords<'a>(&self, source: &'a str) -> Option<Vec<&'a str>> {
-        if let Expression::Keyword { keywords } = self {
+        if let Expression::Access { keywords } = self {
             Some(get_str_vec(source, keywords))
         } else {
             None
         }
     }
     pub fn as_spans<'a>(&self) -> Option<&Vec<SimpleSpan>> {
-        if let Expression::Keyword { keywords } = self {
+        if let Expression::Access { keywords } = self {
             Some(keywords)
         } else {
             None
