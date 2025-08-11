@@ -1,17 +1,15 @@
 use std::collections::HashMap;
 
-use chumsky::{span::SimpleSpan, Parser};
+use chumsky::span::SimpleSpan;
 use colorsys::{ColorAlpha, Hsl, Rgb};
 
 use crate::parser::{
     engine::{BinaryOperator, Expression, SpannedBinaryOperator, SpannedExpr, Template},
-    value::ColorValue,
     Error, FilterError, FilterReturnType, KeywordError, ParseErrorKind, SpannedValue, Value,
 };
 
 use crate::color::format::{
     format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
-    rgb_from_argb,
 };
 
 use super::Engine;
@@ -177,7 +175,7 @@ impl Engine {
                             self.runtime.borrow_mut().pop_scope();
                         }
                     }
-                    Expression::Access { keywords } => {
+                    Expression::Access { keywords: _ } => {
                         let values = match iter.expr.as_keywords(source) {
                             Some(v) => self.resolve_path(v, format_color),
                             None => unreachable!(),
@@ -299,8 +297,12 @@ impl Engine {
             Expression::Filter { name: _, args: _ } => unreachable!(),
             Expression::Range { start: _, end: _ } => unreachable!(),
             Expression::LiteralValue { value: _ } => unreachable!(),
-            Expression::BinaryOp { lhs, op, rhs } => unreachable!(),
-            Expression::Access { keywords } => unreachable!(),
+            Expression::BinaryOp {
+                lhs: _,
+                op: _,
+                rhs: _,
+            } => unreachable!(),
+            Expression::Access { keywords: _ } => unreachable!(),
         }
     }
 
@@ -392,8 +394,6 @@ impl Engine {
         source: &String,
         span: SimpleSpan,
     ) -> FilterReturnType {
-        let format_color_string = false;
-
         let is_color = match &current_value {
             FilterReturnType::Rgb(_) => true,
             FilterReturnType::Hsl(_) => true,
@@ -407,7 +407,6 @@ impl Engine {
                 args,
             } = &filter.expr
             {
-                let format_value = false;
                 let mut args_resolved = vec![];
                 for arg in args {
                     match &arg.expr {

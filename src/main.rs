@@ -210,21 +210,6 @@ impl State {
         }
     }
 
-    fn update_themes(&mut self) {
-        let source_color = get_source_color(&self.args.source).unwrap();
-        let _theme = ThemeBuilder::with_source(source_color).build();
-        let (scheme_dark, scheme_light) =
-            get_schemes(source_color, &self.args.r#type, &self.args.contrast);
-        self.schemes = get_custom_color_schemes(
-            source_color,
-            scheme_dark,
-            scheme_light,
-            &self.config_file.config.custom_colors,
-            &self.args.r#type,
-            &self.args.contrast,
-        );
-    }
-
     #[cfg(feature = "ui")]
     fn run_gui(self) -> Result<(), Report> {
         setup_logging(&self.args)?;
@@ -297,6 +282,7 @@ fn main() -> Result<(), Report> {
 
     let args_unparsed: Vec<String> = std::env::args().collect();
 
+    #[allow(unused_variables)]
     let default_args = Cli {
         source: crate::Source::Color(crate::color::color::ColorFormat::Hex {
             string: String::from("#ffffff"),

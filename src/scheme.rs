@@ -33,7 +33,7 @@ impl Schemes {
     }
     pub fn get_all_names(&self) -> Vec<&String> {
         let mut vec = vec![];
-        for (name, key) in &self.dark {
+        for (name, _key) in &self.dark {
             vec.push(name);
         }
 

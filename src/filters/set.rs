@@ -6,15 +6,15 @@ use crate::{
 };
 
 pub(crate) fn set_red(
-    keywords: &[&str],
+    _keywords: &[&str],
     args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(mut color) => {
             color.set_red(amt);
             Ok(FilterReturnType::Rgb(color))
@@ -29,15 +29,15 @@ pub(crate) fn set_red(
 }
 
 pub(crate) fn set_green(
-    keywords: &[&str],
+    _keywords: &[&str],
     args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(mut color) => {
             color.set_green(amt);
             Ok(FilterReturnType::Rgb(color))
@@ -52,15 +52,15 @@ pub(crate) fn set_green(
 }
 
 pub(crate) fn set_blue(
-    keywords: &[&str],
+    _keywords: &[&str],
     args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(mut color) => {
             color.set_blue(amt);
             Ok(FilterReturnType::Rgb(color))
@@ -75,15 +75,15 @@ pub(crate) fn set_blue(
 }
 
 pub(crate) fn set_alpha(
-    keywords: &[&str],
+    _keywords: &[&str],
     args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(mut color) => {
             color.set_alpha(amt);
             Ok(FilterReturnType::Rgb(color))
@@ -97,15 +97,15 @@ pub(crate) fn set_alpha(
 }
 
 pub(crate) fn set_hue(
-    keywords: &[&str],
+    _keywords: &[&str],
     args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(color) => {
             let mut hsl: Hsl = color.into();
             hsl.set_hue(amt);
@@ -120,15 +120,15 @@ pub(crate) fn set_hue(
 }
 
 pub(crate) fn set_saturation(
-    keywords: &[&str],
+    _keywords: &[&str],
     args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(color) => {
             let mut hsl: Hsl = color.into();
             hsl.set_saturation(amt);
@@ -143,15 +143,15 @@ pub(crate) fn set_saturation(
 }
 
 pub(crate) fn set_lightness(
-    keywords: &[&str],
+    _keywords: &[&str],
     args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(color) => {
             let mut hsl: Hsl = color.into();
             hsl.set_lightness(amt);

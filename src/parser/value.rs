@@ -1,5 +1,5 @@
 use std::{
-    fmt::{self, Display},
+    fmt::{self},
     str::FromStr,
 };
 
@@ -115,8 +115,11 @@ impl Value {
             Value::Float(_) => "Float",
             Value::Bool(_) => "Bool",
             Value::Color(_) => "Color",
-            Value::HslColor(hsl) => "Hsl Color",
-            Value::LazyColor { color, scheme } => "Color",
+            Value::HslColor(_) => "Hsl Color",
+            Value::LazyColor {
+                color: _,
+                scheme: _,
+            } => "Color",
             Value::Map(_) => "Map",
             Value::Null => "Null",
             Value::Array(_) => "Array",
@@ -134,9 +137,12 @@ impl Value {
 
     pub fn is_color(&self) -> bool {
         match self {
-            Value::Color(color) => true,
-            Value::LazyColor { color, scheme } => true,
-            Value::HslColor(color) => true,
+            Value::Color(_) => true,
+            Value::LazyColor {
+                color: _,
+                scheme: _,
+            } => true,
+            Value::HslColor(_) => true,
             _ => false,
         }
     }
@@ -144,7 +150,7 @@ impl Value {
     pub fn get_color(self) -> Option<ColorValue> {
         match self {
             Value::Color(color) => Some(ColorValue::Rgb(color)),
-            Value::LazyColor { color, scheme } => Some(ColorValue::Rgb(color)),
+            Value::LazyColor { color, scheme: _ } => Some(ColorValue::Rgb(color)),
             Value::HslColor(color) => Some(ColorValue::Hsl(color)),
             _ => None,
         }

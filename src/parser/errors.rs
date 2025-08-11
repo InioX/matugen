@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashSet};
 
 use ariadne::{Color, Label, Report, ReportKind, Source};
-use chumsky::{container::Seq, span::SimpleSpan};
+use chumsky::span::SimpleSpan;
 
 #[derive(Debug, Default)]
 pub struct ErrorCollector {
@@ -19,8 +19,8 @@ impl ErrorCollector {
 
     pub fn add(&self, error: Error) {
         let seen = match &error {
-            Error::TemplateNotFound { template } => false,
-            Error::ParseError { kind, span } => self.seen_spans.borrow().contains(span),
+            Error::TemplateNotFound { template: _ } => false,
+            Error::ParseError { kind: _, span } => self.seen_spans.borrow().contains(span),
             Error::ResolveError { span } => self.seen_spans.borrow().contains(span),
             Error::IncludeError { span } => self.seen_spans.borrow().contains(span),
         };
@@ -71,8 +71,8 @@ pub enum Error {
 impl Error {
     pub fn get_span(&self) -> Option<SimpleSpan> {
         match self {
-            Error::TemplateNotFound { template } => None,
-            Error::ParseError { kind, span } => Some(*span),
+            Error::TemplateNotFound { template: _ } => None,
+            Error::ParseError { kind: _, span } => Some(*span),
             Error::ResolveError { span } => Some(*span),
             Error::IncludeError { span } => Some(*span),
         }
