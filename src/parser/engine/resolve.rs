@@ -6,7 +6,10 @@ use super::Engine;
 
 use crate::{
     color::format::rgb_from_argb,
-    parser::{engine::format_color_all, Error, KeywordError, ParseErrorKind, Value},
+    parser::{
+        engine::{format_color_all, SpannedExpr},
+        Error, KeywordError, ParseErrorKind, Value,
+    },
 };
 
 use crate::scheme::SchemesEnum;
@@ -150,7 +153,7 @@ impl Engine {
                 Value::LazyColor { color, .. } => {
                     current = if format_value {
                         let color_map = format_color_all(color);
-                        Value::Ident(color_map.get(next_key)?.into())
+                        Value::Ident(color_map.get(next_key)?.to_string())
                     } else {
                         Value::Color(color)
                     }
@@ -158,7 +161,7 @@ impl Engine {
                 Value::Color(color) => {
                     current = if format_value {
                         let color_map = format_color_all(color);
-                        Value::Ident(color_map.get(next_key)?.clone().into())
+                        Value::Ident(color_map.get(next_key)?.clone().to_string())
                     } else {
                         Value::Color(color)
                     }

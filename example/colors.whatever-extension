@@ -1,5 +1,7 @@
 <* include "includeme"*>
 
+{{ "test" | replace: "test", "test2" }}
+
 red #FF0000;
 green #00FF00;
 blue #0000FF;
@@ -30,7 +32,7 @@ blue {{colors.blue.default.hsla}};
 source_color {{colors.source_color.default.hex}};
 
 <* for i in -10..10 *>
-    {{ colors.red.default.hex | lighten: {{i}} * 10 }}
+    actual: {{ i }} multiplied: {{ {{ i }} * 10 }} {{ colors.red.default.hex | lighten: {{i}} * 10 }}
 <* endfor *>
 
 <* for name, value in colors *>
