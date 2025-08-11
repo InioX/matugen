@@ -1,7 +1,5 @@
-use std::{ffi::OsStr, path::PathBuf};
+use std::path::PathBuf;
 
-#[cfg(feature = "ui")]
-use colorsys::Rgb;
 #[cfg(feature = "ui")]
 use egui::Context;
 #[cfg(feature = "ui")]
@@ -12,7 +10,7 @@ use crate::{
         color::Source,
         format::{format_hex, rgb_from_argb},
     },
-    scheme::{SchemeTypes, Schemes},
+    scheme::SchemeTypes,
     template::TemplateFile,
     util::arguments::Cli,
     State,
@@ -20,7 +18,7 @@ use crate::{
 #[cfg(feature = "ui")]
 use eframe::egui;
 use egui::{Color32, Stroke, Ui, Vec2, Visuals};
-use material_colors::{color::Argb, scheme::variant::SchemeFidelity};
+use material_colors::color::Argb;
 use serde::{Deserialize, Serialize};
 
 use super::cache::{read_cache, save_cache};
@@ -56,7 +54,7 @@ pub struct ColorsMap {
 
 impl Default for ColorsMap {
     fn default() -> Self {
-        use material_colors::{scheme::Scheme, theme::ThemeBuilder};
+        use material_colors::theme::ThemeBuilder;
 
         let theme = ThemeBuilder::with_source(Argb::new(255, 66, 133, 244)).build();
 
@@ -94,8 +92,6 @@ fn get_images_in_folder(folder_path: &PathBuf) -> Vec<PathBuf> {
         })
         .collect()
 }
-
-// FIXME: Cleanup code, reorganize stuff into its own functions
 
 #[cfg(feature = "ui")]
 impl MyApp {
@@ -251,8 +247,8 @@ impl MyApp {
     fn show_images(&mut self, ui: &mut Ui, ctx: &Context) {
         egui::ScrollArea::vertical().show(ui, |ui| {
             egui::Grid::new("image_grid")
-                .num_columns(3) // Set number of columns
-                .spacing([10.0, 10.0]) // Spacing between items
+                .num_columns(3)
+                .spacing([10.0, 10.0])
                 .show(ui, |ui| {
                     for (i, path) in self.images_vec.clone().iter().enumerate() {
                         let path_str = path.clone().into_os_string().into_string().unwrap();

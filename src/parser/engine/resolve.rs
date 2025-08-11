@@ -6,10 +6,7 @@ use super::Engine;
 
 use crate::{
     color::format::rgb_from_argb,
-    parser::{
-        engine::{format_color_all, SpannedExpr},
-        Error, KeywordError, ParseErrorKind, Value,
-    },
+    parser::{engine::format_color_all, Error, KeywordError, ParseErrorKind, Value},
 };
 
 use crate::scheme::SchemesEnum;
@@ -175,26 +172,6 @@ impl Engine {
         Some(current)
     }
 
-    fn validate_color_parts(&self, keywords: &[&str]) -> bool {
-        !(keywords.is_empty() || keywords.len() > 4 || keywords.len() < 4)
-    }
-
-    pub(crate) fn get_color_parts<'a>(
-        &self,
-        keywords: &[&'a str],
-        span: SimpleSpan,
-    ) -> (&'a str, &'a str, &'a str, &'a str) {
-        if !self.validate_color_parts(keywords) {
-            self.errors.add(Error::ParseError {
-                kind: crate::parser::ParseErrorKind::Keyword(KeywordError::InvalidColorDefinition),
-                span,
-            });
-            return ("colors", "source_color", "default", "hex");
-        }
-
-        (keywords[0], keywords[1], keywords[2], keywords[3])
-    }
-
     pub fn get_format<'a>(&self, keywords: &[&'a str]) -> &'a str {
         keywords
             .last()
@@ -209,9 +186,7 @@ impl Engine {
         span: SimpleSpan,
     ) -> &Argb {
         if r#type == "colors" {
-            let mut scheme = &self.schemes.dark;
-
-            scheme = match colorscheme {
+            let scheme = match colorscheme {
                 "light" => &self.schemes.light,
                 "dark" => &self.schemes.dark,
                 "default" => match self.default_scheme {

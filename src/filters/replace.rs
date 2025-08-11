@@ -10,7 +10,7 @@ pub(crate) fn replace(
     keywords: &[&str],
     args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     let (find, replace) = expect_args!(args, String, String);
 

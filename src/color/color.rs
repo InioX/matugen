@@ -40,7 +40,7 @@ pub enum Source {
 impl Source {
     pub fn is_image(&self) -> bool {
         match self {
-            Source::Image { path } => true,
+            Source::Image { path: _ } => true,
             _ => false,
         }
     }

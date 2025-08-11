@@ -4,6 +4,7 @@ use indexmap::IndexMap;
 
 use crate::parser::Value;
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct RuntimeContext {
     global: Context,
@@ -47,22 +48,18 @@ impl<'a> RuntimeContext {
         None
     }
 
-    /// Push a temporary scope (e.g., for loops or conditionals)
     pub fn push_scope(&mut self) {
         self.scopes.push(HashMap::new());
     }
 
-    /// Pop a scope
     pub fn pop_scope(&mut self) {
         self.scopes.pop();
     }
 
-    /// Insert a variable in the current scope
     pub fn insert(&mut self, key: impl Into<String>, value: Value) {
         if let Some(scope) = self.scopes.last_mut() {
             scope.insert(key.into(), value);
         } else {
-            // No temporary scope, modify global shadow layer
             self.scopes.push(HashMap::from([(key.into(), value)]));
         }
     }
@@ -86,7 +83,6 @@ impl Context {
         }
     }
 
-    /// Deeply merge Object values into the context
     pub fn merge(&mut self, incoming: &IndexMap<String, Value>) {
         merge_nested(&mut self.data, incoming);
     }
@@ -115,7 +111,6 @@ impl Context {
         }
     }
 
-    /// Remove a nested key from the context by path like ["theme", "primary"]
     pub fn remove_path<'a, I>(&mut self, path: I) -> bool
     where
         I: IntoIterator<Item = &'a str>,
@@ -146,7 +141,6 @@ impl Context {
     }
 }
 
-/// Deep merge two `HashMap<String, Value>`, respecting nested `Object`s
 fn merge_nested(target: &mut IndexMap<String, Value>, source: &IndexMap<String, Value>) {
     for (key, value) in source {
         match (target.get_mut(key), value) {

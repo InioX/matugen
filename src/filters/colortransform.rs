@@ -6,33 +6,31 @@ use crate::{
 };
 
 fn adjust_rgb_lightness(color: &mut Rgb, amount: f64, threshold: f64) {
-    let hsl = Hsl::from(color.clone()); // Convert RGB to HSL
+    let hsl = Hsl::from(color.clone());
 
-    // Adjust lightness based on the threshold
     if hsl.lightness() < threshold {
-        color.lighten(amount); // Increase lightness
+        color.lighten(amount);
     } else {
-        color.lighten(-amount); // Decrease lightness
+        color.lighten(-amount);
     }
 }
 
 fn adjust_hsl_lightness(color: &mut Hsl, amount: f64, threshold: f64) {
-    // Adjust lightness based on the threshold
     if color.lightness() < threshold {
-        color.lighten(amount); // Increase lightness
+        color.lighten(amount);
     } else {
-        color.lighten(-amount); // Decrease lightness
+        color.lighten(-amount);
     }
 }
 
 pub(crate) fn invert(
-    keywords: &[&str],
-    args: &[SpannedValue],
+    _keywords: &[&str],
+    _args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(mut color) => {
             color.invert();
             Ok(FilterReturnType::Rgb(color))
@@ -46,13 +44,13 @@ pub(crate) fn invert(
 }
 
 pub(crate) fn grayscale(
-    keywords: &[&str],
-    args: &[SpannedValue],
+    _keywords: &[&str],
+    _args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(mut color) => {
             color.grayscale_simple();
             Ok(FilterReturnType::Rgb(color))
@@ -67,15 +65,15 @@ pub(crate) fn grayscale(
 
 // Different name so that set_lightness isnt weird
 pub(crate) fn lighten(
-    keywords: &[&str],
+    _keywords: &[&str],
     args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(mut color) => {
             color.lighten(amt);
             Ok(FilterReturnType::Rgb(color))
@@ -90,16 +88,16 @@ pub(crate) fn lighten(
 
 // Different name so that set_lightness isnt weird
 pub(crate) fn auto_lighten(
-    keywords: &[&str],
+    _keywords: &[&str],
     args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     let threshold = 50.0;
     let amt = expect_args!(args, f64);
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(mut color) => {
             adjust_rgb_lightness(&mut color, amt, threshold);
             Ok(FilterReturnType::Rgb(color))
@@ -113,10 +111,10 @@ pub(crate) fn auto_lighten(
 }
 
 pub(crate) fn saturate(
-    keywords: &[&str],
+    _keywords: &[&str],
     args: &[SpannedValue],
     original: FilterReturnType,
-    engine: &Engine,
+    _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     let (amt, space) = expect_args!(args, f64, String);
 
@@ -132,7 +130,7 @@ pub(crate) fn saturate(
     };
 
     match original {
-        FilterReturnType::String(s) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(mut color) => {
             color.saturate(saturation);
             Ok(FilterReturnType::Rgb(color))
@@ -144,11 +142,3 @@ pub(crate) fn saturate(
         FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }
 }
-
-// pub(crate) fn blend(
-//     keywords: &[&str],
-//     args: &[SpannedValue],
-//     original: FilterReturnType,
-//     engine: &Engine,
-// ) -> Result<FilterReturnType, FilterError> {
-// }

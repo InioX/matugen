@@ -6,7 +6,6 @@ use execute::{shell, Execute};
 use serde_json::json;
 
 use crate::{color::color::get_closest_color, parser::Engine as NewEngine};
-// use matugen::template_util::template::add_engine_filters;
 use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, path::Path, process::Stdio, str};
@@ -57,7 +56,7 @@ impl TemplateFile<'_> {
 
         let mut paths_hashmap: HashMap<String, (PathBuf, PathBuf)> = HashMap::new();
 
-        for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
+        for (_i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
             let input_path = if let Some(input_path_mode) = &template.input_path_modes {
                 match self.state.default_scheme {
                     SchemesEnum::Light => &input_path_mode.light,
@@ -67,12 +66,8 @@ impl TemplateFile<'_> {
                 &template.input_path
             };
 
-            let (input_path_absolute, output_path_absolute) = get_absolute_paths(
-                &self.state.config_path,
-                template,
-                input_path,
-                &template.output_path,
-            )?;
+            let (input_path_absolute, output_path_absolute) =
+                get_absolute_paths(&self.state.config_path, input_path, &template.output_path)?;
 
             if !input_path_absolute.exists() {
                 warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesnt exist, skipping...</>", name, input_path_absolute.display());
@@ -98,7 +93,8 @@ impl TemplateFile<'_> {
                     &template.pre_hook.clone().unwrap(),
                     &template.colors_to_compare,
                     &template.compare_to,
-                );
+                )
+                .unwrap();
             }
 
             let (input_path_absolute, output_path_absolute) = paths_hashmap.get(name).unwrap();
@@ -119,7 +115,8 @@ impl TemplateFile<'_> {
                     &template.post_hook.clone().unwrap(),
                     &template.colors_to_compare,
                     &template.compare_to,
-                );
+                )
+                .unwrap();
             }
         }
         Ok(())
@@ -148,7 +145,6 @@ impl TemplateFile<'_> {
         let out = if self.state.args.prefix.is_some() && !cfg!(windows) {
             let mut prefix_path = PathBuf::from(self.state.args.prefix.as_ref().unwrap());
 
-            // remove the root from the output_path so that we can push it onto the prefix
             let output_path = output_path_absolute
                 .strip_prefix("/")
                 .expect("output_path_absolute is not an absolute path.");
@@ -285,7 +281,6 @@ fn create_missing_folders(output_path_absolute: &Path) -> Result<(), Report> {
 
 fn get_absolute_paths(
     config_path: &Option<PathBuf>,
-    template: &Template,
     input_path: &PathBuf,
     output_path: &PathBuf,
 ) -> Result<(PathBuf, PathBuf), Report> {

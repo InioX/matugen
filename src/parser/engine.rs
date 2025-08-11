@@ -62,6 +62,7 @@ enum Expression {
     },
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 struct SpannedBinaryOperator {
     op: BinaryOperator,
@@ -74,12 +75,6 @@ enum BinaryOperator {
     Sub,
     Mul,
     Div,
-}
-
-#[derive(Debug, Clone)]
-enum FilterArgEnum {
-    Value(SpannedValue),
-    Expression(SpannedExpr),
 }
 
 impl Expression {
@@ -123,7 +118,7 @@ pub struct Template {
     pub ast: Vec<Box<SpannedExpr>>,
 }
 
-pub(crate) struct EngineSyntax {
+pub struct EngineSyntax {
     keyword_left: [char; 2],
     keyword_right: [char; 2],
     block_left: [char; 2],
