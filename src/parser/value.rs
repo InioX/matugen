@@ -7,7 +7,7 @@ use chumsky::span::SimpleSpan;
 use colorsys::{Hsl, Rgb};
 use indexmap::IndexMap;
 
-use crate::parser::FilterReturnType;
+use crate::parser::{engine::format_color_all, FilterReturnType};
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -97,11 +97,16 @@ impl fmt::Display for Value {
             Value::Int(v) => write!(f, "{}", v),
             Value::Float(v) => write!(f, "{}", v),
             Value::Bool(v) => write!(f, "{}", v),
-            Value::Color(_) => unreachable!(),
-            Value::HslColor(_) => unreachable!(),
-            Value::LazyColor { .. } => todo!(),
-            Value::Map(_) => panic!("Can't convert map to String"),
-            Value::Array(_) => panic!("Can't convert array to String"),
+            Value::Color(color) | Value::LazyColor { color, scheme: _ } => {
+                let formats = format_color_all(color.clone());
+                write!(f, "{:?}", formats)
+            }
+            Value::HslColor(color) => {
+                let formats = format_color_all(color.clone().into());
+                write!(f, "{:?}", formats)
+            }
+            Value::Map(v) => write!(f, "{:?}", v),
+            Value::Array(v) => write!(f, "{:?}", v),
             Value::Null => write!(f, "Null"),
         }
     }

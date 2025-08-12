@@ -2,6 +2,16 @@
 
 {{ "test" | replace: "test", "test2" }}
 
+<* for format, color in colors.source_color.default *>
+    {{ format }}: {{ color }}
+<* endfor *>
+
+<* for scheme, value in colors.source_color *>
+    {{ scheme }}: {{ value }}
+<* endfor *>
+
+{{ colors }}
+
 red #FF0000;
 green #00FF00;
 blue #0000FF;

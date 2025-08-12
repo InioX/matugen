@@ -114,7 +114,6 @@ impl Engine {
                     })
                 });
 
-            // Filter: name is span, args are spanned values
             let filter = text::ident()
                 .map_with(|_, e| e.span())
                 .then(
