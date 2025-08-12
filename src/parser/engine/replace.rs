@@ -1,7 +1,6 @@
-use std::collections::HashMap;
-
 use chumsky::span::SimpleSpan;
 use colorsys::{ColorAlpha, Hsl, Rgb};
+use indexmap::IndexMap;
 
 use crate::parser::{
     engine::{BinaryOperator, Expression, SpannedBinaryOperator, SpannedExpr, Template},
@@ -67,10 +66,10 @@ pub fn format_color_hsl(hsl_color: Hsl, format: &str) -> Option<String> {
     }
 }
 
-pub fn format_color_all(base_color: Rgb) -> HashMap<String, Value> {
+pub fn format_color_all(base_color: Rgb) -> IndexMap<String, Value> {
     let hsl_color = Hsl::from(&base_color);
 
-    let mut map = HashMap::new();
+    let mut map = IndexMap::new();
 
     map.insert("hex".to_string(), Value::Ident(format_hex(&base_color)));
     map.insert(
@@ -194,31 +193,13 @@ impl Engine {
 
                         match values {
                             Value::Map(map) => {
-                                for (key, value) in map {
-                                    self.runtime.borrow_mut().push_scope();
-
-                                    if var.len() == 1 {
-                                        self.runtime.borrow_mut().insert(
-                                            var[0].value.to_string(),
-                                            Value::Ident(key.clone()),
-                                        );
-                                    } else if var.len() == 2 {
-                                        self.runtime.borrow_mut().insert(
-                                            var[0].value.to_string(),
-                                            Value::Ident(key.clone()),
-                                        );
-                                        self.runtime
-                                            .borrow_mut()
-                                            .insert(var[1].value.to_string(), value.clone());
-                                    } else {
-                                        panic!("for-loop supports only one or two variables");
-                                    }
-
-                                    // Evaluate the body with these bindings
-                                    src.push_str(&self.eval_loop_body(body.clone(), source));
-
-                                    self.runtime.borrow_mut().pop_scope();
-                                }
+                                let res = self.eval_map(map, body, var, source);
+                                src.push_str(&res);
+                            }
+                            Value::LazyColor { color, scheme: _ } | Value::Color(color) => {
+                                let formats = format_color_all(color);
+                                let res = self.eval_map(formats, body, var, source);
+                                src.push_str(&res);
                             }
                             Value::Array(arr) => {
                                 for item in arr {
@@ -237,6 +218,7 @@ impl Engine {
                                 }
                             }
                             _ => {
+                                dbg!(&values);
                                 panic!("Cannot loop over non-iterable value");
                             }
                         }
@@ -304,6 +286,39 @@ impl Engine {
             } => unreachable!(),
             Expression::Access { keywords: _ } => unreachable!(),
         }
+    }
+
+    fn eval_map(
+        &self,
+        map: IndexMap<String, Value>,
+        body: &Vec<Box<SpannedExpr>>,
+        var: &Vec<SpannedValue>,
+        source: &String,
+    ) -> String {
+        let mut output = String::from("");
+        for (key, value) in map {
+            self.runtime.borrow_mut().push_scope();
+
+            if var.len() == 1 {
+                self.runtime
+                    .borrow_mut()
+                    .insert(var[0].value.to_string(), Value::Ident(key.clone()));
+            } else if var.len() == 2 {
+                self.runtime
+                    .borrow_mut()
+                    .insert(var[0].value.to_string(), Value::Ident(key.clone()));
+                self.runtime
+                    .borrow_mut()
+                    .insert(var[1].value.to_string(), value.clone());
+            } else {
+                panic!("for-loop supports only one or two variables");
+            }
+
+            output.push_str(&self.eval_loop_body(body.clone(), source));
+
+            self.runtime.borrow_mut().pop_scope();
+        }
+        output
     }
 
     fn eval_loop_body(&self, exprs: Vec<Box<SpannedExpr>>, source: &String) -> String {
