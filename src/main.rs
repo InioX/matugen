@@ -177,6 +177,7 @@ impl State {
     }
 
     fn add_engine_filters(&self, engine: &mut Engine) {
+        // Colors
         engine.add_filter("set_red", crate::filters::set_red);
         engine.add_filter("set_green", crate::filters::set_green);
         engine.add_filter("set_blue", crate::filters::set_blue);
@@ -193,6 +194,9 @@ impl State {
         engine.add_filter("grayscale", crate::filters::grayscale);
         engine.add_filter("invert", crate::filters::invert);
 
+        engine.add_filter("blend", crate::filters::blend);
+
+        // String
         engine.add_filter("replace", crate::filters::replace);
     }
 

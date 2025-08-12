@@ -1,6 +1,8 @@
 use colorsys::{ColorTransform, Hsl, Rgb, SaturationInSpace};
+use material_colors::blend::harmonize;
 
 use crate::{
+    color::format::{argb_from_hsl, argb_from_rgb, hsl_from_argb, rgb_from_argb},
     expect_args,
     parser::{Engine, FilterError, FilterReturnType, SpannedValue},
 };
@@ -138,6 +140,28 @@ pub(crate) fn saturate(
         FilterReturnType::Hsl(mut color) => {
             color.saturate(saturation);
             Ok(FilterReturnType::Hsl(color))
+        }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
+    }
+}
+
+pub(crate) fn blend(
+    _keywords: &[&str],
+    args: &[SpannedValue],
+    original: FilterReturnType,
+    _engine: &Engine,
+) -> Result<FilterReturnType, FilterError> {
+    let blend_with = expect_args!(args, Rgb);
+
+    match original {
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::Rgb(color) => {
+            let res = harmonize(argb_from_rgb(color), argb_from_rgb(blend_with));
+            Ok(FilterReturnType::Rgb(rgb_from_argb(res)))
+        }
+        FilterReturnType::Hsl(color) => {
+            let res = harmonize(argb_from_hsl(color), argb_from_rgb(blend_with));
+            Ok(FilterReturnType::Hsl(hsl_from_argb(res)))
         }
         FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }

@@ -1,3 +1,5 @@
+use colorsys::{Hsl, Rgb};
+
 use crate::parser::Value;
 
 #[macro_export]
@@ -62,6 +64,25 @@ impl ExpectFromValue for f64 {
         match value {
             Value::Float(f) => Ok(*f),
             Value::Int(i) => Ok(*i as f64),
+            other => Err(other.variant_name()),
+        }
+    }
+}
+
+impl ExpectFromValue for Rgb {
+    fn expect_from(value: &Value) -> Result<Self, String> {
+        match value {
+            Value::Color(color) => Ok(color.clone()),
+            Value::LazyColor { color, scheme: _ } => Ok(color.clone()),
+            other => Err(other.variant_name()),
+        }
+    }
+}
+
+impl ExpectFromValue for Hsl {
+    fn expect_from(value: &Value) -> Result<Self, String> {
+        match value {
+            Value::HslColor(color) => Ok(color.clone()),
             other => Err(other.variant_name()),
         }
     }
