@@ -145,6 +145,25 @@ pub(crate) fn saturate(
     }
 }
 
+pub(crate) fn to_color(
+    _keywords: &[&str],
+    args: &[SpannedValue],
+    original: FilterReturnType,
+    _engine: &Engine,
+) -> Result<FilterReturnType, FilterError> {
+    match original {
+        FilterReturnType::String(s) => {
+            // TODO: Make this support all formats
+            let color = Rgb::from_hex_str(&s).expect("Invalid value");
+            Ok(FilterReturnType::Rgb(color))
+        }
+        FilterReturnType::Rgb(color) => Ok(FilterReturnType::Rgb(color)),
+        FilterReturnType::Hsl(color) => Ok(FilterReturnType::Hsl(color)),
+        // TODO: Add proper error here
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
+    }
+}
+
 pub(crate) fn blend(
     _keywords: &[&str],
     args: &[SpannedValue],
