@@ -3,10 +3,11 @@
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate paris_log;
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, fs::read_to_string, path::PathBuf};
 
+use indexmap::IndexMap;
 use material_colors::theme::ThemeBuilder;
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 mod helpers;
 pub mod template;
@@ -14,10 +15,11 @@ mod util;
 mod wallpaper;
 
 use crate::{
-    cache::{convert_argb_scheme, ImageCache},
+    cache::ImageCache,
     color::color::{get_source_color, Source},
     parser::engine::EngineSyntax,
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
+    util::{arguments::Format, color::format_palettes},
 };
 use helpers::{set_wallpaper, setup_logging};
 use template::TemplateFile;
@@ -49,11 +51,40 @@ pub struct State {
     pub args: Cli,
     pub config_file: ConfigFile,
     pub config_path: Option<PathBuf>,
-    pub source_color: Argb,
-    pub theme: Theme,
-    pub schemes: Schemes,
+    pub source_color: Option<Argb>,
+    pub theme: Option<Theme>,
+    pub schemes: Option<Schemes>,
     pub default_scheme: SchemesEnum,
     pub image_hash: ImageCache,
+}
+
+fn color_entry(hex: String) -> Value {
+    let mut m = Map::new();
+    m.insert("color".to_string(), Value::String(hex));
+    Value::Object(m)
+}
+
+pub fn merge_json(a: &mut Value, b: Value) {
+    match (a, b) {
+        (Value::Object(a_map), Value::Object(b_map)) => {
+            for (k, v_b) in b_map {
+                match a_map.get_mut(&k) {
+                    Some(v_a) => merge_json(v_a, v_b),
+                    None => {
+                        a_map.insert(k, v_b);
+                    }
+                }
+            }
+        }
+        // Arrays: append `b`'s items to `a`
+        (Value::Array(a_arr), Value::Array(b_arr)) => {
+            a_arr.extend(b_arr);
+        }
+        // For all other cases: replace `a` with `b`
+        (a_slot, b_val) => {
+            *a_slot = b_val;
+        }
+    }
 }
 
 impl State {
@@ -61,29 +92,41 @@ impl State {
         let (config_file, config_path) =
             ConfigFile::read(&args).expect("Failed to read config file.");
 
-        let source_color = get_source_color(&args.source).expect("Failed to get source color.");
-        let theme = ThemeBuilder::with_source(source_color).build();
-        let (scheme_dark, scheme_light) = get_schemes(source_color, &args.r#type, &args.contrast);
+        let source_color = match &args.source {
+            Source::Json { path } => None,
+            _ => Some(get_source_color(&args.source).expect("Failed to get source color.")),
+        };
 
         let default_scheme = args
             .mode
             .expect("Something went wrong while parsing the mode");
 
-        let mut schemes = get_custom_color_schemes(
-            source_color,
-            scheme_dark,
-            scheme_light,
-            &config_file.config.custom_colors,
-            &args.r#type,
-            &args.contrast,
-        );
-
         let image_hash = ImageCache::new(&args.source);
 
-        schemes.dark.insert("source_color".to_owned(), source_color);
-        schemes
-            .light
-            .insert("source_color".to_owned(), source_color);
+        let (schemes, theme) = match source_color {
+            Some(schemes) => {
+                let source_color = source_color.unwrap();
+                let theme = ThemeBuilder::with_source(source_color).build();
+                let (scheme_dark, scheme_light) =
+                    get_schemes(source_color, &args.r#type, &args.contrast);
+
+                let mut schemes = get_custom_color_schemes(
+                    source_color,
+                    scheme_dark,
+                    scheme_light,
+                    &config_file.config.custom_colors,
+                    &args.r#type,
+                    &args.contrast,
+                );
+
+                schemes.dark.insert("source_color".to_owned(), source_color);
+                schemes
+                    .light
+                    .insert("source_color".to_owned(), source_color);
+                (Some(schemes), Some(theme))
+            }
+            None => (None, None),
+        };
 
         Self {
             args,
@@ -97,11 +140,13 @@ impl State {
         }
     }
 
-    fn init_engine(&self) -> Engine {
-        let (schemes, default_scheme, json, loaded_cache) =
+    fn init_engine(&self) -> (Engine, Value) {
+        let (schemes, default_scheme, mut json, loaded_cache) =
             if self.config_file.config.caching.unwrap_or(false) && self.args.source.is_image() {
                 match self.image_hash.load() {
-                    Ok((schemes, default_scheme, json)) => (schemes, default_scheme, json, true),
+                    Ok((schemes, default_scheme, json)) => {
+                        (Some(schemes), default_scheme, json, true)
+                    }
                     Err(_) => {
                         let json = self.get_render_data().unwrap();
                         (self.schemes.clone(), self.default_scheme, json, false)
@@ -112,7 +157,7 @@ impl State {
                 (self.schemes.clone(), self.default_scheme, json, false)
             };
 
-        let mut engine = Engine::new(schemes, default_scheme);
+        let mut engine = Engine::new();
 
         engine.set_syntax(self.get_syntax());
 
@@ -125,30 +170,68 @@ impl State {
             self.save_cache(&json).expect("Failed saving cache");
         }
 
-        engine.add_context(json);
+        let json = match &self.args.source {
+            Source::Json { path } => {
+                let string = read_to_string(&path).unwrap();
 
-        engine
+                let mut json = serde_json::from_str(&string).unwrap();
+
+                if let Some(path) = &self.args.import_json {
+                    let string = read_to_string(path).unwrap();
+
+                    let json_file = serde_json::from_str(&string).unwrap();
+                    merge_json(&mut json, json_file);
+                }
+
+                json
+            }
+            _ => {
+                let schemes = schemes.unwrap();
+                let palettes = &self.theme.as_ref().unwrap().palettes;
+
+                let mut modified = IndexMap::new();
+                for name in schemes.get_all_names() {
+                    let dark_hex = schemes.dark.get(name).unwrap().to_hex_with_pound();
+                    let light_hex = schemes.light.get(name).unwrap().to_hex_with_pound();
+                    let default_hex = match default_scheme {
+                        SchemesEnum::Dark => dark_hex.clone(),
+                        SchemesEnum::Light => light_hex.clone(),
+                    };
+
+                    let mut schemes = Map::new();
+                    schemes.insert("dark".to_string(), color_entry(dark_hex));
+                    schemes.insert("light".to_string(), color_entry(light_hex));
+                    schemes.insert("default".to_string(), color_entry(default_hex));
+                    modified.insert(name.to_string(), Value::Object(schemes));
+                }
+
+                let palettes = format_palettes(palettes, &Format::Hex);
+
+                let modified = serde_json::json!({
+                    "colors": modified,
+                    "palettes": palettes
+                });
+
+                merge_json(&mut json, modified);
+
+                if let Some(path) = &self.args.import_json {
+                    let string = read_to_string(path).unwrap();
+
+                    let json_file = serde_json::from_str(&string).unwrap();
+                    merge_json(&mut json, json_file);
+                }
+
+                json
+            }
+        };
+
+        engine.add_context(json.clone());
+
+        (engine, json)
     }
 
     fn save_cache(&self, json: &Value) -> Result<(), Report> {
-        let json_modified = serde_json::json!({
-            "colors": {
-                "dark": convert_argb_scheme(&self.schemes.dark),
-                "light": convert_argb_scheme(&self.schemes.light),
-            }
-        });
-
-        let mut merged_json = json.clone();
-
-        if let Value::Object(ref mut map) = merged_json {
-            if let Value::Object(extra) = json_modified {
-                for (k, v) in extra {
-                    map.insert(k, v);
-                }
-            }
-        }
-
-        self.image_hash.save(&merged_json)
+        self.image_hash.save(&json)
     }
 
     pub fn get_render_data(&self) -> Result<serde_json::Value, Report> {
@@ -157,6 +240,7 @@ impl State {
             #[cfg(feature = "web-image")]
             Source::WebImage { .. } => None,
             Source::Color { .. } => None,
+            Source::Json { path } => None,
         };
 
         let is_dark_mode = match self.default_scheme {
@@ -172,7 +256,7 @@ impl State {
         }
 
         Ok(serde_json::json!({
-            "image": image, "custom": &custom, "mode": self.default_scheme, "is_dark_mode": is_dark_mode
+            "image": image, "custom": &custom, "mode": self.default_scheme, "is_dark_mode": is_dark_mode,
         }))
     }
 
@@ -242,27 +326,25 @@ impl State {
     pub fn run_in_term(&self) -> Result<(), Report> {
         self.init_in_term()?;
 
-        if self.args.show_colors == Some(true) {
-            show_color(&self.schemes, &self.source_color);
+        if self.args.show_colors == Some(true) && !self.args.source.is_json() {
+            show_color(
+                &self.schemes.as_ref().unwrap(),
+                &self.source_color.as_ref().unwrap(),
+            );
         }
+
+        let (mut engine, mut json_value) = self.init_engine();
+        let mut template = TemplateFile::new(self, &mut engine);
 
         #[cfg(feature = "dump-json")]
         if let Some(ref format) = self.args.json {
             use crate::util::color::dump_json;
-            dump_json(
-                &self.schemes,
-                &self.source_color,
-                format,
-                &self.theme.palettes,
-            );
+            dump_json(&mut json_value, format);
         }
 
         if self.args.dry_run == Some(true) {
             return Ok(());
         }
-
-        let mut engine = self.init_engine();
-        let mut template = TemplateFile::new(self, &mut engine);
 
         // self.run_other_generator();
         template.generate()?;
@@ -303,6 +385,7 @@ fn main() -> Result<(), Report> {
         dry_run: None,
         show_colors: None,
         json: None,
+        import_json: None,
     };
 
     if args_unparsed.len() > 1 && args_unparsed[1] == "ui" {

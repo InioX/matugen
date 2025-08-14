@@ -35,12 +35,22 @@ pub enum Source {
     /// The source color to use for generating a color scheme
     #[clap(subcommand)]
     Color(crate::color::color::ColorFormat),
+
+    /// The json file to use and import for templates
+    Json { path: String },
 }
 
 impl Source {
     pub fn is_image(&self) -> bool {
         match self {
             Source::Image { path: _ } => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_json(&self) -> bool {
+        match self {
+            Source::Json { path: _ } => true,
             _ => false,
         }
     }
@@ -97,6 +107,7 @@ pub fn get_source_color(source: &Source) -> Result<Argb, Box<dyn std::error::Err
         }
         Source::Color(color) => color::get_source_color_from_color(color)
             .expect("Could not get source color from color"),
+        Source::Json { path } => unreachable!(),
     };
     Ok(source_color)
 }
