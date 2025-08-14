@@ -68,6 +68,10 @@ pub struct Cli {
     /// Whether to dump json of colors
     #[arg(value_enum, short, long, global = true, value_name = "JSON")]
     pub json: Option<Format>,
+
+    /// Imports a json file to use as render data
+    #[arg(value_enum, short, long, global = true, value_name = "FILE")]
+    pub import_json: Option<String>,
 }
 
 #[derive(Parser, Debug)]
@@ -85,4 +89,18 @@ pub enum Format {
     Hsl,
     Hsla,
     Strip,
+}
+
+impl ToString for Format {
+    fn to_string(&self) -> String {
+        match &self {
+            Format::Hex => "hex",
+            Format::Rgb => "rgb",
+            Format::Rgba => "rgba",
+            Format::Hsl => "hsl",
+            Format::Hsla => "hsla",
+            Format::Strip => "hex_stripped",
+        }
+        .to_owned()
+    }
 }

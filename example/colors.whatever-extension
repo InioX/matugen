@@ -4,8 +4,11 @@
 
 {{ "test" | replace: "test", "test2" }}
 
-normal: {{ colors.blue.default.hex }}
-blended: {{ colors.blue.default.hex | blend: {{ colors.source_color.default.rgb }} }}
+normal: {{ colors.blue.default.rgb }}
+blended: {{ colors.blue.default.rgb | blend: {{ colors.source_color.default.rgb }} }}
+
+normal: {{ colors.blue.default.rgba }}
+blended: {{ colors.blue.default.rgba | blend: {{ colors.source_color.default.rgb }} }}
 
 red #FF0000;
 green #00FF00;

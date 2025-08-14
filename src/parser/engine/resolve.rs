@@ -1,120 +1,25 @@
-use chumsky::span::SimpleSpan;
-use indexmap::IndexMap;
-use material_colors::color::Argb;
-
 use super::Engine;
 
 use crate::{
-    color::format::rgb_from_argb,
-    parser::{engine::format_color_all, Error, KeywordError, ParseErrorKind, Value},
+    color::parse::parse_css_color,
+    parser::{engine::format_color, Value},
 };
 
-use crate::scheme::SchemesEnum;
-
 impl Engine {
-    pub fn resolve_path_md3_color<'a>(
+    pub fn resolve_generic_color<'a>(
         &self,
-        mut path: impl Iterator<Item = &'a str>,
+        color: &Value,
+        format: &'a str,
         format_value: bool,
     ) -> Option<Value> {
-        let color_name = path.next();
-        let scheme_name = path.next();
-        let format_name = path.next();
-
-        match (color_name, scheme_name, format_name) {
-            (None, None, None) => {
-                let mut color_map: IndexMap<String, Value> = IndexMap::new();
-
-                for name in self.schemes.get_all_names() {
-                    let mut scheme_map = IndexMap::new();
-
-                    let default_scheme = match self.default_scheme {
-                        SchemesEnum::Light => self.schemes.light.clone(),
-                        SchemesEnum::Dark => self.schemes.dark.clone(),
-                    };
-
-                    for (scheme_name, scheme) in [
-                        ("light", self.schemes.light.clone()),
-                        ("dark", self.schemes.dark.clone()),
-                        ("default", default_scheme),
-                    ] {
-                        if let Some(color) = scheme.get(name) {
-                            scheme_map.insert(
-                                scheme_name.to_string(),
-                                Value::LazyColor {
-                                    color: rgb_from_argb(*color),
-                                    scheme: Some(scheme_name.to_string()),
-                                },
-                            );
-                        }
-                    }
-                    color_map.insert(name.clone(), Value::Map(scheme_map));
-                }
-
-                return Some(Value::Map(color_map));
-            }
-            (Some(color_name), None, None) => {
-                let mut scheme_map = IndexMap::new();
-                for (scheme_name, scheme) in [
-                    ("light", &self.schemes.light),
-                    ("dark", &self.schemes.dark),
-                    (
-                        "default",
-                        match self.default_scheme {
-                            SchemesEnum::Light => &self.schemes.light,
-                            SchemesEnum::Dark => &self.schemes.dark,
-                        },
-                    ),
-                ] {
-                    if let Some(color) = scheme.get(color_name) {
-                        scheme_map.insert(
-                            scheme_name.to_string(),
-                            Value::LazyColor {
-                                color: rgb_from_argb(*color),
-                                scheme: Some(scheme_name.to_string()),
-                            },
-                        );
-                    }
-                }
-                return Some(Value::Map(scheme_map));
-            }
-            (Some(color_name), Some(scheme_name), None) => {
-                let scheme = match scheme_name {
-                    "light" => &self.schemes.light,
-                    "dark" => &self.schemes.dark,
-                    "default" => match self.default_scheme {
-                        SchemesEnum::Light => &self.schemes.light,
-                        SchemesEnum::Dark => &self.schemes.dark,
-                    },
-                    _ => return None,
-                };
-
-                let color = scheme.get(color_name)?;
-                return Some(Value::LazyColor {
-                    color: rgb_from_argb(*color),
-                    scheme: Some(scheme_name.to_string()),
-                });
-            }
-            (Some(color_name), Some(scheme_name), Some(format_name)) => {
-                let scheme = match scheme_name {
-                    "light" => &self.schemes.light,
-                    "dark" => &self.schemes.dark,
-                    "default" => match self.default_scheme {
-                        SchemesEnum::Light => &self.schemes.light,
-                        SchemesEnum::Dark => &self.schemes.dark,
-                    },
-                    _ => return None,
-                };
-
-                let color = rgb_from_argb(*scheme.get(color_name)?);
-                if format_value {
-                    let formats = format_color_all(color);
-                    return formats.get(format_name).cloned();
-                } else {
-                    return Some(Value::Color(color));
-                }
-            }
-            _ => return None,
+        let color = match parse_css_color(&color.to_string()) {
+            Ok(v) => v,
+            Err(_) => return None,
+        };
+        if format_value {
+            Some(Value::Ident(format_color(color, format)?.to_string()))
+        } else {
+            Some(Value::Color(color))
         }
     }
 
@@ -123,17 +28,6 @@ impl Engine {
         I: IntoIterator<Item = &'a str> + Clone,
     {
         let mut iter = path.clone().into_iter().peekable();
-
-        if let Some(&first) = iter.peek() {
-            match first {
-                "colors" => {
-                    iter.next();
-                    return self.resolve_path_md3_color(iter, format_value);
-                }
-                _ => {}
-            }
-        }
-
         let first = iter.next()?;
 
         let mut current = self
@@ -142,23 +36,28 @@ impl Engine {
             .resolve_path(std::iter::once(first))
             .or_else(|| self.context.data().get(first).cloned())?;
 
-        for next_key in iter {
+        while let Some(next_key) = iter.next() {
             match current {
                 Value::Map(ref map) => {
-                    current = map.get(next_key)?.clone();
+                    if map.contains_key("color") {
+                        let color = map.get("color").unwrap();
+                        current = self
+                            .resolve_generic_color(color, next_key, format_value)
+                            .unwrap();
+                    } else {
+                        current = map.get(next_key)?.clone();
+                    }
                 }
                 Value::LazyColor { color, .. } => {
                     current = if format_value {
-                        let color_map = format_color_all(color);
-                        Value::Ident(color_map.get(next_key)?.to_string())
+                        Value::Ident(format_color(color, next_key)?.to_string())
                     } else {
                         Value::Color(color)
                     }
                 }
                 Value::Color(color) => {
                     current = if format_value {
-                        let color_map = format_color_all(color);
-                        Value::Ident(color_map.get(next_key)?.clone().to_string())
+                        Value::Ident(format_color(color, next_key)?.to_string())
                     } else {
                         Value::Color(color)
                     }
@@ -176,51 +75,5 @@ impl Engine {
         keywords
             .last()
             .expect("Could not get format from {keywords}")
-    }
-
-    pub fn get_from_map(
-        &self,
-        r#type: &str,
-        name: &str,
-        colorscheme: &str,
-        span: SimpleSpan,
-    ) -> &Argb {
-        if r#type == "colors" {
-            let scheme = match colorscheme {
-                "light" => &self.schemes.light,
-                "dark" => &self.schemes.dark,
-                "default" => match self.default_scheme {
-                    SchemesEnum::Light => &self.schemes.light,
-                    SchemesEnum::Dark => &self.schemes.dark,
-                },
-                _ => {
-                    self.errors.add(Error::ParseError {
-                        kind: ParseErrorKind::Keyword(KeywordError::InvalidScheme),
-                        span,
-                    });
-                    &self.schemes.dark
-                }
-            };
-
-            match scheme.get(name) {
-                Some(v) => v,
-                None => {
-                    self.errors.add(Error::ParseError {
-                        kind: crate::parser::ParseErrorKind::Keyword(
-                            crate::parser::KeywordError::ColorDoesNotExist,
-                        ),
-                        span,
-                    });
-                    &Argb {
-                        alpha: 0,
-                        red: 0,
-                        green: 0,
-                        blue: 0,
-                    }
-                }
-            }
-        } else {
-            unreachable!()
-        }
     }
 }

@@ -3,9 +3,8 @@ use std::{cell::RefCell, collections::HashMap};
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::{error::Rich, prelude::*, span::SimpleSpan};
 
-use crate::{
-    parser::{context::RuntimeContext, filtertype::FilterFn, Error, ErrorCollector, SpannedValue},
-    scheme::{Schemes, SchemesEnum},
+use crate::parser::{
+    context::RuntimeContext, filtertype::FilterFn, Error, ErrorCollector, SpannedValue,
 };
 
 use super::context::Context;
@@ -79,10 +78,10 @@ enum BinaryOperator {
 
 impl Expression {
     pub fn as_keywords<'a>(&self, source: &'a str) -> Option<Vec<&'a str>> {
-        if let Expression::Access { keywords } = self {
-            Some(get_str_vec(source, keywords))
-        } else {
-            None
+        match self {
+            Expression::Keyword { keywords } => keywords.expr.as_keywords(source),
+            Expression::Access { keywords } => Some(get_str_vec(source, keywords)),
+            _ => None,
         }
     }
     pub fn as_spans<'a>(&self) -> Option<&Vec<SimpleSpan>> {
@@ -103,8 +102,6 @@ pub struct SpannedExpr {
 pub struct Engine {
     filters: HashMap<&'static str, FilterFn>,
     syntax: EngineSyntax,
-    schemes: Schemes,
-    default_scheme: SchemesEnum,
     context: Context,
     runtime: RefCell<RuntimeContext>,
     templates: HashMap<String, Template>,
@@ -153,7 +150,7 @@ impl EngineSyntax {
 }
 
 impl Engine {
-    pub fn new(schemes: Schemes, default_scheme: SchemesEnum) -> Self {
+    pub fn new() -> Self {
         let filters: HashMap<&str, FilterFn> = HashMap::new();
 
         let ctx = Context::new();
@@ -161,8 +158,6 @@ impl Engine {
         Self {
             filters,
             syntax: EngineSyntax::default(),
-            schemes,
-            default_scheme,
             context: ctx.clone(),
             runtime: RuntimeContext::new(ctx.clone()).into(),
             templates: HashMap::new(),
