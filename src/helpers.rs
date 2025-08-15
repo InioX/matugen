@@ -64,7 +64,7 @@ pub fn set_wallpaper(source: &Source, _wallpaper_cfg: &Wallpaper) -> Result<(), 
         Source::Color { .. } => return Ok(()),
         #[cfg(feature = "web-image")]
         Source::WebImage { .. } => return Ok(()),
-        Source::Json { path } => unreachable!(),
+        Source::Json { path: _ } => unreachable!(),
     };
 
     #[cfg(target_os = "windows")]

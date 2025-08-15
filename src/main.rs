@@ -93,7 +93,7 @@ impl State {
             ConfigFile::read(&args).expect("Failed to read config file.");
 
         let source_color = match &args.source {
-            Source::Json { path } => None,
+            Source::Json { path: _ } => None,
             _ => Some(get_source_color(&args.source).expect("Failed to get source color.")),
         };
 
@@ -104,14 +104,12 @@ impl State {
         let image_hash = ImageCache::new(&args.source);
 
         let (schemes, theme) = match source_color {
-            Some(schemes) => {
-                let source_color = source_color.unwrap();
-                let theme = ThemeBuilder::with_source(source_color).build();
-                let (scheme_dark, scheme_light) =
-                    get_schemes(source_color, &args.r#type, &args.contrast);
+            Some(color) => {
+                let theme = ThemeBuilder::with_source(color).build();
+                let (scheme_dark, scheme_light) = get_schemes(color, &args.r#type, &args.contrast);
 
                 let mut schemes = get_custom_color_schemes(
-                    source_color,
+                    color,
                     scheme_dark,
                     scheme_light,
                     &config_file.config.custom_colors,
@@ -119,10 +117,8 @@ impl State {
                     &args.contrast,
                 );
 
-                schemes.dark.insert("source_color".to_owned(), source_color);
-                schemes
-                    .light
-                    .insert("source_color".to_owned(), source_color);
+                schemes.dark.insert("source_color".to_owned(), color);
+                schemes.light.insert("source_color".to_owned(), color);
                 (Some(schemes), Some(theme))
             }
             None => (None, None),
@@ -240,7 +236,7 @@ impl State {
             #[cfg(feature = "web-image")]
             Source::WebImage { .. } => None,
             Source::Color { .. } => None,
-            Source::Json { path } => None,
+            Source::Json { path: _ } => None,
         };
 
         let is_dark_mode = match self.default_scheme {
