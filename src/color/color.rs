@@ -107,7 +107,7 @@ pub fn get_source_color(source: &Source) -> Result<Argb, Box<dyn std::error::Err
         }
         Source::Color(color) => color::get_source_color_from_color(color)
             .expect("Could not get source color from color"),
-        Source::Json { path } => unreachable!(),
+        Source::Json { path: _ } => unreachable!(),
     };
     Ok(source_color)
 }
