@@ -17,6 +17,7 @@ mod wallpaper;
 use crate::{
     cache::ImageCache,
     color::color::{get_source_color, Source},
+    helpers::{color_entry, merge_json},
     parser::engine::EngineSyntax,
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
     util::{arguments::Format, color::format_palettes},
@@ -56,35 +57,6 @@ pub struct State {
     pub schemes: Option<Schemes>,
     pub default_scheme: SchemesEnum,
     pub image_hash: ImageCache,
-}
-
-fn color_entry(hex: String) -> Value {
-    let mut m = Map::new();
-    m.insert("color".to_string(), Value::String(hex));
-    Value::Object(m)
-}
-
-pub fn merge_json(a: &mut Value, b: Value) {
-    match (a, b) {
-        (Value::Object(a_map), Value::Object(b_map)) => {
-            for (k, v_b) in b_map {
-                match a_map.get_mut(&k) {
-                    Some(v_a) => merge_json(v_a, v_b),
-                    None => {
-                        a_map.insert(k, v_b);
-                    }
-                }
-            }
-        }
-        // Arrays: append `b`'s items to `a`
-        (Value::Array(a_arr), Value::Array(b_arr)) => {
-            a_arr.extend(b_arr);
-        }
-        // For all other cases: replace `a` with `b`
-        (a_slot, b_val) => {
-            *a_slot = b_val;
-        }
-    }
 }
 
 impl State {
