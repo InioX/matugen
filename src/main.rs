@@ -247,6 +247,7 @@ impl State {
         engine.add_filter("invert", crate::filters::invert);
 
         engine.add_filter("blend", crate::filters::blend);
+        engine.add_filter("harmonize", crate::filters::harmonize);
         engine.add_filter("to_color", crate::filters::to_color);
 
         // String

@@ -1,5 +1,5 @@
 use colorsys::{ColorTransform, Hsl, Rgb, SaturationInSpace};
-use material_colors::blend::harmonize;
+use material_colors::blend::{harmonize as md3_harmonize, hct_hue};
 
 use crate::{
     color::{
@@ -169,16 +169,38 @@ pub(crate) fn blend(
     original: FilterReturnType,
     _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
+    let (blend_with, amount) = expect_args!(args, Rgb, f64);
+
+    match original {
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::Rgb(color) => {
+            let res = hct_hue(argb_from_rgb(color), argb_from_rgb(blend_with), amount);
+            Ok(FilterReturnType::Rgb(rgb_from_argb(res)))
+        }
+        FilterReturnType::Hsl(color) => {
+            let res = hct_hue(argb_from_hsl(color), argb_from_rgb(blend_with), amount);
+            Ok(FilterReturnType::Hsl(hsl_from_argb(res)))
+        }
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
+    }
+}
+
+pub(crate) fn harmonize(
+    _keywords: &[&str],
+    args: &[SpannedValue],
+    original: FilterReturnType,
+    _engine: &Engine,
+) -> Result<FilterReturnType, FilterError> {
     let blend_with = expect_args!(args, Rgb);
 
     match original {
         FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(color) => {
-            let res = harmonize(argb_from_rgb(color), argb_from_rgb(blend_with));
+            let res = md3_harmonize(argb_from_rgb(color), argb_from_rgb(blend_with));
             Ok(FilterReturnType::Rgb(rgb_from_argb(res)))
         }
         FilterReturnType::Hsl(color) => {
-            let res = harmonize(argb_from_hsl(color), argb_from_rgb(blend_with));
+            let res = md3_harmonize(argb_from_hsl(color), argb_from_rgb(blend_with));
             Ok(FilterReturnType::Hsl(hsl_from_argb(res)))
         }
         FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
