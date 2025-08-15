@@ -2,7 +2,10 @@ use colorsys::{ColorTransform, Hsl, Rgb, SaturationInSpace};
 use material_colors::blend::harmonize;
 
 use crate::{
-    color::format::{argb_from_hsl, argb_from_rgb, hsl_from_argb, rgb_from_argb},
+    color::{
+        format::{argb_from_hsl, argb_from_rgb, hsl_from_argb, rgb_from_argb},
+        parse::parse_css_color,
+    },
     expect_args,
     parser::{Engine, FilterError, FilterReturnType, SpannedValue},
 };
@@ -147,16 +150,12 @@ pub(crate) fn saturate(
 
 pub(crate) fn to_color(
     _keywords: &[&str],
-    args: &[SpannedValue],
+    _args: &[SpannedValue],
     original: FilterReturnType,
     _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     match original {
-        FilterReturnType::String(s) => {
-            // TODO: Make this support all formats
-            let color = Rgb::from_hex_str(&s).expect("Invalid value");
-            Ok(FilterReturnType::Rgb(color))
-        }
+        FilterReturnType::String(s) => Ok(FilterReturnType::Rgb(parse_css_color(&s).unwrap())),
         FilterReturnType::Rgb(color) => Ok(FilterReturnType::Rgb(color)),
         FilterReturnType::Hsl(color) => Ok(FilterReturnType::Hsl(color)),
         // TODO: Add proper error here
