@@ -11,7 +11,10 @@ impl Engine {
     ) -> impl Parser<'src, &'src str, Vec<Box<SpannedExpr>>, extra::Err<Rich<'src, char>>> {
         recursive(|expr| {
             // Dotted identifier as a sequence of spans
+            let numeric_key_prefixed = just('_').ignore_then(text::int(10));
+
             let dotted_ident = text::ident()
+                .or(numeric_key_prefixed)
                 .map_with(|_, e| e.span())
                 .separated_by(just('.').padded())
                 .at_least(1)

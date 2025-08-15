@@ -37,6 +37,12 @@ impl Engine {
             .or_else(|| self.context.data().get(first).cloned())?;
 
         while let Some(next_key) = iter.next() {
+            let next_key = if next_key.starts_with("_") {
+                next_key.strip_prefix("_").unwrap()
+            } else {
+                next_key
+            };
+
             match current {
                 Value::Map(ref map) => {
                     if map.contains_key("color") {

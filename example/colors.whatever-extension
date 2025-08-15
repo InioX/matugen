@@ -4,6 +4,8 @@
 
 {{ "test" | replace: "test", "test2" }}
 
+{{ palettes.error._99.hex }}
+
 normal: {{ colors.blue.default.rgb }}
 blended: {{ colors.blue.default.rgb | blend: {{ colors.source_color.default.rgb }} }}
 
