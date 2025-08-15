@@ -4,6 +4,7 @@ use crate::{
 };
 use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
+use serde_json::{Map, Value};
 use std::io::Write;
 
 use crate::util::arguments::Cli;
@@ -74,4 +75,33 @@ pub fn set_wallpaper(source: &Source, _wallpaper_cfg: &Wallpaper) -> Result<(), 
     #[cfg(any(target_os = "linux", target_os = "netbsd"))]
     wallpaper::unix::set(path, _wallpaper_cfg)?;
     Ok(())
+}
+
+pub fn color_entry(hex: String) -> Value {
+    let mut m = Map::new();
+    m.insert("color".to_string(), Value::String(hex));
+    Value::Object(m)
+}
+
+pub fn merge_json(a: &mut Value, b: Value) {
+    match (a, b) {
+        (Value::Object(a_map), Value::Object(b_map)) => {
+            for (k, v_b) in b_map {
+                match a_map.get_mut(&k) {
+                    Some(v_a) => merge_json(v_a, v_b),
+                    None => {
+                        a_map.insert(k, v_b);
+                    }
+                }
+            }
+        }
+        // Arrays: append `b`'s items to `a`
+        (Value::Array(a_arr), Value::Array(b_arr)) => {
+            a_arr.extend(b_arr);
+        }
+        // For all other cases: replace `a` with `b`
+        (a_slot, b_val) => {
+            *a_slot = b_val;
+        }
+    }
 }
