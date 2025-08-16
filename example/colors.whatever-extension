@@ -6,13 +6,10 @@
 
 {{ palettes.error._99.hex }}
 
-normal: {{ colors.blue.default.rgb }}
-blended: {{ colors.blue.default.rgb | blend: {{ colors.source_color.default.rgb }}, 0.8 }}
-harmonized: {{ colors.blue.default.rgb | harmonize: {{ colors.source_color.default.rgb }} }}
-
-normal: {{ colors.blue.default.rgba }}
-blended: {{ colors.blue.default.rgba | blend: {{ colors.source_color.default.rgb }}, 0.8 }}
-harmonized: {{ colors.blue.default.rgba | harmonize: {{ colors.source_color.default.rgb }} }}
+normal: {{ colors.blue_source.default.hex }}
+blended_full: {{ colors.blue_source.default.hex | blend: {{ colors.source_color.default.hex }}, 1.0 }}
+blended_half: {{ colors.blue_source.default.hex | blend: {{ colors.source_color.default.hex }}, 0.5 }}
+harmonized: {{ colors.blue_source.default.hex | harmonize: {{ colors.source_color.default.hex }} }}
 
 red #FF0000;
 green #00FF00;

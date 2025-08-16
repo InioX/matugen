@@ -19,7 +19,6 @@ pub struct Config {
     pub wallpaper: Option<Wallpaper>,
     // TODO: Add a `Command` struct
     pub prefix: Option<String>,
-    pub custom_keywords: Option<HashMap<String, String>>,
     pub custom_colors: Option<HashMap<String, crate::color::color::OwnCustomColor>>,
     pub expr_prefix: Option<[char; 2]>,
     pub expr_postfix: Option<[char; 2]>,

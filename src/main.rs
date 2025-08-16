@@ -3,7 +3,7 @@
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate paris_log;
-use std::{collections::HashMap, fs::read_to_string, path::PathBuf};
+use std::{fs::read_to_string, path::PathBuf};
 
 use indexmap::IndexMap;
 use material_colors::theme::ThemeBuilder;
@@ -216,15 +216,8 @@ impl State {
             SchemesEnum::Light => false,
         };
 
-        let mut custom: HashMap<String, String> = Default::default();
-        for entry in self.config_file.config.custom_keywords.iter() {
-            for (name, value) in entry {
-                custom.insert(name.to_string(), value.to_string());
-            }
-        }
-
         Ok(serde_json::json!({
-            "image": image, "custom": &custom, "mode": self.default_scheme, "is_dark_mode": is_dark_mode,
+            "image": image, "mode": self.default_scheme, "is_dark_mode": is_dark_mode,
         }))
     }
 
