@@ -201,8 +201,6 @@ pub fn make_custom_color(
     source_color: Argb,
     contrast_level: Option<f64>,
 ) -> CustomColorGroup {
-    // debug!("make_custom_color: {:#?}", &color);
-
     let value = if color.blend {
         harmonize(color.value, source_color)
     } else {
