@@ -1,40 +1,31 @@
-use color_eyre::eyre::ContextCompat;
-use color_eyre::eyre::WrapErr;
-use color_eyre::Help;
-use color_eyre::{eyre::Result, Report};
+use color_eyre::{
+    eyre::{ContextCompat, Result, WrapErr},
+    Help, Report,
+};
+use execute::{shell, Execute};
+use serde_json::json;
 
-use matugen::template_util::template::add_engine_filters;
-use matugen::template_util::template::get_render_data;
-use matugen::template_util::template::render_template;
+use crate::{color::color::get_closest_color, parser::Engine as NewEngine};
 use serde::{Deserialize, Serialize};
 
-use upon::Value;
+use std::{collections::HashMap, path::Path, process::Stdio, str};
 
-use matugen::exec::hook::format_hook;
+use std::{
+    fs::{create_dir_all, read_to_string, OpenOptions},
+    io::Write,
+    path::PathBuf,
+};
 
-use std::path::Path;
-use std::str;
-
-use std::fs::create_dir_all;
-use std::fs::read_to_string;
-use std::fs::OpenOptions;
-use std::io::Write;
-use std::path::PathBuf;
-
-use matugen::color::color::Source;
 use resolve_path::PathResolveExt;
 
-use crate::SchemesEnum;
-use crate::State;
-
-use upon::{Engine, Syntax};
+use crate::{SchemesEnum, State};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Template {
     pub input_path: PathBuf,
     pub output_path: PathBuf,
     pub mode: Option<SchemesEnum>,
-    pub colors_to_compare: Option<Vec<matugen::color::color::ColorDefinition>>,
+    pub colors_to_compare: Option<Vec<crate::color::color::ColorDefinition>>,
     pub compare_to: Option<String>,
     pub pre_hook: Option<String>,
     pub post_hook: Option<String>,
@@ -49,21 +40,12 @@ pub struct InputPathModes {
 
 pub struct TemplateFile<'a> {
     state: &'a State,
-    engine: &'a mut Engine<'a>,
-    render_data: &'a mut Value,
+    engine: &'a mut NewEngine,
 }
 
 impl TemplateFile<'_> {
-    pub fn new<'a>(
-        state: &'a State,
-        engine: &'a mut Engine<'a>,
-        render_data: &'a mut Value,
-    ) -> TemplateFile<'a> {
-        TemplateFile {
-            state,
-            engine,
-            render_data,
-        }
+    pub fn new<'a>(state: &'a State, engine: &'a mut NewEngine) -> TemplateFile<'a> {
+        TemplateFile { state, engine }
     }
 
     pub fn generate(&mut self) -> Result<(), Report> {
@@ -72,9 +54,9 @@ impl TemplateFile<'_> {
             &self.state.config_file.templates.len()
         );
 
-        for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
-            add_engine_filters(self.engine);
+        let mut paths_hashmap: HashMap<String, (PathBuf, PathBuf)> = HashMap::new();
 
+        for (_i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
             let input_path = if let Some(input_path_mode) = &template.input_path_modes {
                 match self.state.default_scheme {
                     SchemesEnum::Light => &input_path_mode.light,
@@ -84,23 +66,8 @@ impl TemplateFile<'_> {
                 &template.input_path
             };
 
-            let (input_path_absolute, output_path_absolute) = get_absolute_paths(
-                &self.state.config_path,
-                template,
-                &input_path,
-                &template.output_path,
-            )?;
-
-            if template.pre_hook.is_some() {
-                format_hook(
-                    self.engine,
-                    self.render_data,
-                    template.pre_hook.as_ref().unwrap(),
-                    &template.colors_to_compare,
-                    &template.compare_to,
-                )
-                .unwrap();
-            }
+            let (input_path_absolute, output_path_absolute) =
+                get_absolute_paths(&self.state.config_path, input_path, &template.output_path)?;
 
             if !input_path_absolute.exists() {
                 warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesnt exist, skipping...</>", name, input_path_absolute.display());
@@ -111,36 +78,41 @@ impl TemplateFile<'_> {
                 .wrap_err(format!("Could not read the {} template.", name))
                 .suggestion("Try converting the file to use UTF-8 encoding.")?;
 
-            self.engine.add_template(name, data).map_err(|error| {
-                let message = format!(
-                    "[{} - {}]\n{:#}",
+            self.engine.add_template(name.to_string(), data);
+            paths_hashmap.insert(
+                name.to_string(),
+                (input_path_absolute, output_path_absolute),
+            );
+        }
+
+        for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
+            if template.pre_hook.is_some() {
+                format_hook(
+                    self.engine,
                     name,
-                    input_path_absolute.display(),
-                    error
-                );
-                Report::new(error).wrap_err(message)
-            })?;
+                    &template.pre_hook.clone().unwrap(),
+                    &template.colors_to_compare,
+                    &template.compare_to,
+                )
+                .unwrap();
+            }
+
+            let (input_path_absolute, output_path_absolute) = paths_hashmap.get(name).unwrap();
 
             debug!(
                 "Trying to write the {} template from {} to {}",
                 name,
-                input_path.display(),
+                input_path_absolute.display(),
                 output_path_absolute.display()
             );
 
-            self.export_template(
-                name,
-                self.render_data,
-                output_path_absolute,
-                input_path_absolute,
-                i,
-            )?;
+            self.export_template(name, output_path_absolute, input_path_absolute, i)?;
 
             if template.post_hook.is_some() {
                 format_hook(
                     self.engine,
-                    self.render_data,
-                    template.post_hook.as_ref().unwrap(),
+                    name,
+                    &template.post_hook.clone().unwrap(),
                     &template.colors_to_compare,
                     &template.compare_to,
                 )
@@ -153,17 +125,26 @@ impl TemplateFile<'_> {
     fn export_template(
         &self,
         name: &String,
-        render_data: &Value,
-        output_path_absolute: PathBuf,
-        input_path_absolute: PathBuf,
+        output_path_absolute: &PathBuf,
+        input_path_absolute: &PathBuf,
         i: usize,
     ) -> Result<(), Report> {
-        let data = render_template(self.engine, name, render_data, input_path_absolute.to_str())?;
+        let data = match self.engine.render(name) {
+            Ok(v) => v,
+            Err(errors) => {
+                for err in errors {
+                    err.emit(
+                        self.engine.get_source(name),
+                        &format!("{}", input_path_absolute.display()),
+                    );
+                }
+                std::process::exit(1);
+            }
+        };
 
         let out = if self.state.args.prefix.is_some() && !cfg!(windows) {
             let mut prefix_path = PathBuf::from(self.state.args.prefix.as_ref().unwrap());
 
-            // remove the root from the output_path so that we can push it onto the prefix
             let output_path = output_path_absolute
                 .strip_prefix("/")
                 .expect("output_path_absolute is not an absolute path.");
@@ -202,6 +183,58 @@ impl TemplateFile<'_> {
 
         Ok(())
     }
+}
+
+fn format_hook(
+    engine: &mut NewEngine,
+    template_name: &String,
+    hook: &String,
+    colors_to_compare: &Option<Vec<crate::color::color::ColorDefinition>>,
+    compare_to: &Option<String>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if colors_to_compare.is_some() && compare_to.is_some() {
+        let res = match engine.compile(compare_to.as_ref().unwrap().to_string()) {
+            Ok(v) => v,
+            Err(errors) => {
+                eprintln!("Error when executing hook:\n{}", &hook);
+                for err in errors {
+                    err.emit(hook, &format!("{}-hook", template_name));
+                }
+                std::process::exit(1);
+            }
+        };
+        let closest_color = get_closest_color(colors_to_compare.as_ref().unwrap(), &res);
+        engine.add_context(json!({
+            "closest_color": closest_color
+        }));
+    }
+
+    let res = match engine.compile((&hook).to_string()) {
+        Ok(v) => v,
+        Err(errors) => {
+            eprintln!("Error when executing hook:\n{}", &hook);
+            for err in errors {
+                err.emit(hook, &format!("{}-hook", template_name));
+            }
+            std::process::exit(1);
+        }
+    };
+
+    let mut command = shell(&res);
+
+    command.stdout(Stdio::inherit());
+
+    let output = command.execute_output()?;
+
+    if let Some(exit_code) = output.status.code() {
+        if exit_code != 0 {
+            error!("Failed executing command: {:?}", &res)
+        }
+    } else {
+        eprintln!("Interrupted!");
+    }
+
+    Ok(())
 }
 
 #[allow(clippy::manual_strip)]
@@ -248,7 +281,6 @@ fn create_missing_folders(output_path_absolute: &Path) -> Result<(), Report> {
 
 fn get_absolute_paths(
     config_path: &Option<PathBuf>,
-    template: &Template,
     input_path: &PathBuf,
     output_path: &PathBuf,
 ) -> Result<(PathBuf, PathBuf), Report> {
@@ -271,37 +303,4 @@ fn get_absolute_paths(
         )
     };
     Ok((input_path_absolute, output_path_absolute))
-}
-
-pub fn build_engine_syntax(state: &State) -> Syntax {
-    Syntax::builder()
-        .expr(
-            state
-                .config_file
-                .config
-                .expr_prefix
-                .as_deref()
-                .unwrap_or("{{"),
-            state
-                .config_file
-                .config
-                .expr_postfix
-                .as_deref()
-                .unwrap_or("}}"),
-        )
-        .block(
-            state
-                .config_file
-                .config
-                .block_prefix
-                .as_deref()
-                .unwrap_or("<*"),
-            state
-                .config_file
-                .config
-                .block_postfix
-                .as_deref()
-                .unwrap_or("*>"),
-        )
-        .build()
 }

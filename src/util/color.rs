@@ -1,18 +1,20 @@
+#[cfg(feature = "dump-json")]
+use indexmap::IndexMap;
 use material_colors::color::Argb;
 use owo_colors::{OwoColorize, Style};
 
-use material_colors::palette::TonalPalette;
-use material_colors::theme::Palettes;
+use material_colors::{palette::TonalPalette, theme::Palettes};
 use prettytable::{format, Cell, Row, Table};
 
 use colorsys::Rgb;
+use serde_json::Value;
 
-use crate::Schemes;
+use crate::{color::parse::parse_css_color, parser::engine::format_color, Schemes};
 
 #[cfg(feature = "dump-json")]
 use super::arguments::Format;
 
-use matugen::color::format::rgb_from_argb;
+use crate::color::format::rgb_from_argb;
 
 const DEFAULT_TONES: [i32; 18] = [
     0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100,
@@ -38,46 +40,50 @@ pub fn show_color(schemes: &Schemes, source_color: &Argb) {
     table.printstd();
 }
 
-#[cfg(feature = "dump-json")]
-pub fn dump_json(schemes: &Schemes, source_color: &Argb, format: &Format, palettes: &Palettes) {
-    use std::collections::HashMap;
+pub fn transform_colors(value: &mut Value, format: &str) {
+    match value {
+        Value::Object(map) => {
+            if map.len() == 1 && map.contains_key("color") {
+                if let Some(color_str) = map.get("color").and_then(|v| v.as_str()) {
+                    if let Ok(parsed) = parse_css_color(color_str) {
+                        *value = Value::String(
+                            format_color(parsed, &format)
+                                .expect("Failed to transform color into json"),
+                        );
+                        return;
+                    }
+                }
+            }
 
-    let mut colors_normal_light: HashMap<&str, String> = HashMap::new();
-    let mut colors_normal_dark: HashMap<&str, String> = HashMap::new();
-
-    for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark) {
-        let color_light: Rgb = rgb_from_argb(*color_light);
-        let color_dark: Rgb = rgb_from_argb(*color_dark);
-
-        colors_normal_light.insert(field, format_single_color(color_light, format));
-        colors_normal_dark.insert(field, format_single_color(color_dark, format));
+            for val in map.values_mut() {
+                transform_colors(val, format);
+            }
+        }
+        Value::Array(arr) => {
+            for val in arr.iter_mut() {
+                transform_colors(val, format);
+            }
+        }
+        _ => {}
     }
-
-    colors_normal_light.insert(
-        "source_color",
-        format_single_color(rgb_from_argb(*source_color), format),
-    );
-
-    println!(
-        "{}",
-        serde_json::json!({
-            "colors": {
-                "light": colors_normal_light,
-                "dark": colors_normal_dark,
-            },
-            "palettes": format_palettes(palettes, format),
-        })
-    );
 }
 
 #[cfg(feature = "dump-json")]
-fn format_palettes(palettes: &Palettes, format: &Format) -> serde_json::Value {
-    let primary = format_single_palette(palettes.primary, format);
-    let secondary = format_single_palette(palettes.secondary, format);
-    let tertiary = format_single_palette(palettes.tertiary, format);
-    let neutral = format_single_palette(palettes.neutral, format);
-    let neutral_variant = format_single_palette(palettes.neutral_variant, format);
-    let error = format_single_palette(palettes.error, format);
+pub fn dump_json(json: &mut Value, format: &Format) {
+    let format_str = format.to_string();
+    transform_colors(json, &format_str);
+
+    println!("{}", serde_json::to_string_pretty(&json).unwrap());
+}
+
+pub fn format_palettes(palettes: &Palettes, format: &Format) -> serde_json::Value {
+    let format = format.to_string();
+    let primary = format_single_palette(palettes.primary, &format);
+    let secondary = format_single_palette(palettes.secondary, &format);
+    let tertiary = format_single_palette(palettes.tertiary, &format);
+    let neutral = format_single_palette(palettes.neutral, &format);
+    let neutral_variant = format_single_palette(palettes.neutral_variant, &format);
+    let error = format_single_palette(palettes.error, &format);
     serde_json::json!({
         "primary": primary,
         "secondary": secondary,
@@ -89,46 +95,19 @@ fn format_palettes(palettes: &Palettes, format: &Format) -> serde_json::Value {
 }
 
 #[cfg(feature = "dump-json")]
-fn format_single_palette(palette: TonalPalette, format: &Format) -> serde_json::Value {
-    let mut tones: String = "".to_string();
+fn format_single_palette(palette: TonalPalette, format: &str) -> IndexMap<String, Value> {
+    let mut map = IndexMap::new();
 
-    for (i, tone) in DEFAULT_TONES.into_iter().enumerate() {
-        if i == 0 {
-            tones.push_str("{\n");
-        }
-
-        tones.push_str(&format!(
-            "\"{}\": \"{}\"",
-            &format!("{}", tone),
-            format_single_color(rgb_from_argb(palette.tone(tone)), format),
-        ));
-
-        if i != DEFAULT_TONES.len() - 1 {
-            tones.push_str(",\n");
-        } else {
-            tones.push_str("\n}");
-        }
+    for tone in DEFAULT_TONES.into_iter() {
+        map.insert(
+            tone.to_string(),
+            serde_json::json!({
+                "color": format_color(rgb_from_argb(palette.tone(tone)), format).unwrap()
+            }),
+        );
     }
 
-    serde_json::from_str(&tones).unwrap()
-}
-
-#[cfg(feature = "dump-json")]
-fn format_single_color(color: Rgb, format: &Format) -> String {
-    use matugen::color::format::{
-        format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
-        hsl_from_rgb,
-    };
-
-    let fmt = match format {
-        Format::Rgb => |c: Rgb| format_rgb(&c),
-        Format::Rgba => |c: Rgb| format_rgba(&c, true),
-        Format::Hsl => |c: Rgb| format_hsl(&hsl_from_rgb(c)),
-        Format::Hsla => |c: Rgb| format_hsla(&hsl_from_rgb(c), true),
-        Format::Hex => |c: Rgb| format_hex(&c),
-        Format::Strip => |c: Rgb| format_hex_stripped(&c),
-    };
-    fmt(color)
+    map
 }
 
 fn generate_table_format() -> Table {

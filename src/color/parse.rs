@@ -1,4 +1,7 @@
-use upon::Value;
+use std::str::FromStr;
+
+use colorsys::Rgb;
+use csscolorparser::{Color, ParseColorError};
 
 pub fn parse_color(string: &str) -> Option<&str> {
     if let Some(_s) = string.strip_prefix('#') {
@@ -16,9 +19,17 @@ pub fn parse_color(string: &str) -> Option<&str> {
     }
 }
 
-pub fn check_string_value(value: &Value) -> Option<&String> {
-    match value {
-        Value::String(v) => Some(v),
-        _v => None,
+pub fn parse_css_color(string: &str) -> Result<Rgb, ParseColorError> {
+    match Color::from_str(string) {
+        Ok(v) => {
+            let alpha = if v.a.is_nan() { 1.0 } else { v.a };
+            Ok(Rgb::new(
+                v.r as f64 * 255.0,
+                v.g as f64 * 255.0,
+                v.b as f64 * 255.0,
+                Some(alpha.into()),
+            ))
+        }
+        Err(e) => Err(e),
     }
 }

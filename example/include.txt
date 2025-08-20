@@ -1,0 +1,10 @@
+{{ text }}
+{{ red_color.hex }}
+{{ red_color.rgb }} 
+{{ red_color.hsl }} 
+{{ int }}
+{{ float }}
+{{ map.text }}
+{{ map.nested.text }}
+
+{{ palettes }}

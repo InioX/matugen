@@ -2,14 +2,13 @@ use color_eyre::Report;
 
 #[cfg(target_os = "windows")]
 use std::ffi::OsStr;
-use std::io;
-use std::iter;
-use std::os::windows::ffi::OsStrExt;
-use winapi::ctypes::c_void;
-use winapi::um::winuser::SystemParametersInfoW;
-use winapi::um::winuser::SPIF_SENDCHANGE;
-use winapi::um::winuser::SPIF_UPDATEINIFILE;
-use winapi::um::winuser::SPI_SETDESKWALLPAPER;
+use std::{io, iter, os::windows::ffi::OsStrExt};
+use winapi::{
+    ctypes::c_void,
+    um::winuser::{
+        SystemParametersInfoW, SPIF_SENDCHANGE, SPIF_UPDATEINIFILE, SPI_SETDESKWALLPAPER,
+    },
+};
 
 #[cfg(target_os = "windows")]
 pub fn set(path: &String) -> Result<(), Report> {

@@ -3,6 +3,24 @@
 # WARNING: Matugen needs to be compiled with the `update-informer` feature for this to work.
 version_check = false
 
+# Enables caching which will cache the colorscheme, custom colors, etc. into a cache folder located in
+# Windows: C:\Users\user\AppData\Roaming\InioX\matugen\cache\images\<file>
+# Linux: $XDG_CACHE_HOME/matugen/<file> or $HOME/.cache/matugen/images/<file>
+# MacOS: $HOME/Library/Caches/matugen/images/<file>
+# The file follows this naming: <image_name>.<image_extension>.<image_hash>.json
+# For example: testimage.png.0cfd2d624b3d09bf6246b7be9ca79e207e7aa1189d961d44949628b99811bb9d.json
+# You can modify the cache and it will then be loaded when using the same image.
+caching = false
+
+# Changing the syntax
+# Expr is for stuff like for loops etc.
+expr_prefix = ['<', '*']
+expr_postfix = ['*', '>']
+
+# Block is for keywords like {{ <keyword> }}
+block_prefix = ['{', '{']
+block_postfix = ['}', '}']
+
 [config.wallpaper]
 # The base command to run for applying the wallpaper, shouldn't have spaces in it.
 command = "swww"
@@ -15,8 +33,9 @@ arguments = ["img", "--transition-type", "center"]
 # For example, killing the wallpaper daemon. Usage is like a normal hook.
 # pre_hook = ""
 
-[config.custom_keywords]
-test = "aaaa"
+[templates.includeme]
+input_path = "./include.txt"
+output_path = "./a/include.txt"
 
 [templates.name1]
 # Relative paths will be resolved from the path `config.toml` is in.

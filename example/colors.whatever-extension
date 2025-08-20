@@ -1,19 +1,37 @@
+<* include "includeme"*>
+
+{{ "#FF0000" | to_color | set_red: 0 }}
+
+{{ "test" | replace: "test", "test2" }}
+
+{{ palettes.error._99.hex }}
+
+normal: {{ colors.blue_source.default.hex }}
+blended_full: {{ colors.blue_source.default.hex | blend: {{ colors.source_color.default.hex }}, 1.0 }}
+blended_half: {{ colors.blue_source.default.hex | blend: {{ colors.source_color.default.hex }}, 0.5 }}
+harmonized: {{ colors.blue_source.default.hex | harmonize: {{ colors.source_color.default.hex }} }}
+
 red #FF0000;
 green #00FF00;
 blue #0000FF;
 
 mode: {{ mode }}
 
-test {{ colors.source_color.default.rgb | set_lightness: 20.0 }}
-test {{ colors.source_color.default.rgb | set_lightness: -20.0 }}
+<* if {{ is_dark_mode }} *>
+    True
+<* else *>
+    False
+<* endif *>
+
+test {{ colors.source_color.default.rgb | lighten: 20.0 }}
+test {{ colors.source_color.default.rgb | lighten: -20.0 }}
+test {{ colors.source_color.default.rgb | saturate: -20.0, hsl }}
 test {{ colors.source_color.default.rgb }}
 
-{{ colors.source_color.default.hex_stripped | set_lightness: 20.0 }}
+{{ colors.source_color.default.hex_stripped | lighten: 20.0 }}
 
-{{ colors.source_color.default.hex | set_lightness: 20.0 }}
-
-Should  not change at all
-{{ colors.source_color.default.red | set_lightness: 5.0 }}
+{{ colors.source_color.default.hex }}
+{{ colors.source_color.default.hex | lighten: 20.0 }}
 
 red {{colors.red.default.rgb}};
 red {{colors.red.default.rgba}};
@@ -22,24 +40,32 @@ blue {{colors.blue.default.hsla}};
 
 source_color {{colors.source_color.default.hex}};
 
+<* for i in -10..10 *>
+    actual: {{ i }} multiplied: {{ {{ i }} * 10 }} {{ colors.red.default.hex | lighten: {{i}} * 10 }}
+<* endfor *>
+
 <* for name, value in colors *>
     {{name | replace: "_", "-" }} {{value.default.hex}};
 <* endfor *>
 
+<* for name, value in colors *>
+    {{name | replace: "_", "-" }} {{value.default.hex | invert | invert }};
+<* endfor *>
+
 Only works with rgba and hsla
 
-{{ colors.source_color.default.rgba | set_alpha: 0.5 }}
+{{ colors.source_color.default.hex | set_alpha: 0.5 }}
 
-- 180
-{{ colors.source_color.default.rgba | set_hue: -180.0 }}
-
-+ 90
-{{ colors.source_color.default.rgba | set_hue: 90.0 }}
+original:
+{{ colors.source_color.default.hex }}
 
 grayscale
-{{ colors.source_color.default.rgba | grayscale }}
+{{ colors.source_color.default.hex | grayscale }}
 
 invert
-{{ colors.source_color.default.rgba | invert }}
+{{ colors.source_color.default.hex | invert }}
 
-chain together {{ colors.source_color.default.rgba | set_alpha: 0.7 | set_hue: -180.0 | invert }}
+invert twice
+{{ colors.source_color.default.hex | invert | invert }}
+
+chain together {{ colors.source_color.default.hex | set_alpha: 0.7 | invert }}
