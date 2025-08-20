@@ -35,6 +35,25 @@ pub enum Source {
     /// The source color to use for generating a color scheme
     #[clap(subcommand)]
     Color(crate::color::color::ColorFormat),
+
+    /// The json file to use and import for templates
+    Json { path: String },
+}
+
+impl Source {
+    pub fn is_image(&self) -> bool {
+        match self {
+            Source::Image { path: _ } => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_json(&self) -> bool {
+        match self {
+            Source::Json { path: _ } => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
@@ -77,10 +96,8 @@ pub fn get_source_color(source: &Source) -> Result<Argb, Box<dyn std::error::Err
         Source::Image { path } => {
             // test
             info!("Opening image in <d><u>{}</>", path);
-            color::get_source_color_from_image(path).expect(&format!(
-                "Could not get source color from image {:#?}",
-                path
-            ))
+            color::get_source_color_from_image(path)
+                .unwrap_or_else(|_| panic!("Could not get source color from image {:#?}", path))
         }
         #[cfg(feature = "web-image")]
         Source::WebImage { url } => {
@@ -90,6 +107,7 @@ pub fn get_source_color(source: &Source) -> Result<Argb, Box<dyn std::error::Err
         }
         Source::Color(color) => color::get_source_color_from_color(color)
             .expect("Could not get source color from color"),
+        Source::Json { path: _ } => unreachable!(),
     };
     Ok(source_color)
 }
@@ -183,8 +201,6 @@ pub fn make_custom_color(
     source_color: Argb,
     contrast_level: Option<f64>,
 ) -> CustomColorGroup {
-    // debug!("make_custom_color: {:#?}", &color);
-
     let value = if color.blend {
         harmonize(color.value, source_color)
     } else {
@@ -213,7 +229,7 @@ pub fn make_custom_color(
     }
 }
 
-pub fn color_to_string(colors_to_compare: &Vec<ColorDefinition>, compare_to: &str) -> String {
+pub fn get_closest_color(colors_to_compare: &Vec<ColorDefinition>, compare_to: &str) -> String {
     let mut closest_distance: Option<f64> = None;
     let mut closest_color: &str = "";
 
