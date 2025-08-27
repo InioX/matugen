@@ -45,6 +45,10 @@ pub struct Cli {
     #[arg(short, long, global = true, action=ArgAction::SetTrue)]
     pub debug: Option<bool>,
 
+    /// Whether to add the image field into json output.
+    #[arg(short, long, global = true)]
+    pub include_image_in_json: Option<bool>,
+
     /// Which mode to use for the color scheme
     #[arg(
         value_enum,
