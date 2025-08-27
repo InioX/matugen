@@ -14,7 +14,7 @@ matugen: {
   rgbaColorRegex = ''rgba\([0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}\)'';
   hslColorRegex = ''hsl\([0-9]{1,3}(\.[0-9]*)?, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0-9]{1,3}(\.[0-9]*)?%\)'';
   hslaColorRegex = ''hsla\([0-9]{1,3}(\.[0-9]*)?, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0,1](\.[0-9]*)?\)'';
-  
+
   hexColor = lib.types.strMatching hexColorRegex;
   hexStrippedColor = lib.types.strMatching hexStrippedColorRegex;
   rgbColor = lib.types.strMatching rgbColorRegex;
@@ -44,9 +44,11 @@ matugen: {
     cfg.templates;
 
   matugenConfig = configFormat.generate "matugen-config.toml" {
-    config = {
-      custom_colors = cfg.custom_colors;
-    } // cfg.config;
+    config =
+      {
+        custom_colors = cfg.custom_colors;
+      }
+      // cfg.config;
     templates = sanitizedTemplates;
   };
 
@@ -55,15 +57,26 @@ matugen: {
 
   # takes in a source color string and returns the subcommand needed to generate
   # a color scheme using that color type.
-  sourceColorTypeMatcher = color: (lib.lists.findSingle (p: null != builtins.match p.regex color) {} {} [
-    { regex = hexColorRegex; code = "hex"; }
-    { regex = rgbColorRegex; code = "rgb"; }
-    { regex = hslColorRegex; code = "hsl"; }
-  ]).code;
+  sourceColorTypeMatcher = color:
+    (lib.lists.findSingle (p: null != builtins.match p.regex color) {} {} [
+      {
+        regex = hexColorRegex;
+        code = "hex";
+      }
+      {
+        regex = rgbColorRegex;
+        code = "rgb";
+      }
+      {
+        regex = hslColorRegex;
+        code = "hsl";
+      }
+    ]).code;
 
-  command = if (builtins.isNull cfg.source_color) then
-    "image ${cfg.wallpaper}" else
-    "color ${sourceColorTypeMatcher cfg.source_color} \"${cfg.source_color}\"";
+  command =
+    if (builtins.isNull cfg.source_color)
+    then "image ${cfg.wallpaper}"
+    else "color ${sourceColorTypeMatcher cfg.source_color} \"${cfg.source_color}\"";
 
   themePackage = builtins.trace command (pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {} ''
     mkdir -p $out
@@ -77,7 +90,8 @@ matugen: {
       --type ${cfg.type} \
       --json ${cfg.jsonFormat} \
       --contrast ${lib.strings.floatToString cfg.contrast} \
-      --quiet \
+      --quiet
+      --include-image-in-json=false \
       > $out/theme.json
   '');
   colors = (builtins.fromJSON (builtins.readFile "${themePackage}/theme.json")).colors;
@@ -187,7 +201,7 @@ in {
       description = "Value from -1 to 1. -1 represents minimum contrast, 0 represents standard (i.e. the design as spec'd), and 1 represents maximum contrast.";
       type = lib.types.numbers.between (-1) 1;
       default = 0;
-      example = "0.2";   
+      example = "0.2";
     };
 
     config = lib.mkOption {

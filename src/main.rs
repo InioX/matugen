@@ -301,6 +301,11 @@ impl State {
         #[cfg(feature = "dump-json")]
         if let Some(ref format) = self.args.json {
             use crate::util::color::dump_json;
+            if !self.args.include_image_in_json.unwrap_or(true) {
+                if let Some(obj) = json_value.as_object_mut() {
+                    obj.remove("image");
+                };
+            };
             dump_json(&mut json_value, format);
         }
 
@@ -348,6 +353,7 @@ fn main() -> Result<(), Report> {
         show_colors: None,
         json: None,
         import_json: None,
+        include_image_in_json: Some(true),
     };
 
     if args_unparsed.len() > 1 && args_unparsed[1] == "ui" {
