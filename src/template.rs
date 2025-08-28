@@ -86,18 +86,20 @@ impl TemplateFile<'_> {
         }
 
         for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
-            if template.pre_hook.is_some() {
+            if let Some(hook) = &template.pre_hook {
                 format_hook(
                     self.engine,
                     name,
-                    &template.pre_hook.clone().unwrap(),
+                    &hook,
                     &template.colors_to_compare,
                     &template.compare_to,
                 )
-                .unwrap();
+                .wrap_err(format!("Failed to format the following hook:\n{}", hook))?;
             }
 
-            let (input_path_absolute, output_path_absolute) = paths_hashmap.get(name).unwrap();
+            let (input_path_absolute, output_path_absolute) = paths_hashmap
+                .get(name)
+                .wrap_err("Failed to get the input and output paths from hashmap")?;
 
             debug!(
                 "Trying to write the {} template from {} to {}",
@@ -108,15 +110,15 @@ impl TemplateFile<'_> {
 
             self.export_template(name, output_path_absolute, input_path_absolute, i)?;
 
-            if template.post_hook.is_some() {
+            if let Some(hook) = &template.post_hook {
                 format_hook(
                     self.engine,
                     name,
-                    &template.post_hook.clone().unwrap(),
+                    &hook,
                     &template.colors_to_compare,
                     &template.compare_to,
                 )
-                .unwrap();
+                .wrap_err(format!("Failed to format the following hook:\n{}", hook))?;
             }
         }
         Ok(())
@@ -156,30 +158,35 @@ impl TemplateFile<'_> {
             output_path_absolute.to_path_buf()
         };
 
-        create_missing_folders(&out)?;
+        create_missing_folders(&out).wrap_err(format!(
+            "Failed to create the missing folders for {}",
+            &out.display()
+        ))?;
 
         debug!("out: {:?}", out);
-        let mut output_file = OpenOptions::new()
-            .create(true)
-            .truncate(true)
-            .write(true)
-            .open(out)?;
-
-        if output_file.metadata()?.permissions().readonly() {
+        let meta = std::fs::metadata(&out)?;
+        if meta.permissions().readonly() {
             error!(
-                "The <b><red>{}</> file is Read-Only",
+                "The <b><red>{}</> file is <b><red>Read-Only</>, not writing to it.",
                 &output_path_absolute.display()
             );
-        }
+        } else {
+            let mut output_file = OpenOptions::new()
+                .create(true)
+                .truncate(true)
+                .write(true)
+                .open(out)?;
 
-        output_file.write_all(data.as_bytes())?;
-        success!(
-            "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
-            i + 1,
-            &self.state.config_file.templates.len(),
-            name,
-            output_path_absolute.display()
-        );
+            output_file.write_all(data.as_bytes())?;
+
+            success!(
+                "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
+                i + 1,
+                &self.state.config_file.templates.len(),
+                name,
+                output_path_absolute.display()
+            );
+        }
 
         Ok(())
     }
@@ -191,9 +198,9 @@ fn format_hook(
     hook: &String,
     colors_to_compare: &Option<Vec<crate::color::color::ColorDefinition>>,
     compare_to: &Option<String>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    if colors_to_compare.is_some() && compare_to.is_some() {
-        let res = match engine.compile(compare_to.as_ref().unwrap().to_string()) {
+) -> Result<(), Report> {
+    if let (Some(compare), Some(to)) = (colors_to_compare, compare_to) {
+        let res = match engine.compile(to.to_string()) {
             Ok(v) => v,
             Err(errors) => {
                 eprintln!("Error when executing hook:\n{}", &hook);
@@ -203,7 +210,7 @@ fn format_hook(
                 std::process::exit(1);
             }
         };
-        let closest_color = get_closest_color(colors_to_compare.as_ref().unwrap(), &res);
+        let closest_color = get_closest_color(compare, &res);
         engine.add_context(json!({
             "closest_color": closest_color
         }));

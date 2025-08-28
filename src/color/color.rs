@@ -11,6 +11,7 @@ use material_colors::{
     theme::{ColorGroup, CustomColor, CustomColorGroup},
 };
 
+use color_eyre::{eyre::WrapErr, Report};
 use colorsys::{Hsl, Rgb};
 use std::str::FromStr;
 
@@ -21,6 +22,16 @@ pub enum ColorFormat {
     Hex { string: String },
     Rgb { string: String },
     Hsl { string: String },
+}
+
+impl ColorFormat {
+    pub fn get_string(&self) -> &String {
+        match self {
+            ColorFormat::Hex { string } => string,
+            ColorFormat::Rgb { string } => string,
+            ColorFormat::Hsl { string } => string,
+        }
+    }
 }
 
 #[derive(clap::Subcommand, Debug, Clone)]
@@ -89,15 +100,14 @@ impl OwnCustomColor {
     }
 }
 
-pub fn get_source_color(source: &Source) -> Result<Argb, Box<dyn std::error::Error>> {
+pub fn get_source_color(source: &Source) -> Result<Argb, Report> {
     use crate::color::color;
 
     let source_color: Argb = match source {
         Source::Image { path } => {
-            // test
             info!("Opening image in <d><u>{}</>", path);
             color::get_source_color_from_image(path)
-                .unwrap_or_else(|_| panic!("Could not get source color from image {:#?}", path))
+                .wrap_err(format!("Could not get source color from image: {}", path))?
         }
         #[cfg(feature = "web-image")]
         Source::WebImage { url } => {
@@ -105,14 +115,16 @@ pub fn get_source_color(source: &Source) -> Result<Argb, Box<dyn std::error::Err
             color::get_source_color_from_web_image(url)
                 .expect("Could not get source color from web image")
         }
-        Source::Color(color) => color::get_source_color_from_color(color)
-            .expect("Could not get source color from color"),
+        Source::Color(color) => color::get_source_color_from_color(color).wrap_err(format!(
+            "Could not get source color from color {}",
+            color.get_string()
+        ))?,
         Source::Json { path: _ } => unreachable!(),
     };
     Ok(source_color)
 }
 
-pub fn get_source_color_from_image(path: &str) -> Result<Argb, Box<dyn std::error::Error>> {
+pub fn get_source_color_from_image(path: &str) -> Result<Argb, Report> {
     Ok(ImageReader::extract_color(ImageReader::open(path)?.resize(
         128,
         128,
@@ -121,16 +133,14 @@ pub fn get_source_color_from_image(path: &str) -> Result<Argb, Box<dyn std::erro
 }
 
 #[cfg(feature = "web-image")]
-pub fn get_source_color_from_web_image(url: &str) -> Result<Argb, Box<dyn std::error::Error>> {
+pub fn get_source_color_from_web_image(url: &str) -> Result<Argb, Report> {
     let bytes = reqwest::blocking::get(url)?.bytes()?;
     Ok(ImageReader::extract_color(
         ImageReader::read(&bytes)?.resize(128, 128, FilterType::Lanczos3),
     ))
 }
 
-pub fn get_source_color_from_color(
-    color: &ColorFormat,
-) -> Result<Argb, Box<dyn std::error::Error>> {
+pub fn get_source_color_from_color(color: &ColorFormat) -> Result<Argb, Report> {
     match color {
         ColorFormat::Hex { string } => {
             Ok(Argb::from_str(string).expect("Invalid hex color string provided"))
