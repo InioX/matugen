@@ -261,18 +261,6 @@ impl State {
         }
     }
 
-    #[cfg(feature = "ui")]
-    fn run_gui(self) -> Result<(), Report> {
-        setup_logging(&self.args)?;
-        eframe::run_native(
-            "Matugen",
-            eframe::NativeOptions::default(),
-            Box::new(|ctx| Ok(Box::new(MyApp::new(ctx, Box::new(self.args))))),
-        )
-        .unwrap();
-        Ok(())
-    }
-
     fn init_in_term(&self) -> Result<(), Report> {
         setup_logging(&self.args)?;
 
@@ -324,17 +312,9 @@ impl State {
     }
 }
 
-#[cfg(feature = "ui")]
-mod gui;
-
-#[cfg(feature = "ui")]
-use gui::init::MyApp;
-
 #[allow(unreachable_code)]
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
-
-    let args_unparsed: Vec<String> = std::env::args().collect();
 
     #[allow(unused_variables)]
     let default_args = Cli {
@@ -356,20 +336,9 @@ fn main() -> Result<(), Report> {
         include_image_in_json: Some(true),
     };
 
-    if args_unparsed.len() > 1 && args_unparsed[1] == "ui" {
-        #[cfg(feature = "ui")]
-        {
-            let prog = State::new(default_args);
-            prog.run_gui()?;
-            return Ok(());
-        }
-
-        error!("Tried to run gui mode without the <red>--ui</> compilation flag")
-    } else {
-        let args = Cli::parse();
-        let prog = State::new(args.clone());
-        prog.run_in_term()?;
-    }
+    let args = Cli::parse();
+    let prog = State::new(args.clone());
+    prog.run_in_term()?;
 
     Ok(())
 }
