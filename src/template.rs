@@ -87,6 +87,7 @@ impl TemplateFile<'_> {
 
         for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
             if let Some(hook) = &template.pre_hook {
+                info!("Running pre_hook for the <b><cyan>{}</> template.", &name);
                 format_hook(
                     self.engine,
                     name,
@@ -111,6 +112,7 @@ impl TemplateFile<'_> {
             self.export_template(name, output_path_absolute, input_path_absolute, i)?;
 
             if let Some(hook) = &template.post_hook {
+                info!("Running post_hook for the <b><cyan>{}</> template.", &name);
                 format_hook(
                     self.engine,
                     name,
@@ -203,7 +205,7 @@ fn format_hook(
         let res = match engine.compile(to.to_string()) {
             Ok(v) => v,
             Err(errors) => {
-                eprintln!("Error when executing hook:\n{}", &hook);
+                eprintln!("Error when formatting hook:\n{}", &hook);
                 for err in errors {
                     err.emit(hook, &format!("{}-hook", template_name));
                 }
@@ -219,7 +221,7 @@ fn format_hook(
     let res = match engine.compile((&hook).to_string()) {
         Ok(v) => v,
         Err(errors) => {
-            eprintln!("Error when executing hook:\n{}", &hook);
+            eprintln!("Error when formatting hook:\n{}", &hook);
             for err in errors {
                 err.emit(hook, &format!("{}-hook", template_name));
             }
