@@ -75,15 +75,39 @@ pub enum ParseErrorKind {
 
     #[error(transparent)]
     Keyword(#[from] KeywordError),
+
+    #[error(transparent)]
+    Loop(#[from] LoopError),
+
+    #[error(transparent)]
+    BinOp(#[from] BinaryOperatorError),
+}
+
+#[derive(Debug, ThisError)]
+pub enum BinaryOperatorError {
+    #[error("Cannot apply '{op}' operator between {lhs} and {rhs}")]
+    InvalidBinaryOperatorType {
+        lhs: String,
+        op: String,
+        rhs: String,
+    },
+}
+
+#[derive(Debug, ThisError)]
+pub enum LoopError {
+    #[error("You can only loop over Arrays, Maps and Colors")]
+    LoopOverNonIterableValue,
+    #[error("For loop over an Array supports only one variable. Key and value iteration (`<* for key, value in map *>`) is only valid for Maps.")]
+    TooManyLoopVariablesArray,
+    #[error("For loop supports only one or two variables")]
+    TooManyLoopVariables,
 }
 
 #[derive(Debug, ThisError)]
 pub enum KeywordError {
-    #[error("The format provided is not valid, make sure it is one of:\n\t\t[hex, hex_stripped, rgb, rgba, hsl, hsla, red, green, blue, red, alpha, hue, saturation, lightness]")]
-    InvalidFormat,
+    #[error("The format provided is not valid. Available formats are: {formats:?}")]
+    InvalidFormat { formats: &'static [&'static str] },
     #[error("Invalid color mode. The color mode can only be one of: [dark, light, default]")]
-    InvalidScheme,
-    #[error("This color does not exist. Check https://github.com/InioX/matugen/wiki/Configuration#example-of-all-the-color-keywords to get a list of all the colors.")]
     ColorDoesNotExist,
     #[error("The format for colors is 'colors.<color>.<scheme>.<format>'")]
     InvalidColorDefinition,
@@ -125,6 +149,8 @@ impl Error {
             Error::ParseError { kind, span: _ } => match kind {
                 ParseErrorKind::Filter(e) => format!("ParseError::{}", e.name()),
                 ParseErrorKind::Keyword(e) => format!("ParseError::{}", e.name()),
+                ParseErrorKind::Loop(e) => format!("ParseError::{}", e.name()),
+                ParseErrorKind::BinOp(e) => format!("ParseError::{}", e.name()),
             },
             Error::ResolveError { .. } => "ResolveError".to_owned(),
             Error::IncludeError { .. } => "IncludeError".to_owned(),
@@ -160,10 +186,27 @@ impl FilterError {
 impl KeywordError {
     pub fn name(&self) -> &str {
         match self {
-            KeywordError::InvalidFormat => "InvalidFormat",
-            KeywordError::InvalidScheme => "InvalidScheme",
+            KeywordError::InvalidFormat { .. } => "InvalidFormat",
             KeywordError::ColorDoesNotExist => "ColorDoesNotExist",
             KeywordError::InvalidColorDefinition => "InvalidColorDefinition",
+        }
+    }
+}
+
+impl LoopError {
+    pub fn name(&self) -> &str {
+        match self {
+            LoopError::LoopOverNonIterableValue => "LoopOverNonIterableValue",
+            LoopError::TooManyLoopVariablesArray => "TooManyLoopVariables",
+            LoopError::TooManyLoopVariables => "TooManyLoopVariables",
+        }
+    }
+}
+
+impl BinaryOperatorError {
+    pub fn name(&self) -> &str {
+        match self {
+            BinaryOperatorError::InvalidBinaryOperatorType { .. } => "InvalidBinaryOperatorType",
         }
     }
 }

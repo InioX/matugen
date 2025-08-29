@@ -12,3 +12,19 @@
 
 {{ colors.source_color.default.invalid_format }}
 {{ colors.source_color.invalid_scheme.hex }}
+
+<* for thing in is_dark_mode *>
+
+<* endfor *>
+
+<* for a, b in array *>
+
+<* endfor *>
+
+<* for a, b, c in colors *>
+
+<* endfor *>
+
+<* for i in -10..10 *>
+    {{ {{ i }} * "a" }}
+<* endfor *>

@@ -10,5 +10,9 @@
         "nested": {
             "text": "another nested string"
         }
-    }
+    },
+    "array": [
+        1,
+        2
+    ]
 }
