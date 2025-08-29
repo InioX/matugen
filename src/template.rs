@@ -166,12 +166,18 @@ impl TemplateFile<'_> {
         ))?;
 
         debug!("out: {:?}", out);
-        let meta = std::fs::metadata(&out)?;
-        if meta.permissions().readonly() {
-            error!(
-                "The <b><red>{}</> file is <b><red>Read-Only</>, not writing to it.",
-                &output_path_absolute.display()
-            );
+
+        if out.exists() {
+            let meta = std::fs::metadata(&out).wrap_err(format!(
+                "Failed to get file metadata for {}",
+                &out.display()
+            ))?;
+            if meta.permissions().readonly() {
+                error!(
+                    "The <b><red>{}</> file is <b><red>Read-Only</>, not writing to it.",
+                    &output_path_absolute.display()
+                );
+            }
         } else {
             let mut output_file = OpenOptions::new()
                 .create(true)
@@ -280,10 +286,7 @@ fn create_missing_folders(output_path_absolute: &Path) -> Result<(), Report> {
             &parent_folder.display()
         );
         debug!("{}", parent_folder.display());
-        let _ = create_dir_all(parent_folder).wrap_err(format!(
-            "Failed to create the {} folders.",
-            &output_path_absolute.display()
-        ));
+        create_dir_all(parent_folder)?;
     };
     Ok(())
 }
