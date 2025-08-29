@@ -4,7 +4,8 @@ use indexmap::IndexMap;
 
 use crate::parser::{
     engine::{BinaryOperator, Expression, SpannedBinaryOperator, SpannedExpr, Template},
-    Error, FilterError, FilterReturnType, KeywordError, ParseErrorKind, SpannedValue, Value,
+    BinaryOperatorError, Error, FilterError, FilterReturnType, KeywordError, LoopError,
+    ParseErrorKind, SpannedValue, Value,
 };
 
 use crate::color::format::{
@@ -12,6 +13,22 @@ use crate::color::format::{
 };
 
 use super::Engine;
+
+pub const FORMATS: &[&str] = &[
+    "hex",
+    "hex_stripped",
+    "rgb",
+    "rgba",
+    "hsl",
+    "hsla",
+    "red",
+    "green",
+    "blue",
+    "alpha",
+    "hue",
+    "saturation",
+    "lightness",
+];
 
 pub fn get_str<'a>(source: &'a str, span: &SimpleSpan) -> &'a str {
     &source[span.start..span.end]
@@ -24,23 +41,27 @@ pub fn get_str_vec<'a>(source: &'a str, spans: &Vec<SimpleSpan>) -> Vec<&'a str>
         .collect::<Vec<&str>>()
 }
 
+// TODO: Clean both of these up
 pub fn format_color(base_color: Rgb, format: &str) -> Option<String> {
     let hsl_color = Hsl::from(&base_color);
 
     match format {
-        "hex" => Some(format_hex(&base_color)),
-        "hex_stripped" => Some(format_hex_stripped(&base_color)),
-        "rgb" => Some(format_rgb(&base_color)),
-        "rgba" => Some(format_rgba(&base_color, false)),
-        "hsl" => Some(format_hsl(&hsl_color)),
-        "hsla" => Some(format_hsla(&hsl_color, false)),
-        "red" => Some(format!("{:?}", base_color.red() as u8)),
-        "green" => Some(format!("{:?}", base_color.green() as u8)),
-        "blue" => Some(format!("{:?}", base_color.blue() as u8)),
-        "alpha" => Some(format!("{:?}", base_color.alpha() as u8)),
-        "hue" => Some(format!("{:?}", &hsl_color.hue())),
-        "saturation" => Some(format!("{:?}", &hsl_color.lightness())),
-        "lightness" => Some(format!("{:?}", &hsl_color.saturation())),
+        f if FORMATS.contains(&f) => match f {
+            "hex" => Some(format_hex(&base_color)),
+            "hex_stripped" => Some(format_hex_stripped(&base_color)),
+            "rgb" => Some(format_rgb(&base_color)),
+            "rgba" => Some(format_rgba(&base_color, false)),
+            "hsl" => Some(format_hsl(&hsl_color)),
+            "hsla" => Some(format_hsla(&hsl_color, false)),
+            "red" => Some(format!("{:?}", base_color.red() as u8)),
+            "green" => Some(format!("{:?}", base_color.green() as u8)),
+            "blue" => Some(format!("{:?}", base_color.blue() as u8)),
+            "alpha" => Some(format!("{:?}", base_color.alpha() as u8)),
+            "hue" => Some(format!("{:?}", &hsl_color.hue())),
+            "saturation" => Some(format!("{:?}", &hsl_color.lightness())),
+            "lightness" => Some(format!("{:?}", &hsl_color.saturation())),
+            _ => unreachable!(),
+        },
         _ => None,
     }
 }
@@ -49,19 +70,22 @@ pub fn format_color_hsl(hsl_color: Hsl, format: &str) -> Option<String> {
     let base_color = Rgb::from(&hsl_color);
 
     match format {
-        "hex" => Some(format_hex(&base_color)),
-        "hex_stripped" => Some(format_hex_stripped(&base_color)),
-        "rgb" => Some(format_rgb(&base_color)),
-        "rgba" => Some(format_rgba(&base_color, true)),
-        "hsl" => Some(format_hsl(&hsl_color)),
-        "hsla" => Some(format_hsla(&hsl_color, true)),
-        "red" => Some(format!("{:?}", base_color.red() as u8)),
-        "green" => Some(format!("{:?}", base_color.green() as u8)),
-        "blue" => Some(format!("{:?}", base_color.blue() as u8)),
-        "alpha" => Some(format!("{:?}", base_color.alpha() as u8)),
-        "hue" => Some(format!("{:?}", &hsl_color.hue())),
-        "saturation" => Some(format!("{:?}", &hsl_color.lightness())),
-        "lightness" => Some(format!("{:?}", &hsl_color.saturation())),
+        f if FORMATS.contains(&f) => match f {
+            "hex" => Some(format_hex(&base_color)),
+            "hex_stripped" => Some(format_hex_stripped(&base_color)),
+            "rgb" => Some(format_rgb(&base_color)),
+            "rgba" => Some(format_rgba(&base_color, true)),
+            "hsl" => Some(format_hsl(&hsl_color)),
+            "hsla" => Some(format_hsla(&hsl_color, true)),
+            "red" => Some(format!("{:?}", base_color.red() as u8)),
+            "green" => Some(format!("{:?}", base_color.green() as u8)),
+            "blue" => Some(format!("{:?}", base_color.blue() as u8)),
+            "alpha" => Some(format!("{:?}", base_color.alpha() as u8)),
+            "hue" => Some(format!("{:?}", &hsl_color.hue())),
+            "saturation" => Some(format!("{:?}", &hsl_color.lightness())),
+            "lightness" => Some(format!("{:?}", &hsl_color.saturation())),
+            _ => unreachable!(),
+        },
         _ => None,
     }
 }
@@ -193,12 +217,12 @@ impl Engine {
 
                         match values {
                             Value::Map(map) => {
-                                let res = self.eval_map(map, body, var, source);
+                                let res = self.eval_map(map, body, var, source, iter.span);
                                 src.push_str(&res);
                             }
                             Value::LazyColor { color, scheme: _ } | Value::Color(color) => {
                                 let formats = format_color_all(color);
-                                let res = self.eval_map(formats, body, var, source);
+                                let res = self.eval_map(formats, body, var, source, iter.span);
                                 src.push_str(&res);
                             }
                             Value::Array(arr) => {
@@ -210,7 +234,12 @@ impl Engine {
                                             .borrow_mut()
                                             .insert(var[0].value.to_string(), item.clone());
                                     } else {
-                                        panic!("for-loop over list supports only one variable");
+                                        self.errors.add(Error::ParseError {
+                                            kind: ParseErrorKind::Loop(
+                                                LoopError::TooManyLoopVariablesArray,
+                                            ),
+                                            span: iter.span,
+                                        });
                                     }
 
                                     src.push_str(&self.eval_loop_body(body.clone(), source));
@@ -218,8 +247,12 @@ impl Engine {
                                 }
                             }
                             _ => {
-                                dbg!(&values);
-                                panic!("Cannot loop over non-iterable value");
+                                self.errors.add(Error::ParseError {
+                                    kind: ParseErrorKind::Loop(
+                                        crate::parser::LoopError::LoopOverNonIterableValue,
+                                    ),
+                                    span: iter.span,
+                                });
                             }
                         }
                     }
@@ -294,6 +327,7 @@ impl Engine {
         body: &Vec<Box<SpannedExpr>>,
         var: &Vec<SpannedValue>,
         source: &String,
+        span: SimpleSpan,
     ) -> String {
         let mut output = String::from("");
         for (key, value) in map {
@@ -311,7 +345,10 @@ impl Engine {
                     .borrow_mut()
                     .insert(var[1].value.to_string(), value.clone());
             } else {
-                panic!("for-loop supports only one or two variables");
+                self.errors.add(Error::ParseError {
+                    kind: ParseErrorKind::Loop(LoopError::TooManyLoopVariables),
+                    span: span,
+                });
             }
 
             output.push_str(&self.eval_loop_body(body.clone(), source));
@@ -353,14 +390,31 @@ impl Engine {
         op: SpannedBinaryOperator,
         rhs: &Box<SpannedExpr>,
         source: &String,
+        span: SimpleSpan,
     ) -> Value {
-        let left = self.get_value(lhs, source, false).get_int();
-        let right = self.get_value(rhs, source, false).get_int();
+        let left = self.get_value(lhs, source, false);
+        let right = self.get_value(rhs, source, false);
 
-        match (left, right) {
+        let left_val = left.get_int();
+        let right_val = right.get_int();
+
+        match (left_val, right_val) {
             (Some(l), Some(r)) => self.apply_binary_op(l, r, op.op),
-            _ => {
-                panic!("TODO")
+            (l, r) => {
+                if l.is_none() | r.is_none() {
+                    self.errors.add(Error::ParseError {
+                        kind: ParseErrorKind::BinOp(
+                            BinaryOperatorError::InvalidBinaryOperatorType {
+                                lhs: left.to_string(),
+                                op: op.op.to_string(),
+                                rhs: right.to_string(),
+                            },
+                        ),
+                        span,
+                    });
+                }
+
+                Value::Int(0)
             }
         }
     }
@@ -393,7 +447,9 @@ impl Engine {
             Expression::Access { keywords } => {
                 self.get_replacement(&get_str_vec(source, keywords), expr.span, format_value)
             }
-            Expression::BinaryOp { lhs, op, rhs } => self.replace_binary_op(lhs, *op, rhs, source),
+            Expression::BinaryOp { lhs, op, rhs } => {
+                self.replace_binary_op(lhs, *op, rhs, source, expr.span)
+            }
             _ => {
                 dbg!(&expr);
                 panic!("");
@@ -448,7 +504,7 @@ impl Engine {
                         Expression::LiteralValue { value } => args_resolved.push(value.clone()),
                         Expression::BinaryOp { lhs, op, rhs } => {
                             args_resolved.push(SpannedValue {
-                                value: self.replace_binary_op(lhs, *op, rhs, source),
+                                value: self.replace_binary_op(lhs, *op, rhs, source, arg.span),
                                 span: arg.span,
                             });
                         }
@@ -492,7 +548,9 @@ impl Engine {
                 Some(v) => FilterReturnType::String(v.into()),
                 None => {
                     let error = Error::ParseError {
-                        kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat),
+                        kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat {
+                            formats: FORMATS,
+                        }),
                         span,
                     };
                     self.errors.add(error);
@@ -503,7 +561,9 @@ impl Engine {
                 Some(v) => FilterReturnType::String(v.into()),
                 None => {
                     let error = Error::ParseError {
-                        kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat),
+                        kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat {
+                            formats: FORMATS,
+                        }),
                         span,
                     };
                     self.errors.add(error);

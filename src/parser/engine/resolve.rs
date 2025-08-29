@@ -4,7 +4,10 @@ use super::Engine;
 
 use crate::{
     color::parse::parse_css_color,
-    parser::{engine::format_color, Error, ParseErrorKind, Value},
+    parser::{
+        engine::{format_color, FORMATS},
+        Error, ParseErrorKind, Value,
+    },
 };
 
 impl Engine {
@@ -24,7 +27,9 @@ impl Engine {
                 Some(v) => v,
                 None => {
                     return Err(Error::ParseError {
-                        kind: ParseErrorKind::Keyword(crate::parser::KeywordError::InvalidFormat),
+                        kind: ParseErrorKind::Keyword(crate::parser::KeywordError::InvalidFormat {
+                            formats: FORMATS,
+                        }),
                         span,
                     })
                 }

@@ -76,6 +76,17 @@ enum BinaryOperator {
     Div,
 }
 
+impl std::fmt::Display for BinaryOperator {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            BinaryOperator::Add => write!(f, "+"),
+            BinaryOperator::Sub => write!(f, "-"),
+            BinaryOperator::Mul => write!(f, "*"),
+            BinaryOperator::Div => write!(f, "/"),
+        }
+    }
+}
+
 impl Expression {
     pub fn as_keywords<'a>(&self, source: &'a str) -> Option<Vec<&'a str>> {
         match self {
