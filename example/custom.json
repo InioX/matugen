@@ -4,6 +4,7 @@
         "color": "#ff0000"
     },
     "int": 1,
+    "int2": 1000,
     "float": 2.0,
     "map": {
         "text": "nested string",

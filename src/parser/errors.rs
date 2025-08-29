@@ -81,6 +81,15 @@ pub enum ParseErrorKind {
 
     #[error(transparent)]
     BinOp(#[from] BinaryOperatorError),
+
+    #[error(transparent)]
+    If(#[from] IfError),
+}
+
+#[derive(Debug, ThisError)]
+pub enum IfError {
+    #[error("You can only use if conditions with Booleans")]
+    InvalidIfCondition,
 }
 
 #[derive(Debug, ThisError)]
@@ -151,6 +160,7 @@ impl Error {
                 ParseErrorKind::Keyword(e) => format!("ParseError::{}", e.name()),
                 ParseErrorKind::Loop(e) => format!("ParseError::{}", e.name()),
                 ParseErrorKind::BinOp(e) => format!("ParseError::{}", e.name()),
+                ParseErrorKind::If(e) => format!("ParseError::{}", e.name()),
             },
             Error::ResolveError { .. } => "ResolveError".to_owned(),
             Error::IncludeError { .. } => "IncludeError".to_owned(),
@@ -207,6 +217,14 @@ impl BinaryOperatorError {
     pub fn name(&self) -> &str {
         match self {
             BinaryOperatorError::InvalidBinaryOperatorType { .. } => "InvalidBinaryOperatorType",
+        }
+    }
+}
+
+impl IfError {
+    pub fn name(&self) -> &str {
+        match self {
+            IfError::InvalidIfCondition => "InvalidIfCondition",
         }
     }
 }
