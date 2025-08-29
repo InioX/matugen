@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 
 use crate::parser::{
     engine::{BinaryOperator, Expression, SpannedBinaryOperator, SpannedExpr, Template},
-    BinaryOperatorError, Error, FilterError, FilterReturnType, KeywordError, LoopError,
+    BinaryOperatorError, Error, FilterError, FilterReturnType, IfError, KeywordError, LoopError,
     ParseErrorKind, SpannedValue, Value,
 };
 
@@ -276,38 +276,8 @@ impl Engine {
                 }
                 _ => {}
             },
-            Expression::If {
-                condition,
-                then_branch,
-                else_branch,
-            } => {
-                match &condition.expr {
-                    Expression::Keyword { keywords } => {
-                        let value = self.get_value(keywords, source, false);
-
-                        match FilterReturnType::from(value) {
-                            FilterReturnType::Bool(boolean) => {
-                                if boolean {
-                                    let str = self.build_string(&then_branch, source);
-                                    src.push_str(&str);
-                                } else {
-                                    if let Some(else_branch) = else_branch {
-                                        let str = self.build_string(&else_branch, source);
-                                        src.push_str(&str);
-                                    }
-                                }
-                            }
-                            _ => {
-                                println!("You can only use if with booleans1");
-                                return;
-                            }
-                        }
-                    }
-                    _ => {
-                        // TODO: ERROR
-                        println!("You can only use if with booleans2")
-                    }
-                }
+            Expression::If { .. } => {
+                src.push_str(&self.get_value(expr, source, true).to_string());
             }
             Expression::Filter { name: _, args: _ } => unreachable!(),
             Expression::Range { start: _, end: _ } => unreachable!(),
@@ -450,6 +420,51 @@ impl Engine {
             Expression::BinaryOp { lhs, op, rhs } => {
                 self.replace_binary_op(lhs, *op, rhs, source, expr.span)
             }
+            Expression::Raw { value } => Value::Ident(get_str(source, value).to_string()),
+            Expression::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => {
+                let bool = match self.get_value(condition, source, false) {
+                    Value::Bool(b) => b,
+                    _ => {
+                        self.errors.add(Error::ParseError {
+                            kind: ParseErrorKind::If(IfError::InvalidIfCondition),
+                            span: expr.span,
+                        });
+                        true
+                    }
+                };
+                let mut values = vec![];
+
+                if bool {
+                    if format_value {
+                        let str = self.build_string(&then_branch, source);
+                        return Value::Ident(str);
+                    } else {
+                        for expr in then_branch {
+                            values.push(self.get_value(expr, source, format_value))
+                        }
+                    }
+
+                    return Value::Array(values);
+                } else {
+                    if let Some(exprs) = else_branch {
+                        if format_value {
+                            let str = self.build_string(&then_branch, source);
+                            return Value::Ident(str);
+                        } else {
+                            for expr in exprs {
+                                values.push(self.get_value(expr, source, format_value))
+                            }
+                        }
+                        return Value::Array(values);
+                    } else {
+                        return Value::Null;
+                    };
+                }
+            }
             _ => {
                 dbg!(&expr);
                 panic!("");
@@ -507,6 +522,25 @@ impl Engine {
                                 value: self.replace_binary_op(lhs, *op, rhs, source, arg.span),
                                 span: arg.span,
                             });
+                        }
+                        Expression::If { .. } => {
+                            let val = self.get_value(arg, source, false);
+                            match val {
+                                Value::Array(array) => {
+                                    for value in array {
+                                        args_resolved.push(SpannedValue {
+                                            value,
+                                            span: arg.span,
+                                        })
+                                    }
+                                }
+                                v => {
+                                    args_resolved.push(SpannedValue {
+                                        value: v,
+                                        span: arg.span,
+                                    });
+                                }
+                            }
                         }
                         _ => {
                             panic!("Unsupported filter arg")

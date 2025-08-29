@@ -11,6 +11,10 @@ blended_full: {{ colors.blue_source.default.hex | blend: {{ colors.source_color.
 blended_half: {{ colors.blue_source.default.hex | blend: {{ colors.source_color.default.hex }}, 0.5 }}
 harmonized: {{ colors.blue_source.default.hex | harmonize: {{ colors.source_color.default.hex }} }}
 
+
+{{ "#ffbf9b" | to_color | set_lightness: <* if {{ is_dark_mode }} *> {{ int }} <* else *> {{ int2 }} <* endif *> }}
+
+
 red #FF0000;
 green #00FF00;
 blue #0000FF;
