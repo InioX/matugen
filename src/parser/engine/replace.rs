@@ -176,11 +176,11 @@ impl Engine {
                     }
                     Expression::Access { keywords: _ } => {
                         let values = match iter.expr.as_keywords(source) {
-                            Some(v) => self.resolve_path(v, format_color),
+                            Some(v) => self.resolve_path(v, format_color, expr.span),
                             None => unreachable!(),
                         };
 
-                        let Some(values) = values else {
+                        let Ok(values) = values else {
                             let spans = iter.expr.as_spans().unwrap();
                             let error = Error::ResolveError {
                                 span: SimpleSpan::from(
@@ -333,10 +333,10 @@ impl Engine {
     }
 
     fn get_replacement(&self, keywords: &[&str], span: SimpleSpan, format_value: bool) -> Value {
-        match self.resolve_path(keywords.iter().copied(), format_value) {
-            Some(v) => v,
-            None => {
-                self.errors.add(Error::ResolveError { span });
+        match self.resolve_path(keywords.iter().copied(), format_value, span) {
+            Ok(v) => v,
+            Err(e) => {
+                self.errors.add(e);
 
                 if keywords[0] == "colors" {
                     Value::Color(Rgb::from_hex_str("#ffffff").unwrap())

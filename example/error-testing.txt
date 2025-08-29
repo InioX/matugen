@@ -1,0 +1,14 @@
+<* include "idontexist" *>
+
+{{ test }}
+{{ test.test.test.test }}
+
+{{ "string" | set_red: 0 }}
+{{ "string" | set_red: "string" }}
+{{ "string" | idontexist }}
+{{ is_dark_mode | set_red: 0 }}
+{{ "ffbf9b" | to_color | set_red }}
+{{ "ffbf9b" | to_color | saturate: 0, "not_hsv_or_hsl" }}
+
+{{ colors.source_color.default.invalid_format }}
+{{ colors.source_color.invalid_scheme.hex }}

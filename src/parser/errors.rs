@@ -3,6 +3,8 @@ use std::{cell::RefCell, collections::HashSet};
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::span::SimpleSpan;
 
+use thiserror::Error as ThisError;
+
 #[derive(Debug, Default)]
 pub struct ErrorCollector {
     errors: RefCell<Vec<Error>>,
@@ -51,21 +53,60 @@ impl ErrorCollector {
     }
 }
 
-#[derive(Debug)]
+#[derive(ThisError, Debug)]
 pub enum Error {
-    TemplateNotFound {
-        template: String,
-    },
+    #[error("Could not find template: {template}")]
+    TemplateNotFound { template: String },
+    #[error("Parse Error: {kind}")]
     ParseError {
         kind: ParseErrorKind,
         span: SimpleSpan,
     },
-    ResolveError {
+    #[error("Value does not exist in the context")]
+    ResolveError { span: SimpleSpan },
+    #[error("Failed to include file")]
+    IncludeError { span: SimpleSpan },
+}
+
+#[derive(Debug, ThisError)]
+pub enum ParseErrorKind {
+    #[error(transparent)]
+    Filter(#[from] FilterError),
+
+    #[error(transparent)]
+    Keyword(#[from] KeywordError),
+}
+
+#[derive(Debug, ThisError)]
+pub enum KeywordError {
+    #[error("The format provided is not valid, make sure it is one of:\n\t\t[hex, hex_stripped, rgb, rgba, hsl, hsla, red, green, blue, red, alpha, hue, saturation, lightness]")]
+    InvalidFormat,
+    #[error("Invalid color mode. The color mode can only be one of: [dark, light, default]")]
+    InvalidScheme,
+    #[error("This color does not exist. Check https://github.com/InioX/matugen/wiki/Configuration#example-of-all-the-color-keywords to get a list of all the colors.")]
+    ColorDoesNotExist,
+    #[error("The format for colors is 'colors.<color>.<scheme>.<format>'")]
+    InvalidColorDefinition,
+}
+
+#[derive(Debug, ThisError)]
+pub enum FilterError {
+    #[error("Not enough arguments provided for filter")]
+    NotEnoughArguments,
+    #[error("Found '{actual}' expected '{expected}'")]
+    InvalidArgumentType {
         span: SimpleSpan,
+        expected: String,
+        actual: String,
     },
-    IncludeError {
-        span: SimpleSpan,
-    },
+    #[error("Cannot use color filters on a string filter, consider using the 'to_color' filter")]
+    ColorFilterOnString,
+    #[error("Cannot use color filters on a boolean value")]
+    ColorFilterOnBool,
+    #[error("Could not find the filter: {filter}")]
+    FilterNotFound { filter: String },
+    #[error("Invalid String, expected one of: [{expected}]")]
+    UnexpectedStringValue { expected: String, span: SimpleSpan },
 }
 
 impl Error {
@@ -78,155 +119,53 @@ impl Error {
         }
     }
 
-    pub fn emit(&self, source: &str, file_name: &str) {
+    pub fn get_name(&self) -> String {
         match self {
-            Error::ParseError { kind, span } => match kind {
-                ParseErrorKind::Filter(filter_error) => {
-                    emit_filter_error(source, filter_error, *span, file_name)
-                }
-                ParseErrorKind::Keyword(keyword_error) => {
-                    emit_keyword_error(source, *span, keyword_error, file_name)
-                }
+            Error::TemplateNotFound { .. } => "TemplateNotFound".to_owned(),
+            Error::ParseError { kind, span: _ } => match kind {
+                ParseErrorKind::Filter(e) => format!("ParseError::{}", e.name()),
+                ParseErrorKind::Keyword(e) => format!("ParseError::{}", e.name()),
             },
-            Error::ResolveError { span } => emit_resolve_error(source, *span, file_name),
-            Error::TemplateNotFound { template } => {
-                eprintln!("{}", format!("Could not find template: {}", template))
-            }
-            Error::IncludeError { span } => emit_include_error(source, *span, file_name),
+            Error::ResolveError { .. } => "ResolveError".to_owned(),
+            Error::IncludeError { .. } => "IncludeError".to_owned(),
+        }
+    }
+
+    pub fn emit(&self, source_code: &str, file_name: &str) {
+        let name = self.get_name();
+        let message = self.to_string();
+        let span = self.get_span();
+
+        if let Some(span) = span {
+            build_report(&name, source_code, message, span, file_name);
+        } else {
+            eprintln!("{}", message)
         }
     }
 }
 
-#[derive(Debug)]
-pub enum ParseErrorKind {
-    Filter(FilterError),
-    Keyword(KeywordError),
+impl FilterError {
+    pub fn name(&self) -> &str {
+        match self {
+            FilterError::NotEnoughArguments => "NotEnoughArguments",
+            FilterError::InvalidArgumentType { .. } => "InvalidArgumentType",
+            FilterError::ColorFilterOnString => "ColorFilterOnString",
+            FilterError::ColorFilterOnBool => "ColorFilterOnBool",
+            FilterError::FilterNotFound { .. } => "FilterNotFound",
+            FilterError::UnexpectedStringValue { .. } => "UnexpectedStringValue",
+        }
+    }
 }
 
-#[derive(Debug)]
-pub enum KeywordError {
-    InvalidFormat,
-    InvalidScheme,
-    ColorDoesNotExist,
-    InvalidColorDefinition,
-}
-
-#[derive(Debug)]
-pub enum FilterError {
-    NotEnoughArguments,
-    InvalidArgumentType {
-        span: SimpleSpan,
-        expected: String,
-        actual: String,
-    },
-    ColorFilterOnString,
-    ColorFilterOnBool,
-    FilterNotFound {
-        filter: String,
-    },
-    UnexpectedStringValue {
-        expected: String,
-        span: SimpleSpan,
-    },
-}
-
-pub fn emit_include_error(source_code: &str, span: SimpleSpan, file_name: &str) {
-    build_report(
-        "ResolveError",
-        source_code,
-        format!(
-            "Could not find the '{}' template. Make sure it is in config.toml and named correctly.",
-            source_code
-                .get(span.start..span.end)
-                .unwrap_or("<invalid span>")
-        ),
-        span,
-        file_name,
-    );
-}
-
-pub fn emit_keyword_error(
-    source_code: &str,
-    span: SimpleSpan,
-    kind: &KeywordError,
-    file_name: &str,
-) {
-    let (name, message) = match kind {
-        KeywordError::InvalidFormat => ("InvalidColorFormat", "The format provided is not valid, make sure it is one of:\n\t\t[hex, hex_stripped, rgb, rgba, hsl, hsla, red, green, blue, red, alpha, hue, saturation, lightness]".to_owned()),
-        KeywordError::ColorDoesNotExist => ("ColorDoesNotExist", "This color does not exist. Check https://github.com/InioX/matugen/wiki/Configuration#example-of-all-the-color-keywords to get a list of all the colors.".to_owned()),
-        KeywordError::InvalidColorDefinition => ("InvalidColorDefinition", "The format for colors is 'colors.<color>.<scheme>.<format>'".to_owned()),
-        KeywordError::InvalidScheme => ("InvalidScheme", "Invalid color mode. The color mode can only be one of: [dark, light, default]".to_owned()),
-            };
-
-    build_report(
-        &format!("KeywordError::{}", name),
-        source_code,
-        message,
-        span,
-        file_name,
-    );
-}
-
-pub fn emit_resolve_error(source_code: &str, span: SimpleSpan, file_name: &str) {
-    build_report(
-        "ResolveError",
-        source_code,
-        format!(
-            "The value '{}' does not exist in the context",
-            source_code
-                .get(span.start..span.end)
-                .unwrap_or("<invalid span>")
-        ),
-        span,
-        file_name,
-    );
-}
-
-pub fn emit_filter_error(source_code: &str, kind: &FilterError, span: SimpleSpan, file_name: &str) {
-    let (message, span, name) = match kind {
-        FilterError::NotEnoughArguments => (
-            "Not enough arguments provided for filter".to_string(),
-            span,
-            "NotEnoughArguments",
-        ),
-        FilterError::InvalidArgumentType {
-            span,
-            expected,
-            actual,
-        } => (
-            format!("Found '{}' expected '{}'", actual, expected),
-            *span,
-            "InvalidArgumentType",
-        ),
-        FilterError::ColorFilterOnString => (
-            "Cannot use color filters on a string filter, consider using the 'to_color' filter"
-                .to_string(),
-            span,
-            "ColorFilterOnString",
-        ),
-        FilterError::ColorFilterOnBool => (
-            "Cannot use color filters on a boolean value".to_string(),
-            span,
-            "ColorFilterOnBool",
-        ),
-        FilterError::FilterNotFound { filter } => (
-            format!("Could not fild filter {filter}").to_string(),
-            span,
-            "FilterNotFound",
-        ),
-        FilterError::UnexpectedStringValue { expected, span } => (
-            format!("Invalid String, expected one of: [{expected}]").to_string(),
-            *span,
-            "UnexpectedStringValue",
-        ),
-    };
-    build_report(
-        &format!("FilterError::{}", name),
-        source_code,
-        message,
-        span,
-        file_name,
-    );
+impl KeywordError {
+    pub fn name(&self) -> &str {
+        match self {
+            KeywordError::InvalidFormat => "InvalidFormat",
+            KeywordError::InvalidScheme => "InvalidScheme",
+            KeywordError::ColorDoesNotExist => "ColorDoesNotExist",
+            KeywordError::InvalidColorDefinition => "InvalidColorDefinition",
+        }
+    }
 }
 
 fn build_report(name: &str, source_code: &str, message: String, span: SimpleSpan, file_name: &str) {

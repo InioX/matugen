@@ -1,0 +1,15 @@
+[config.wallpaper]
+command = "swww"
+set = false
+
+[templates.includeme]
+input_path = "./include.txt"
+output_path = "./a/include.txt"
+
+[templates.ishoulderror]
+# Relative paths will be resolved from the path `config.toml` is in.
+input_path = "./error-testing.txt"
+output_path = "./a/error-testing.txt"
+
+# This will use a different input path depending on what mode you use.
+# input_path_modes = { dark = "./colors.whatever-extension", light = "./colors.whatever-extension" }
