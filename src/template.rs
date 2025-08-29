@@ -172,29 +172,31 @@ impl TemplateFile<'_> {
                 "Failed to get file metadata for {}",
                 &out.display()
             ))?;
+
             if meta.permissions().readonly() {
                 error!(
                     "The <b><red>{}</> file is <b><red>Read-Only</>, not writing to it.",
                     &output_path_absolute.display()
                 );
+                return Ok(());
             }
-        } else {
-            let mut output_file = OpenOptions::new()
-                .create(true)
-                .truncate(true)
-                .write(true)
-                .open(out)?;
-
-            output_file.write_all(data.as_bytes())?;
-
-            success!(
-                "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
-                i + 1,
-                &self.state.config_file.templates.len(),
-                name,
-                output_path_absolute.display()
-            );
         }
+
+        let mut output_file = OpenOptions::new()
+            .create(true)
+            .truncate(true)
+            .write(true)
+            .open(out)?;
+
+        output_file.write_all(data.as_bytes())?;
+
+        success!(
+            "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
+            i + 1,
+            &self.state.config_file.templates.len(),
+            name,
+            output_path_absolute.display()
+        );
 
         Ok(())
     }
