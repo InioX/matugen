@@ -90,7 +90,7 @@ matugen: {
       --type ${cfg.type} \
       --json ${cfg.jsonFormat} \
       --contrast ${lib.strings.floatToString cfg.contrast} \
-      --quiet
+      --quiet \
       --include-image-in-json=false \
       > $out/theme.json
   '');
