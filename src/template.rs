@@ -137,10 +137,7 @@ impl TemplateFile<'_> {
             Ok(v) => v,
             Err(errors) => {
                 for err in errors {
-                    err.emit(
-                        self.engine.get_source(name),
-                        &format!("{}", input_path_absolute.display()),
-                    );
+                    err.emit(&self.engine);
                 }
                 std::process::exit(1);
             }
@@ -215,7 +212,7 @@ fn format_hook(
             Err(errors) => {
                 eprintln!("Error when formatting hook:\n{}", &hook);
                 for err in errors {
-                    err.emit(hook, &format!("{}-hook", template_name));
+                    err.emit(&engine);
                 }
                 std::process::exit(1);
             }
@@ -231,7 +228,7 @@ fn format_hook(
         Err(errors) => {
             eprintln!("Error when formatting hook:\n{}", &hook);
             for err in errors {
-                err.emit(hook, &format!("{}-hook", template_name));
+                err.emit(&engine);
             }
             std::process::exit(1);
         }

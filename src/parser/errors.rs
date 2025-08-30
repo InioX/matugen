@@ -5,6 +5,8 @@ use chumsky::span::SimpleSpan;
 
 use thiserror::Error as ThisError;
 
+use crate::parser::Engine;
+
 #[derive(Debug, Default)]
 pub struct ErrorCollector {
     errors: RefCell<Vec<Error>>,
@@ -21,10 +23,10 @@ impl ErrorCollector {
 
     pub fn add(&self, error: Error) {
         let seen = match &error {
-            Error::TemplateNotFound { template: _ } => false,
-            Error::ParseError { kind: _, span } => self.seen_spans.borrow().contains(span),
-            Error::ResolveError { span } => self.seen_spans.borrow().contains(span),
-            Error::IncludeError { span } => self.seen_spans.borrow().contains(span),
+            Error::TemplateNotFound { template: _, .. } => false,
+            Error::ParseError { kind: _, span, .. } => self.seen_spans.borrow().contains(span),
+            Error::ResolveError { span, .. } => self.seen_spans.borrow().contains(span),
+            Error::IncludeError { span, .. } => self.seen_spans.borrow().contains(span),
         };
         if !seen {
             let span = error.get_span();
@@ -56,16 +58,17 @@ impl ErrorCollector {
 #[derive(ThisError, Debug)]
 pub enum Error {
     #[error("Could not find template: {template}")]
-    TemplateNotFound { template: String },
+    TemplateNotFound { template: String, name: String },
     #[error("Parse Error: {kind}")]
     ParseError {
         kind: ParseErrorKind,
         span: SimpleSpan,
+        name: String,
     },
     #[error("Value does not exist in the context")]
-    ResolveError { span: SimpleSpan },
+    ResolveError { span: SimpleSpan, name: String },
     #[error("Failed to include file")]
-    IncludeError { span: SimpleSpan },
+    IncludeError { span: SimpleSpan, name: String },
 }
 
 #[derive(Debug, ThisError)]
@@ -145,17 +148,17 @@ pub enum FilterError {
 impl Error {
     pub fn get_span(&self) -> Option<SimpleSpan> {
         match self {
-            Error::TemplateNotFound { template: _ } => None,
-            Error::ParseError { kind: _, span } => Some(*span),
-            Error::ResolveError { span } => Some(*span),
-            Error::IncludeError { span } => Some(*span),
+            Error::TemplateNotFound { template: _, .. } => None,
+            Error::ParseError { kind: _, span, .. } => Some(*span),
+            Error::ResolveError { span, .. } => Some(*span),
+            Error::IncludeError { span, .. } => Some(*span),
         }
     }
 
     pub fn get_name(&self) -> String {
         match self {
             Error::TemplateNotFound { .. } => "TemplateNotFound".to_owned(),
-            Error::ParseError { kind, span: _ } => match kind {
+            Error::ParseError { kind, .. } => match kind {
                 ParseErrorKind::Filter(e) => format!("ParseError::{}", e.name()),
                 ParseErrorKind::Keyword(e) => format!("ParseError::{}", e.name()),
                 ParseErrorKind::Loop(e) => format!("ParseError::{}", e.name()),
@@ -167,10 +170,21 @@ impl Error {
         }
     }
 
-    pub fn emit(&self, source_code: &str, file_name: &str) {
+    pub fn get_file_name(&self) -> &String {
+        match self {
+            Error::TemplateNotFound { template, name } => name,
+            Error::ParseError { kind, span, name } => name,
+            Error::ResolveError { span, name } => name,
+            Error::IncludeError { span, name } => name,
+        }
+    }
+
+    pub fn emit(&self, engine: &Engine) {
         let name = self.get_name();
         let message = self.to_string();
         let span = self.get_span();
+        let file_name = self.get_file_name();
+        let source_code = engine.get_source(&file_name);
 
         if let Some(span) = span {
             build_report(&name, source_code, message, span, file_name);
