@@ -17,10 +17,16 @@ impl Engine {
         format: &'a str,
         format_value: bool,
         span: SimpleSpan,
+        name: &str,
     ) -> Result<Value, Error> {
         let color = match parse_css_color(&color.to_string()) {
             Ok(v) => v,
-            Err(_) => return Err(Error::ResolveError { span }),
+            Err(_) => {
+                return Err(Error::ResolveError {
+                    span,
+                    name: name.to_string(),
+                })
+            }
         };
         if format_value {
             let res = match format_color(color, format) {
@@ -31,6 +37,7 @@ impl Engine {
                             formats: FORMATS,
                         }),
                         span,
+                        name: name.to_string(),
                     })
                 }
             };
@@ -46,19 +53,26 @@ impl Engine {
         path: I,
         format_value: bool,
         span: SimpleSpan,
+        name: &str,
     ) -> Result<Value, Error>
     where
         I: IntoIterator<Item = &'a str> + Clone,
     {
         let mut iter = path.clone().into_iter().peekable();
-        let first = iter.next().ok_or(Error::ResolveError { span })?;
+        let first = iter.next().ok_or(Error::ResolveError {
+            span,
+            name: name.to_string(),
+        })?;
 
         let mut current = self
             .runtime
             .borrow()
             .resolve_path(std::iter::once(first))
             .or_else(|| self.context.data().get(first).cloned())
-            .ok_or(Error::ResolveError { span })?;
+            .ok_or(Error::ResolveError {
+                span,
+                name: name.to_string(),
+            })?;
 
         while let Some(next_key) = iter.next() {
             let next_key = if next_key.starts_with("_") {
@@ -72,11 +86,14 @@ impl Engine {
                     if map.contains_key("color") {
                         let color = map.get("color").unwrap();
                         current =
-                            self.resolve_generic_color(color, next_key, format_value, span)?;
+                            self.resolve_generic_color(color, next_key, format_value, span, name)?;
                     } else {
                         current = map
                             .get(next_key)
-                            .ok_or(Error::ResolveError { span })?
+                            .ok_or(Error::ResolveError {
+                                span,
+                                name: name.to_string(),
+                            })?
                             .clone();
                     }
                 }
@@ -84,7 +101,10 @@ impl Engine {
                     current = if format_value {
                         Value::Ident(
                             format_color(color, next_key)
-                                .ok_or(Error::ResolveError { span })?
+                                .ok_or(Error::ResolveError {
+                                    span,
+                                    name: name.to_string(),
+                                })?
                                 .to_string(),
                         )
                     } else {
@@ -95,7 +115,10 @@ impl Engine {
                     current = if format_value {
                         Value::Ident(
                             format_color(color, next_key)
-                                .ok_or(Error::ResolveError { span })?
+                                .ok_or(Error::ResolveError {
+                                    span,
+                                    name: name.to_string(),
+                                })?
                                 .to_string(),
                         )
                     } else {
@@ -103,9 +126,10 @@ impl Engine {
                     }
                 }
                 _ => {
-                    // TODO: ERROR
-                    // return None;
-                    return Err(Error::ResolveError { span });
+                    return Err(Error::ResolveError {
+                        span,
+                        name: name.to_string(),
+                    });
                 }
             }
         }

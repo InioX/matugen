@@ -143,29 +143,29 @@ pub fn format_color_all(base_color: Rgb) -> IndexMap<String, Value> {
 }
 
 impl Engine {
-    pub fn generate_template(&self, template: &Template) -> String {
-        self.build_string(&template.ast, &self.sources[template.source_id])
+    pub fn generate_template(&self, template: &Template, name: String) -> String {
+        self.build_string(&template.ast, &self.sources[template.source_id], &name)
     }
 
-    fn build_string(&self, exprs: &[Box<SpannedExpr>], source: &String) -> String {
+    fn build_string(&self, exprs: &[Box<SpannedExpr>], source: &String, name: &str) -> String {
         let src = &mut String::from("");
 
         for expr in exprs.iter() {
             let _range = expr.span.into_range();
 
-            self.eval(src, expr, source);
+            self.eval(src, expr, source, name);
         }
 
         src.to_string()
     }
 
-    fn eval(&self, src: &mut String, expr: &SpannedExpr, source: &String) {
+    fn eval(&self, src: &mut String, expr: &SpannedExpr, source: &String, name: &str) {
         match &expr.expr {
             Expression::Keyword { keywords } => {
-                src.push_str(&self.get_value(keywords, source, true).to_string());
+                src.push_str(&self.get_value(keywords, source, true, name).to_string());
             }
             Expression::KeywordWithFilters { keyword, filters } => {
-                let value = self.get_value(keyword, source, false);
+                let value = self.get_value(keyword, source, false, name);
                 let keywords = keyword.expr.as_keywords(source);
 
                 src.push_str(
@@ -176,6 +176,7 @@ impl Engine {
                             filters,
                             source,
                             keyword.span,
+                            name,
                         )
                         .to_string(),
                 );
@@ -194,13 +195,13 @@ impl Engine {
 
                             self.runtime.borrow_mut().insert("i", Value::Int(i));
 
-                            src.push_str(&self.eval_loop_body(body.clone(), source));
+                            src.push_str(&self.eval_loop_body(body.clone(), source, name));
                             self.runtime.borrow_mut().pop_scope();
                         }
                     }
                     Expression::Access { keywords: _ } => {
                         let values = match iter.expr.as_keywords(source) {
-                            Some(v) => self.resolve_path(v, format_color, expr.span),
+                            Some(v) => self.resolve_path(v, format_color, expr.span, name),
                             None => unreachable!(),
                         };
 
@@ -210,6 +211,7 @@ impl Engine {
                                 span: SimpleSpan::from(
                                     spans.first().unwrap().start..spans.last().unwrap().end,
                                 ),
+                                name: name.to_string(),
                             };
                             self.errors.add(error);
                             return;
@@ -217,12 +219,13 @@ impl Engine {
 
                         match values {
                             Value::Map(map) => {
-                                let res = self.eval_map(map, body, var, source, iter.span);
+                                let res = self.eval_map(map, body, var, source, iter.span, name);
                                 src.push_str(&res);
                             }
                             Value::LazyColor { color, scheme: _ } | Value::Color(color) => {
                                 let formats = format_color_all(color);
-                                let res = self.eval_map(formats, body, var, source, iter.span);
+                                let res =
+                                    self.eval_map(formats, body, var, source, iter.span, name);
                                 src.push_str(&res);
                             }
                             Value::Array(arr) => {
@@ -239,10 +242,11 @@ impl Engine {
                                                 LoopError::TooManyLoopVariablesArray,
                                             ),
                                             span: iter.span,
+                                            name: name.to_string(),
                                         });
                                     }
 
-                                    src.push_str(&self.eval_loop_body(body.clone(), source));
+                                    src.push_str(&self.eval_loop_body(body.clone(), source, name));
                                     self.runtime.borrow_mut().pop_scope();
                                 }
                             }
@@ -252,6 +256,7 @@ impl Engine {
                                         crate::parser::LoopError::LoopOverNonIterableValue,
                                     ),
                                     span: iter.span,
+                                    name: name.to_string(),
                                 });
                             }
                         }
@@ -259,16 +264,19 @@ impl Engine {
                     _ => {}
                 }
             }
-            Expression::Include { name } => match &name.value {
+            Expression::Include { name: include_name } => match &include_name.value {
                 Value::Ident(s) => {
                     let template = self.templates.get(s);
                     match template {
                         Some(v) => {
-                            let res = self.build_string(&v.ast, &self.sources[v.source_id]);
+                            let res = self.build_string(&v.ast, &self.sources[v.source_id], s);
                             src.push_str(&res);
                         }
                         None => {
-                            let error = Error::IncludeError { span: name.span };
+                            let error = Error::IncludeError {
+                                span: include_name.span,
+                                name: name.to_string(),
+                            };
                             self.errors.add(error);
                             return;
                         }
@@ -277,7 +285,7 @@ impl Engine {
                 _ => {}
             },
             Expression::If { .. } => {
-                src.push_str(&self.get_value(expr, source, true).to_string());
+                src.push_str(&self.get_value(expr, source, true, name).to_string());
             }
             Expression::Filter { name: _, args: _ } => unreachable!(),
             Expression::Range { start: _, end: _ } => unreachable!(),
@@ -298,6 +306,7 @@ impl Engine {
         var: &Vec<SpannedValue>,
         source: &String,
         span: SimpleSpan,
+        name: &str,
     ) -> String {
         let mut output = String::from("");
         for (key, value) in map {
@@ -318,29 +327,36 @@ impl Engine {
                 self.errors.add(Error::ParseError {
                     kind: ParseErrorKind::Loop(LoopError::TooManyLoopVariables),
                     span: span,
+                    name: name.to_string(),
                 });
             }
 
-            output.push_str(&self.eval_loop_body(body.clone(), source));
+            output.push_str(&self.eval_loop_body(body.clone(), source, name));
 
             self.runtime.borrow_mut().pop_scope();
         }
         output
     }
 
-    fn eval_loop_body(&self, exprs: Vec<Box<SpannedExpr>>, source: &String) -> String {
+    fn eval_loop_body(&self, exprs: Vec<Box<SpannedExpr>>, source: &String, name: &str) -> String {
         let mut output = String::from("");
 
         for expr in exprs.into_iter() {
             let _range = expr.span.into_range();
-            self.eval(&mut output, &expr, source);
+            self.eval(&mut output, &expr, source, name);
         }
 
         output
     }
 
-    fn get_replacement(&self, keywords: &[&str], span: SimpleSpan, format_value: bool) -> Value {
-        match self.resolve_path(keywords.iter().copied(), format_value, span) {
+    fn get_replacement(
+        &self,
+        keywords: &[&str],
+        span: SimpleSpan,
+        format_value: bool,
+        name: &str,
+    ) -> Value {
+        match self.resolve_path(keywords.iter().copied(), format_value, span, name) {
             Ok(v) => v,
             Err(e) => {
                 self.errors.add(e);
@@ -361,9 +377,10 @@ impl Engine {
         rhs: &Box<SpannedExpr>,
         source: &String,
         span: SimpleSpan,
+        name: &str,
     ) -> Value {
-        let left = self.get_value(lhs, source, false);
-        let right = self.get_value(rhs, source, false);
+        let left = self.get_value(lhs, source, false, name);
+        let right = self.get_value(rhs, source, false, name);
 
         let left_val = left.get_int();
         let right_val = right.get_int();
@@ -381,6 +398,7 @@ impl Engine {
                             },
                         ),
                         span,
+                        name: name.to_string(),
                     });
                 }
 
@@ -399,11 +417,19 @@ impl Engine {
         .into()
     }
 
-    fn get_value(&self, expr: &SpannedExpr, source: &String, format_value: bool) -> Value {
+    fn get_value(
+        &self,
+        expr: &SpannedExpr,
+        source: &String,
+        format_value: bool,
+        name: &str,
+    ) -> Value {
         match &expr.expr {
-            Expression::Keyword { keywords } => self.get_value(&keywords, source, format_value),
+            Expression::Keyword { keywords } => {
+                self.get_value(&keywords, source, format_value, name)
+            }
             Expression::KeywordWithFilters { keyword, filters } => {
-                let value = self.get_value(&keyword, source, false);
+                let value = self.get_value(&keyword, source, false, name);
                 let keywords = keyword.expr.as_keywords(source);
                 Value::from(self.get_replacement_filter(
                     value.into(),
@@ -411,14 +437,18 @@ impl Engine {
                     filters,
                     source,
                     keyword.span,
+                    name,
                 ))
             }
             Expression::LiteralValue { value } => value.value.clone(),
-            Expression::Access { keywords } => {
-                self.get_replacement(&get_str_vec(source, keywords), expr.span, format_value)
-            }
+            Expression::Access { keywords } => self.get_replacement(
+                &get_str_vec(source, keywords),
+                expr.span,
+                format_value,
+                name,
+            ),
             Expression::BinaryOp { lhs, op, rhs } => {
-                self.replace_binary_op(lhs, *op, rhs, source, expr.span)
+                self.replace_binary_op(lhs, *op, rhs, source, expr.span, name)
             }
             Expression::Raw { value } => Value::Ident(get_str(source, value).to_string()),
             Expression::If {
@@ -426,12 +456,13 @@ impl Engine {
                 then_branch,
                 else_branch,
             } => {
-                let bool = match self.get_value(condition, source, false) {
+                let bool = match self.get_value(condition, source, false, name) {
                     Value::Bool(b) => b,
                     _ => {
                         self.errors.add(Error::ParseError {
                             kind: ParseErrorKind::If(IfError::InvalidIfCondition),
                             span: expr.span,
+                            name: name.to_string(),
                         });
                         true
                     }
@@ -440,11 +471,11 @@ impl Engine {
 
                 if bool {
                     if format_value {
-                        let str = self.build_string(&then_branch, source);
+                        let str = self.build_string(&then_branch, source, name);
                         return Value::Ident(str);
                     } else {
                         for expr in then_branch {
-                            values.push(self.get_value(expr, source, format_value))
+                            values.push(self.get_value(expr, source, format_value, name))
                         }
                     }
 
@@ -452,11 +483,11 @@ impl Engine {
                 } else {
                     if let Some(exprs) = else_branch {
                         if format_value {
-                            let str = self.build_string(&then_branch, source);
+                            let str = self.build_string(&then_branch, source, name);
                             return Value::Ident(str);
                         } else {
                             for expr in exprs {
-                                values.push(self.get_value(expr, source, format_value))
+                                values.push(self.get_value(expr, source, format_value, name))
                             }
                         }
                         return Value::Array(values);
@@ -479,6 +510,7 @@ impl Engine {
         filters: &[SpannedExpr],
         source: &String,
         span: SimpleSpan,
+        name: &str,
     ) -> FilterReturnType {
         let is_color = match &current_value {
             FilterReturnType::Rgb(_) => true,
@@ -497,11 +529,11 @@ impl Engine {
                 for arg in args {
                     match &arg.expr {
                         Expression::Keyword { keywords } => args_resolved.push(SpannedValue {
-                            value: self.get_value(keywords, source, false),
+                            value: self.get_value(keywords, source, false, name),
                             span: arg.span,
                         }),
                         Expression::KeywordWithFilters { keyword, filters } => {
-                            let value = self.get_value(&keyword, source, false);
+                            let value = self.get_value(&keyword, source, false, name);
                             let keywords = keyword.expr.as_keywords(source);
                             args_resolved.push(SpannedValue {
                                 value: self
@@ -511,6 +543,7 @@ impl Engine {
                                         filters,
                                         source,
                                         span,
+                                        name,
                                     )
                                     .into(),
                                 span: arg.span,
@@ -519,12 +552,13 @@ impl Engine {
                         Expression::LiteralValue { value } => args_resolved.push(value.clone()),
                         Expression::BinaryOp { lhs, op, rhs } => {
                             args_resolved.push(SpannedValue {
-                                value: self.replace_binary_op(lhs, *op, rhs, source, arg.span),
+                                value: self
+                                    .replace_binary_op(lhs, *op, rhs, source, arg.span, name),
                                 span: arg.span,
                             });
                         }
                         Expression::If { .. } => {
-                            let val = self.get_value(arg, source, false);
+                            let val = self.get_value(arg, source, false, name);
                             match val {
                                 Value::Array(array) => {
                                     for value in array {
@@ -553,12 +587,14 @@ impl Engine {
                     keywords.unwrap_or(&vec![]),
                     current_value,
                     filter.span,
+                    name,
                 ) {
                     Ok(val) => val,
                     Err(e) => {
                         let error = Error::ParseError {
                             kind: ParseErrorKind::Filter(e),
                             span: filter.span,
+                            name: name.to_string(),
                         };
                         self.errors.add(error);
 
@@ -586,6 +622,7 @@ impl Engine {
                             formats: FORMATS,
                         }),
                         span,
+                        name: name.to_string(),
                     };
                     self.errors.add(error);
                     FilterReturnType::String(String::from(""))
@@ -599,6 +636,7 @@ impl Engine {
                             formats: FORMATS,
                         }),
                         span,
+                        name: name.to_string(),
                     };
                     self.errors.add(error);
                     FilterReturnType::String(String::from(""))
@@ -615,6 +653,7 @@ impl Engine {
         keywords: &[&str],
         input: FilterReturnType,
         span: SimpleSpan,
+        name: &str,
     ) -> Result<FilterReturnType, FilterError> {
         match self.filters.get(filtername) {
             Some(f) => f(keywords, args, input, self),
@@ -624,6 +663,7 @@ impl Engine {
                         filter: filtername.to_owned(),
                     }),
                     span,
+                    name: name.to_string(),
                 };
                 self.errors.add(error);
                 Ok(FilterReturnType::from(

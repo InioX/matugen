@@ -238,7 +238,7 @@ impl Engine {
     pub fn render(&self, name: &str) -> Result<String, Vec<Error>> {
         match self.templates.get(name) {
             Some(template) => {
-                let res = self.generate_template(template);
+                let res = self.generate_template(template, name.to_string());
                 if !self.errors.is_empty() {
                     return Err(self.errors.take());
                 }
@@ -247,6 +247,7 @@ impl Engine {
             None => {
                 self.errors.add(Error::TemplateNotFound {
                     template: name.to_owned(),
+                    name: "none".to_string(),
                 });
                 Err(self.errors.take())
             }
