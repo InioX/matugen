@@ -25,7 +25,7 @@ pub struct Cli {
     #[arg(short, long, value_name = "FILE", global = true)]
     pub config: Option<PathBuf>,
 
-    /// Sets a custom config file
+    /// Adds a prefix before paths
     #[arg(short, long, value_name = "PATH", global = true)]
     pub prefix: Option<PathBuf>,
 

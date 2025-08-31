@@ -172,10 +172,10 @@ impl Error {
 
     pub fn get_file_name(&self) -> &String {
         match self {
-            Error::TemplateNotFound { template, name } => name,
-            Error::ParseError { kind, span, name } => name,
-            Error::ResolveError { span, name } => name,
-            Error::IncludeError { span, name } => name,
+            Error::TemplateNotFound { name, .. } => name,
+            Error::ParseError { name, .. } => name,
+            Error::ResolveError { name, .. } => name,
+            Error::IncludeError { name, .. } => name,
         }
     }
 

@@ -90,7 +90,6 @@ impl TemplateFile<'_> {
                 info!("Running pre_hook for the <b><cyan>{}</> template.", &name);
                 format_hook(
                     self.engine,
-                    name,
                     &hook,
                     &template.colors_to_compare,
                     &template.compare_to,
@@ -109,13 +108,12 @@ impl TemplateFile<'_> {
                 output_path_absolute.display()
             );
 
-            self.export_template(name, output_path_absolute, input_path_absolute, i)?;
+            self.export_template(name, output_path_absolute, i)?;
 
             if let Some(hook) = &template.post_hook {
                 info!("Running post_hook for the <b><cyan>{}</> template.", &name);
                 format_hook(
                     self.engine,
-                    name,
                     &hook,
                     &template.colors_to_compare,
                     &template.compare_to,
@@ -130,7 +128,6 @@ impl TemplateFile<'_> {
         &self,
         name: &String,
         output_path_absolute: &PathBuf,
-        input_path_absolute: &PathBuf,
         i: usize,
     ) -> Result<(), Report> {
         let data = match self.engine.render(name) {
@@ -201,7 +198,6 @@ impl TemplateFile<'_> {
 
 fn format_hook(
     engine: &mut NewEngine,
-    template_name: &String,
     hook: &String,
     colors_to_compare: &Option<Vec<crate::color::color::ColorDefinition>>,
     compare_to: &Option<String>,
