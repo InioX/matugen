@@ -6,10 +6,10 @@
 
 {{ palettes.error._99.hex }}
 
-normal: {{ colors.blue_source.default.hex }}
-blended_full: {{ colors.blue_source.default.hex | blend: {{ colors.source_color.default.hex }}, 1.0 }}
-blended_half: {{ colors.blue_source.default.hex | blend: {{ colors.source_color.default.hex }}, 0.5 }}
-harmonized: {{ colors.blue_source.default.hex | harmonize: {{ colors.source_color.default.hex }} }}
+normal: {{ colors.green_source.default.hex }}
+blended_full: {{ colors.green_source.default.hex | blend: {{ colors.source_color.default.hex }}, 1.0 }}
+blended_half: {{ colors.green_source.default.hex | blend: {{ colors.source_color.default.hex }}, 0.5 }}
+harmonized: {{ colors.green_source.default.hex | harmonize: {{ colors.source_color.default.hex }} }}
 
 
 {{ "#ffbf9b" | to_color | set_lightness: <* if {{ is_dark_mode }} *> {{ int }} <* else *> {{ int2 }} <* endif *> }}

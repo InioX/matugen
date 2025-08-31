@@ -73,6 +73,6 @@ post_hook = 'echo "after gen"'
 # https://m3.material.io/styles/color/advanced/adjust-existing-colors#1cc12e43-237b-45b9-8fe0-9a3549c1f61e
 # Blend is set to true by default. 
 [config.custom_colors]
-green = "#00ff00"
 red = "#ff0000"
 blue = { color = "#0000ff", blend = false }
+green = { color = "#00FF00", blend = false }
