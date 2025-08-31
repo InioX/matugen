@@ -1,4 +1,113 @@
 # Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [2.5.0](https://github.com/InioX/matugen/compare/v2.4.1...v2.5.0) - 2025-08-31
+
+### Added
+
+- add back set to `config.wallpaper` ([#117](https://github.com/InioX/matugen/pull/117))
+- allow if expressions in filter args
+- add more errors for parser
+- use thiserror for parser
+- remove ui
+- show info message when executing hooks
+- add `include-image-in-json` ([#175](https://github.com/InioX/matugen/pull/175))
+- remove custom_keywords
+- added blend. rename old blend to harmonize
+- if path has a number, use a _ prefix
+- add all formats for to_color
+- add matugen json, change how parser resolves colors
+- add blend filter
+- add looping over color formats and impl display for maps
+- allow expressions inside of keywords
+- add binary operations (only in filter args)
+- support exprs for filter args
+- replace resolve_path_filter
+- add range expression
+- change how resolve works
+- add if statement
+- add include block
+- add auto_lightness
+- *(gui)* save image folder and tab
+- add `input_path_modes` ([#142](https://github.com/InioX/matugen/pull/142))
+- *(gui)* add path under images
+- *(gui)* add images tab
+- add ui
+- add palettes to `dump_json`
+
+### Fixed
+
+- argb_from_rgb converting wrong color ([#173](https://github.com/InioX/matugen/pull/173))
+- fix minor typo in build command
+- errors in included files showing span in original
+- not overwriting generated files
+- check metadata only if file exists
+- use "choice" instead of "or" in parser
+- change template adding and fix include ([#158](https://github.com/InioX/matugen/pull/158))
+- ingoring whitespace in for loop
+- actually show the template name in errors
+- cache not loading
+- remove dbg print for path
+- trying to install color eyre twice
+- not compiling because of unix wallpaper
+- wrong tones in `dump_json` ([#116](https://github.com/InioX/matugen/pull/116))
+
+### Other
+
+- remove warnings
+- use wrap_err, fix read only detection
+- Update main.yml
+- Update main.yml
+- Update main.yml
+- change release-plz workflow
+- move some stuff from main into helpers
+- fix all warnings
+- add to_color (TODO)
+- remove all warnings
+- move parser into its own file
+- change cache colors to #RRGGBBAA
+- run cargo clippy fix
+- run cargo fmt
+- change cache color format
+- theme the ui based on image
+- fix raw strings in parser
+- fix ui, move cache to cache/images
+- add hooks
+- improve errors, add caching toggle
+- add caching
+- support chaning syntax
+- add hsl filters, saturate
+- run cargo clippy --fix, remove benches
+- use `IndexMap` instead for ordering in for loops
+- return multiple errors
+- use colorsys
+- replace engine, support quoted ident
+- use simplespan instead
+- add set_alpha
+- restructure
+- move stuff from engine
+- run clippy fix
+- remove modified_colors
+- use lazy color
+- remove matugen-parser
+- working for loops
+- kinda working for loop
+- add error for arg type
+- add expect_args
+- rename filtertype
+- cleanup imports
+- remove old filters
+- working no for loops
+- run cargo fmt
+- refactor
+- *(readme)* improve discord link
+# Changelog
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
