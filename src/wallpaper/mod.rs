@@ -7,6 +7,7 @@ pub struct Wallpaper {
     pub command: String,
     /// The last argument will be the image path
     pub arguments: Option<Vec<String>>,
+    pub set: Option<bool>,
 }
 
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]

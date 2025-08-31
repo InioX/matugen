@@ -22,6 +22,9 @@ block_prefix = ['{', '{']
 block_postfix = ['}', '}']
 
 [config.wallpaper]
+# Whether to set the wallpaper or not
+set = true
+
 # The base command to run for applying the wallpaper, shouldn't have spaces in it.
 command = "swww"
 
