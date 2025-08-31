@@ -305,7 +305,9 @@ impl State {
         template.generate()?;
 
         if let Some(_wallpaper_cfg) = &self.config_file.config.wallpaper {
-            set_wallpaper(&self.args.source, _wallpaper_cfg)?;
+            if _wallpaper_cfg.set.unwrap_or(true) {
+                set_wallpaper(&self.args.source, _wallpaper_cfg)?;
+            }
         }
 
         Ok(())
