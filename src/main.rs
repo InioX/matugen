@@ -20,7 +20,10 @@ use crate::{
     helpers::{color_entry, merge_json},
     parser::engine::EngineSyntax,
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
-    util::{arguments::Format, color::format_palettes},
+    util::{
+        arguments::{FilterType, Format},
+        color::format_palettes,
+    },
 };
 use helpers::{set_wallpaper, setup_logging};
 use template::TemplateFile;
@@ -66,7 +69,10 @@ impl State {
 
         let source_color = match &args.source {
             Source::Json { path: _ } => None,
-            _ => Some(get_source_color(&args.source).expect("Failed to get source color.")),
+            _ => Some(
+                (get_source_color(&args.source, &args.resize_filter))
+                    .expect("Failed to get source color."),
+            ),
         };
 
         let default_scheme = args
@@ -336,6 +342,7 @@ fn main() -> Result<(), Report> {
         json: None,
         import_json: None,
         include_image_in_json: Some(true),
+        resize_filter: Some(FilterType::Lanczos3),
     };
 
     let args = Cli::parse();

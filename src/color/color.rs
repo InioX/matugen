@@ -15,6 +15,7 @@ use color_eyre::{eyre::WrapErr, Report};
 use colorsys::{Hsl, Rgb};
 use std::str::FromStr;
 
+use crate::FilterType as OwnFilterType;
 use crate::{color::math::get_color_distance_lab, scheme::SchemeTypes};
 
 #[derive(clap::Parser, Debug, Clone)]
@@ -100,19 +101,27 @@ impl OwnCustomColor {
     }
 }
 
-pub fn get_source_color(source: &Source) -> Result<Argb, Report> {
+pub fn get_source_color(
+    source: &Source,
+    resize_filter: &Option<OwnFilterType>,
+) -> Result<Argb, Report> {
     use crate::color::color;
+
+    let filter: FilterType = match resize_filter {
+        Some(v) => FilterType::from(v),
+        None => FilterType::from(&OwnFilterType::Lanczos3),
+    };
 
     let source_color: Argb = match source {
         Source::Image { path } => {
             info!("Opening image in <d><u>{}</>", path);
-            color::get_source_color_from_image(path)
+            color::get_source_color_from_image(path, filter)
                 .wrap_err(format!("Could not get source color from image: {}", path))?
         }
         #[cfg(feature = "web-image")]
         Source::WebImage { url } => {
             info!("Fetching image from <d><u>{}</>", url);
-            color::get_source_color_from_web_image(url)
+            color::get_source_color_from_web_image(url, filter)
                 .expect("Could not get source color from web image")
         }
         Source::Color(color) => color::get_source_color_from_color(color).wrap_err(format!(
@@ -124,19 +133,19 @@ pub fn get_source_color(source: &Source) -> Result<Argb, Report> {
     Ok(source_color)
 }
 
-pub fn get_source_color_from_image(path: &str) -> Result<Argb, Report> {
+pub fn get_source_color_from_image(path: &str, filter_type: FilterType) -> Result<Argb, Report> {
     Ok(ImageReader::extract_color(ImageReader::open(path)?.resize(
         128,
         128,
-        FilterType::Lanczos3,
+        filter_type,
     )))
 }
 
 #[cfg(feature = "web-image")]
-pub fn get_source_color_from_web_image(url: &str) -> Result<Argb, Report> {
+pub fn get_source_color_from_web_image(url: &str, filter_type: FilterType) -> Result<Argb, Report> {
     let bytes = reqwest::blocking::get(url)?.bytes()?;
     Ok(ImageReader::extract_color(
-        ImageReader::read(&bytes)?.resize(128, 128, FilterType::Lanczos3),
+        ImageReader::read(&bytes)?.resize(128, 128, filter_type),
     ))
 }
 

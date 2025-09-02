@@ -76,6 +76,31 @@ pub struct Cli {
     /// Imports a json file to use as render data
     #[arg(value_enum, short, long, global = true, value_name = "FILE")]
     pub import_json: Option<String>,
+
+    /// Uses a custom resize filter for extracting source color
+    #[arg(value_enum, short, long, global = true)]
+    pub resize_filter: Option<FilterType>,
+}
+
+#[derive(Parser, Debug, Clone, clap::ValueEnum)]
+pub enum FilterType {
+    Nearest,
+    Triangle,
+    CatmullRom,
+    Gaussian,
+    Lanczos3,
+}
+
+impl From<&FilterType> for image::imageops::FilterType {
+    fn from(filter: &FilterType) -> Self {
+        match filter {
+            FilterType::Nearest => Self::Nearest,
+            FilterType::Triangle => Self::Triangle,
+            FilterType::CatmullRom => Self::CatmullRom,
+            FilterType::Gaussian => Self::Gaussian,
+            FilterType::Lanczos3 => Self::Lanczos3,
+        }
+    }
 }
 
 #[derive(Parser, Debug)]
