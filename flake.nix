@@ -17,6 +17,14 @@
     });
     devShells = forAllSystems (system: {
       default = pkgsFor.${system}.callPackage ./shell.nix {};
+
+      # For testing with the ts script
+      node = pkgsFor.${system}.mkShell {
+        buildInputs = with pkgsFor.${system}; [
+          nodejs_20
+          nodePackages.pnpm
+        ];
+      };
     });
     nixosModules = {
       matugen = import ./module.nix self;
