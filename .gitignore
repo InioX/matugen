@@ -16,4 +16,11 @@ target/
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
+# Generated files with matugen using the example config
 example/a/*
+
+# Node stuff
+node_modules/
+dist/
+build/
+material-comparison*
