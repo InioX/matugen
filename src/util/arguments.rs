@@ -46,7 +46,7 @@ pub struct Cli {
     pub debug: Option<bool>,
 
     /// Whether to add the image field into json output.
-    #[arg(short, long, global = true)]
+    #[arg(long, global = true)]
     pub include_image_in_json: Option<bool>,
 
     /// Which mode to use for the color scheme
@@ -74,7 +74,7 @@ pub struct Cli {
     pub json: Option<Format>,
 
     /// Imports a json file to use as render data
-    #[arg(value_enum, short, long, global = true, value_name = "FILE")]
+    #[arg(value_enum, long, global = true, value_name = "FILE")]
     pub import_json: Option<String>,
 
     /// Uses a custom resize filter for extracting source color

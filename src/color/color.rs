@@ -2,12 +2,14 @@ use material_colors::{
     blend::harmonize,
     color::Argb,
     dynamic_color::{DynamicScheme, MaterialDynamicColors},
-    hct::Hct,
+    hct::{Cam16, Hct},
     image::{FilterType, ImageReader},
+    quantize::{Quantizer, QuantizerCelebi},
     scheme::variant::{
         SchemeContent, SchemeExpressive, SchemeFidelity, SchemeFruitSalad, SchemeMonochrome,
         SchemeNeutral, SchemeRainbow, SchemeTonalSpot, SchemeVibrant,
     },
+    score::Score,
     theme::{ColorGroup, CustomColor, CustomColorGroup},
 };
 
@@ -17,6 +19,8 @@ use std::str::FromStr;
 
 use crate::FilterType as OwnFilterType;
 use crate::{color::math::get_color_distance_lab, scheme::SchemeTypes};
+
+use material_colors::image::AsPixels;
 
 #[derive(clap::Parser, Debug, Clone)]
 pub enum ColorFormat {
@@ -109,7 +113,7 @@ pub fn get_source_color(
 
     let filter: FilterType = match resize_filter {
         Some(v) => FilterType::from(v),
-        None => FilterType::from(&OwnFilterType::Lanczos3),
+        None => FilterType::from(&OwnFilterType::Triangle),
     };
 
     let source_color: Argb = match source {
@@ -134,11 +138,23 @@ pub fn get_source_color(
 }
 
 pub fn get_source_color_from_image(path: &str, filter_type: FilterType) -> Result<Argb, Report> {
-    Ok(ImageReader::extract_color(ImageReader::open(path)?.resize(
-        128,
-        128,
-        filter_type,
-    )))
+    let mut original = ImageReader::open(path)?;
+    let image = original.resize(112, 112, filter_type);
+    let pixels: Vec<Argb> = image
+        .as_pixels()
+        .iter()
+        .copied()
+        .filter(|argb| argb.alpha == 255)
+        .collect();
+    let mut result = QuantizerCelebi::quantize(&pixels, 128);
+
+    result
+        .color_to_count
+        .retain(|&argb, _| Cam16::from(argb).chroma >= 5.0);
+
+    let ranked = Score::score(&result.color_to_count, None, None, None);
+
+    Ok(ranked[0])
 }
 
 #[cfg(feature = "web-image")]

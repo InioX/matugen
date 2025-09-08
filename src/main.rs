@@ -342,7 +342,7 @@ fn main() -> Result<(), Report> {
         json: None,
         import_json: None,
         include_image_in_json: Some(true),
-        resize_filter: Some(FilterType::Lanczos3),
+        resize_filter: Some(FilterType::Triangle),
     };
 
     let args = Cli::parse();
