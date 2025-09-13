@@ -416,6 +416,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "54261aba646433cb567ec89844be4c4825ca92a4f8afba52fc4dd88436e31bbd"
 
 [[package]]
+name = "convert_case"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baaaa0ecca5b51987b9423ccdc971514dd8b0bb7b4060b983d3664dad3f1f89f"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1324,6 +1333,7 @@ dependencies = [
  "clap",
  "color-eyre",
  "colorsys",
+ "convert_case",
  "criterion",
  "csscolorparser",
  "directories",

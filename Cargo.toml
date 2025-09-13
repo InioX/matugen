@@ -82,3 +82,4 @@ reqwest = { version = "0.12.5", default-features = false, features = [
 
 sha2 = "0.10.9"
 csscolorparser = "0.7.2"
+convert_case = "0.8.0"
