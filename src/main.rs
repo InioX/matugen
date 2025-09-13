@@ -137,13 +137,6 @@ impl State {
 
         self.add_engine_filters(&mut engine);
 
-        if self.config_file.config.caching.unwrap_or(false)
-            && self.args.source.is_image()
-            && !loaded_cache
-        {
-            self.save_cache(&json).expect("Failed saving cache");
-        }
-
         let json = match &self.args.source {
             Source::Json { path } => {
                 let string = read_to_string(&path).unwrap();
@@ -198,6 +191,13 @@ impl State {
                 json
             }
         };
+
+        if self.config_file.config.caching.unwrap_or(false)
+            && self.args.source.is_image()
+            && !loaded_cache
+        {
+            self.save_cache(&json).expect("Failed saving cache");
+        }
 
         engine.add_context(json.clone());
 
