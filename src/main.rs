@@ -250,6 +250,11 @@ impl State {
         engine.add_filter("to_color", crate::filters::to_color);
 
         // String
+        engine.add_filter("lower_case", crate::filters::lower_case);
+        engine.add_filter("camel_case", crate::filters::camel_case);
+        engine.add_filter("pascal_case", crate::filters::pascal_case);
+        engine.add_filter("snake_case", crate::filters::snake_case);
+        engine.add_filter("kebab_case", crate::filters::kebab_case);
         engine.add_filter("replace", crate::filters::replace);
     }
 

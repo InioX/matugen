@@ -5,11 +5,11 @@
 // pub mod invert;
 // pub mod lightness;
 
-pub mod replace;
+pub mod string;
 
 pub mod set;
-pub(crate) use replace::replace;
 pub(crate) use set::*;
+pub(crate) use string::*;
 
 pub mod colortransform;
 pub(crate) use colortransform::*;
