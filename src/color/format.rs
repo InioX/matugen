@@ -57,18 +57,18 @@ pub fn format_rgb(color: &Rgb) -> String {
 pub fn format_rgba(color: &Rgb, divide: bool) -> String {
     if divide {
         format!(
-            "rgba({:?}, {:?}, {:?}, {:.1})",
-            color.red() as u8,
-            color.green() as u8,
-            color.blue() as u8,
+            "rgba({:.0}, {:.0}, {:.0}, {:.2})",
+            color.red(),
+            color.green(),
+            color.blue(),
             color.alpha() / 255.
         )
     } else {
         format!(
-            "rgba({:?}, {:?}, {:?}, {:.1})",
-            color.red() as u8,
-            color.green() as u8,
-            color.blue() as u8,
+            "rgba({:.0}, {:.0}, {:.0}, {:.0})",
+            color.red(),
+            color.green(),
+            color.blue(),
             color.alpha()
         )
     }
@@ -76,28 +76,28 @@ pub fn format_rgba(color: &Rgb, divide: bool) -> String {
 
 pub fn format_hsl(color: &Hsl) -> String {
     format!(
-        "hsl({:?}, {:?}%, {:?}%)",
-        color.hue() as u8,
-        color.saturation() as u8,
-        color.lightness() as u8,
+        "hsl({:.0}, {:.0}%, {:.0}%)",
+        color.hue(),
+        color.saturation(),
+        color.lightness(),
     )
 }
 
 pub fn format_hsla(color: &Hsl, divide: bool) -> String {
     if divide {
         format!(
-            "hsla({:?}, {:?}%, {:?}%, {:.1})",
-            color.hue() as u8,
-            color.saturation() as u8,
-            color.lightness() as u8,
+            "hsla({:.0}, {:.0}%, {:.0}%, {:.2})",
+            color.hue(),
+            color.saturation(),
+            color.lightness(),
             color.alpha() / 255.
         )
     } else {
         format!(
-            "hsla({:?}, {:?}%, {:?}%, {:.1})",
-            color.hue() as u8,
-            color.saturation() as u8,
-            color.lightness() as u8,
+            "hsla({:.0}, {:.0}%, {:.0}%, {:.0})",
+            color.hue(),
+            color.saturation(),
+            color.lightness(),
             color.alpha()
         )
     }
