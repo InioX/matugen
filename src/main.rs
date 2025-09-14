@@ -118,7 +118,9 @@ impl State {
         let (schemes, default_scheme, mut json, loaded_cache) =
             if self.config_file.config.caching.unwrap_or(false) && self.args.source.is_image() {
                 match self.image_hash.load() {
-                    Ok((schemes, default_scheme, json)) => {
+                    Ok((schemes, default_scheme)) => {
+                        let json = self.get_render_data().unwrap();
+
                         (Some(schemes), default_scheme, json, true)
                     }
                     Err(_) => {
@@ -196,7 +198,8 @@ impl State {
             && self.args.source.is_image()
             && !loaded_cache
         {
-            self.save_cache(&json).expect("Failed saving cache");
+            self.save_cache(&mut json.clone())
+                .expect("Failed saving cache");
         }
 
         engine.add_context(json.clone());
@@ -205,7 +208,15 @@ impl State {
     }
 
     fn save_cache(&self, json: &Value) -> Result<(), Report> {
-        self.image_hash.save(&json)
+        let json_modified = serde_json::json!({
+            "colors": {
+                "dark": cache::convert_argb_scheme(&self.schemes.as_ref().unwrap().dark),
+                "light": cache::convert_argb_scheme(&self.schemes.as_ref().unwrap().light),
+            },
+            "mode": self.default_scheme
+        });
+
+        self.image_hash.save(&json_modified)
     }
 
     pub fn get_render_data(&self) -> Result<serde_json::Value, Report> {
