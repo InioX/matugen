@@ -25,9 +25,7 @@ use sha2::{Digest, Sha256};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CacheFile {
     mode: SchemesEnum,
-    image: String,
     colors: SchemesCache,
-    custom: HashMap<String, String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -188,7 +186,7 @@ impl ImageCache {
         Ok(())
     }
 
-    pub fn load(&self) -> Result<(Schemes, SchemesEnum, Value), Report> {
+    pub fn load(&self) -> Result<(Schemes, SchemesEnum), Report> {
         let path = self.cache_folder.join(self.get_name());
 
         let string = read_to_string(&path)?;
@@ -200,15 +198,9 @@ impl ImageCache {
             light: convert_helper_scheme(&json.colors.light),
         };
 
-        let value = serde_json::json!({
-            "image": json.image,
-            "custom": json.custom,
-            "mode": json.mode,
-        });
-
         success!("Loaded cache from <<d><u>{}</>", path.display());
 
-        Ok((schemes_enum, json.mode, value))
+        Ok((schemes_enum, json.mode))
     }
 
     fn get_name(&self) -> PathBuf {
