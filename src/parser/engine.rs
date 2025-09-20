@@ -195,7 +195,7 @@ impl Engine {
 
         let parser = Self::parser(&self.syntax);
 
-        let (ast, errs) = parser.parse(source_ref.trim()).into_output_errors();
+        let (ast, errs) = parser.parse(source_ref).into_output_errors();
 
         self.templates.insert(
             name.clone(),
