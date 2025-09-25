@@ -73,12 +73,12 @@ pub struct Cli {
     #[arg(value_enum, short, long, global = true, value_name = "JSON")]
     pub json: Option<Format>,
 
-    /// Imports a json file to use as render data
+    /// Imports a json file to use as render data (can be used multiple times)
     #[arg(value_enum, long, global = true, value_name = "FILE")]
     pub import_json: Option<Vec<String>>,
 
-    /// Imports a json file to use as render data
-    #[arg(value_enum, long, global = true, value_name = "FILE")]
+    /// Imports a json string to use as render data (can be used multiple times)
+    #[arg(value_enum, long, global = true, value_name = "STRING")]
     pub import_json_string: Option<Vec<String>>,
 
     /// Uses a custom resize filter for extracting source color
