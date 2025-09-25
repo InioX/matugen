@@ -143,9 +143,7 @@ impl State {
             Source::Json { path } => {
                 let string = read_to_string(&path).unwrap();
 
-                let mut json = serde_json::from_str(&string).unwrap();
-
-                json
+                serde_json::from_str(&string).unwrap()
             }
             _ => {
                 let schemes = schemes.unwrap();
@@ -184,6 +182,13 @@ impl State {
             for path in paths {
                 let string = read_to_string(path).unwrap();
 
+                let json_file = serde_json::from_str(&string).unwrap();
+                merge_json(&mut json, json_file);
+            }
+        }
+
+        if let Some(strings) = &self.args.import_json_string {
+            for string in strings {
                 let json_file = serde_json::from_str(&string).unwrap();
                 merge_json(&mut json, json_file);
             }
@@ -357,6 +362,7 @@ fn main() -> Result<(), Report> {
         show_colors: None,
         json: None,
         import_json: None,
+        import_json_string: None,
         include_image_in_json: Some(true),
         resize_filter: Some(FilterType::Triangle),
     };
