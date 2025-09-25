@@ -23,7 +23,7 @@ use crate::{SchemesEnum, State};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Template {
     pub input_path: PathBuf,
-    pub output_path: PathBuf,
+    pub output_path: Option<PathBuf>,
     pub mode: Option<SchemesEnum>,
     pub colors_to_compare: Option<Vec<crate::color::color::ColorDefinition>>,
     pub compare_to: Option<String>,
@@ -54,7 +54,8 @@ impl TemplateFile<'_> {
             &self.state.config_file.templates.len()
         );
 
-        let mut paths_hashmap: HashMap<String, (PathBuf, PathBuf)> = HashMap::new();
+        let mut paths_hashmap: HashMap<String, (PathBuf, Option<PathBuf>)> = HashMap::new();
+        let mut template_export_count = 0;
 
         for (_i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
             let input_path = if let Some(input_path_mode) = &template.input_path_modes {
@@ -72,6 +73,10 @@ impl TemplateFile<'_> {
             if !input_path_absolute.exists() {
                 warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesnt exist, skipping...</>", name, input_path_absolute.display());
                 continue;
+            }
+
+            if template.output_path.is_some() {
+                template_export_count += 1;
             }
 
             let data = read_to_string(&input_path_absolute)
@@ -101,14 +106,16 @@ impl TemplateFile<'_> {
                 .get(name)
                 .wrap_err("Failed to get the input and output paths from hashmap")?;
 
-            debug!(
-                "Trying to write the {} template from {} to {}",
-                name,
-                input_path_absolute.display(),
-                output_path_absolute.display()
-            );
+            if let Some(output_path_absolute) = output_path_absolute {
+                debug!(
+                    "Trying to write the {} template from {} to {}",
+                    name,
+                    input_path_absolute.display(),
+                    output_path_absolute.display()
+                );
 
-            self.export_template(name, output_path_absolute, i)?;
+                self.export_template(name, output_path_absolute, i, template_export_count)?;
+            }
 
             if let Some(hook) = &template.post_hook {
                 info!("Running post_hook for the <b><cyan>{}</> template.", &name);
@@ -129,6 +136,7 @@ impl TemplateFile<'_> {
         name: &String,
         output_path_absolute: &PathBuf,
         i: usize,
+        template_count: i32,
     ) -> Result<(), Report> {
         let data = match self.engine.render(name) {
             Ok(v) => v,
@@ -187,7 +195,7 @@ impl TemplateFile<'_> {
         success!(
             "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
             i + 1,
-            &self.state.config_file.templates.len(),
+            &template_count,
             name,
             output_path_absolute.display()
         );
@@ -289,8 +297,8 @@ fn create_missing_folders(output_path_absolute: &Path) -> Result<(), Report> {
 fn get_absolute_paths(
     config_path: &Option<PathBuf>,
     input_path: &PathBuf,
-    output_path: &PathBuf,
-) -> Result<(PathBuf, PathBuf), Report> {
+    output_path: &Option<PathBuf>,
+) -> Result<(PathBuf, Option<PathBuf>), Report> {
     let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
         let base = std::fs::canonicalize(config_path.as_ref().unwrap())?;
         (
@@ -298,15 +306,25 @@ fn get_absolute_paths(
                 .try_resolve_in(&base)?
                 .to_path_buf()
                 .strip_canonicalization(),
-            output_path
-                .try_resolve_in(&base)?
-                .to_path_buf()
-                .strip_canonicalization(),
+            if let Some(output_path) = output_path {
+                Some(
+                    output_path
+                        .try_resolve_in(&base)?
+                        .to_path_buf()
+                        .strip_canonicalization(),
+                )
+            } else {
+                None
+            },
         )
     } else {
         (
             input_path.try_resolve()?.to_path_buf(),
-            output_path.try_resolve()?.to_path_buf(),
+            if let Some(output_path) = output_path {
+                Some(output_path.try_resolve()?.to_path_buf())
+            } else {
+                None
+            },
         )
     };
     Ok((input_path_absolute, output_path_absolute))

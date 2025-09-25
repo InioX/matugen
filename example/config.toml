@@ -38,7 +38,8 @@ arguments = ["img", "--transition-type", "center"]
 
 [templates.includeme]
 input_path = "./include.txt"
-output_path = "./a/include.txt"
+# The output path is optional if you just want to import the template anyways,
+# output_path = "./a/include.txt"
 
 [templates.name1]
 # Relative paths will be resolved from the path `config.toml` is in.
