@@ -139,18 +139,11 @@ impl State {
 
         self.add_engine_filters(&mut engine);
 
-        let json = match &self.args.source {
+        let mut json = match &self.args.source {
             Source::Json { path } => {
                 let string = read_to_string(&path).unwrap();
 
                 let mut json = serde_json::from_str(&string).unwrap();
-
-                if let Some(path) = &self.args.import_json {
-                    let string = read_to_string(path).unwrap();
-
-                    let json_file = serde_json::from_str(&string).unwrap();
-                    merge_json(&mut json, json_file);
-                }
 
                 json
             }
@@ -183,16 +176,18 @@ impl State {
 
                 merge_json(&mut json, modified);
 
-                if let Some(path) = &self.args.import_json {
-                    let string = read_to_string(path).unwrap();
-
-                    let json_file = serde_json::from_str(&string).unwrap();
-                    merge_json(&mut json, json_file);
-                }
-
                 json
             }
         };
+
+        if let Some(paths) = &self.args.import_json {
+            for path in paths {
+                let string = read_to_string(path).unwrap();
+
+                let json_file = serde_json::from_str(&string).unwrap();
+                merge_json(&mut json, json_file);
+            }
+        }
 
         if self.config_file.config.caching.unwrap_or(false)
             && self.args.source.is_image()

@@ -75,7 +75,7 @@ pub struct Cli {
 
     /// Imports a json file to use as render data
     #[arg(value_enum, long, global = true, value_name = "FILE")]
-    pub import_json: Option<String>,
+    pub import_json: Option<Vec<String>>,
 
     /// Uses a custom resize filter for extracting source color
     #[arg(value_enum, short, long, global = true)]
