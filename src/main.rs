@@ -270,17 +270,22 @@ impl State {
     }
 
     fn get_syntax(&self) -> EngineSyntax {
-        match (
-            self.config_file.config.block_prefix,
-            self.config_file.config.block_postfix,
-            self.config_file.config.expr_prefix,
-            self.config_file.config.expr_postfix,
-        ) {
-            (Some(bprefix), Some(pbostfix), Some(eprefix), Some(epostfix)) => {
-                EngineSyntax::new(bprefix, pbostfix, eprefix, epostfix)
-            }
-            _ => EngineSyntax::default(),
+        let mut syntax = EngineSyntax::default();
+
+        if let Some(bprefix) = &self.config_file.config.block_prefix {
+            syntax.block_left = bprefix.clone();
         }
+        if let Some(bpostfix) = &self.config_file.config.block_postfix {
+            syntax.block_right = bpostfix.clone();
+        }
+        if let Some(eprefix) = &self.config_file.config.expr_prefix {
+            syntax.keyword_left = eprefix.clone();
+        }
+        if let Some(epostfix) = &self.config_file.config.expr_postfix {
+            syntax.keyword_right = epostfix.clone();
+        }
+
+        syntax
     }
 
     fn init_in_term(&self) -> Result<(), Report> {

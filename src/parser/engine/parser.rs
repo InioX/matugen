@@ -183,7 +183,10 @@ impl Engine {
 
             let keyword_full = full_expr
                 .padded()
-                .delimited_by(just(syntax.keyword_left), just(syntax.keyword_right))
+                .delimited_by(
+                    just(syntax.keyword_left.as_str()),
+                    just(syntax.keyword_right.as_str()),
+                )
                 .map_with(|expr, e| {
                     Box::new(SpannedExpr {
                         expr: expr.expr,
@@ -191,22 +194,41 @@ impl Engine {
                     })
                 });
 
-            let raw = any()
-                .and_is(just(syntax.keyword_left).or(just(syntax.block_left)).not())
+            let generic_raw = any()
+                .and_is(
+                    just('\\')
+                        .map(|_| ())
+                        .or(just(syntax.keyword_left.as_str()).map(|_| ()))
+                        .or(just(syntax.block_left.as_str()).map(|_| ()))
+                        .not(),
+                )
                 .repeated()
                 .at_least(1)
-                .collect::<String>()
-                .map_with(|_, span| {
-                    Box::new(SpannedExpr {
-                        expr: Expression::Raw { value: span.span() },
-                        span: span.span(),
-                    })
-                });
+                .map_with(|_, e| e.span());
+
+            let escaped_raw = just("\\").ignore_then(
+                just(syntax.keyword_left.as_str())
+                    .or(just(syntax.block_left.as_str()))
+                    .or(just(syntax.keyword_right.as_str()))
+                    .or(just(syntax.block_right.as_str()))
+                    .or(just("\\"))
+                    .map_with(|_, e| e.span()),
+            );
+
+            let raw = choice((escaped_raw, generic_raw)).map(|span| {
+                Box::new(SpannedExpr {
+                    expr: Expression::Raw { value: span },
+                    span,
+                })
+            });
 
             let include = just("include")
                 .padded()
                 .ignore_then(spanned_ident.padded())
-                .delimited_by(just(syntax.block_left), just(syntax.block_right))
+                .delimited_by(
+                    just(syntax.block_left.as_str()),
+                    just(syntax.block_right.as_str()),
+                )
                 .map_with(|name, e| {
                     Box::new(SpannedExpr {
                         expr: Expression::Include { name },
@@ -217,21 +239,22 @@ impl Engine {
             let if_statement = just("if")
                 .padded()
                 .ignore_then(keyword_full.clone().padded())
-                .then_ignore(just(syntax.block_right).padded())
-                .then(raw.or(expr.clone()).repeated().collect())
+                .then_ignore(just(syntax.block_right.as_str()).padded())
+                .then(expr.clone().repeated().collect())
                 .then(
-                    just(syntax.block_left)
+                    just(syntax.block_left.as_str())
                         .padded()
                         .ignore_then(just("else").padded())
-                        .ignore_then(just(syntax.block_right).padded())
-                        .ignore_then(raw.or(expr.clone()).repeated().collect())
+                        .ignore_then(just(syntax.block_right.as_str()).padded())
+                        .ignore_then(expr.clone().repeated().collect())
                         .or_not(),
                 )
                 .delimited_by(
-                    just(syntax.block_left),
-                    just("endif")
-                        .padded()
-                        .delimited_by(just(syntax.block_left), just(syntax.block_right)),
+                    just(syntax.block_left.as_str()),
+                    just("endif").padded().delimited_by(
+                        just(syntax.block_left.as_str()),
+                        just(syntax.block_right.as_str()),
+                    ),
                 )
                 .map_with(|((condition, then_branch), else_branch), e| {
                     Box::new(SpannedExpr {
@@ -255,13 +278,14 @@ impl Engine {
                 .padded()
                 .then_ignore(just("in").padded())
                 .then(dotted_ident.or(range).padded())
-                .then_ignore(just(syntax.block_right))
-                .then(raw.or(expr).repeated().collect())
+                .then_ignore(just(syntax.block_right.as_str()))
+                .then(expr.repeated().collect())
                 .delimited_by(
-                    just(syntax.block_left),
-                    just("endfor")
-                        .padded()
-                        .delimited_by(just(syntax.block_left), just(syntax.block_right)),
+                    just(syntax.block_left.as_str()),
+                    just("endfor").padded().delimited_by(
+                        just(syntax.block_left.as_str()),
+                        just(syntax.block_right.as_str()),
+                    ),
                 )
                 .map_with(|((var, iter), body), e| {
                     Box::new(SpannedExpr {
