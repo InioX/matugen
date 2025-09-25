@@ -127,29 +127,29 @@ pub struct Template {
 }
 
 pub struct EngineSyntax {
-    keyword_left: [char; 2],
-    keyword_right: [char; 2],
-    block_left: [char; 2],
-    block_right: [char; 2],
+    pub keyword_left: String,
+    pub keyword_right: String,
+    pub block_left: String,
+    pub block_right: String,
 }
 
 impl Default for EngineSyntax {
     fn default() -> Self {
         Self {
-            keyword_left: ['{', '{'],
-            keyword_right: ['}', '}'],
-            block_left: ['<', '*'],
-            block_right: ['*', '>'],
+            keyword_left: String::from("{{"),
+            keyword_right: String::from("}}"),
+            block_left: String::from("<*"),
+            block_right: String::from("*>"),
         }
     }
 }
 
 impl EngineSyntax {
     pub fn new(
-        keyword_left: [char; 2],
-        keyword_right: [char; 2],
-        block_left: [char; 2],
-        block_right: [char; 2],
+        keyword_left: String,
+        keyword_right: String,
+        block_left: String,
+        block_right: String,
     ) -> Self {
         Self {
             keyword_left,

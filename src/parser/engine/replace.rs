@@ -182,7 +182,8 @@ impl Engine {
                 );
             }
             Expression::Raw { value } => {
-                src.push_str(get_str(source, value));
+                let str = get_str(source, value);
+                src.push_str(str);
             }
             Expression::ForLoop { var, iter, body } => {
                 let format_color = true;

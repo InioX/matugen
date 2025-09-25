@@ -13,13 +13,13 @@ version_check = false
 caching = false
 
 # Changing the syntax
-# Expr is for stuff like for loops etc.
-expr_prefix = ['<', '*']
-expr_postfix = ['*', '>']
+# Expr is for keywords like {{ <keyword> }}
+expr_prefix = "{{"
+expr_postfix = "}}"
 
-# Block is for keywords like {{ <keyword> }}
-block_prefix = ['{', '{']
-block_postfix = ['}', '}']
+# Block is for stuff like for loops etc.
+block_prefix = "<*"
+block_postfix = "*>"
 
 [config.wallpaper]
 # Whether to set the wallpaper or not
