@@ -1,5 +1,7 @@
 <* include "includeme"*>
 
+{{ colors.primary.default.hex }}
+
 {{ "#FF0000" | to_color | set_red: 0 }}
 
 {{ "test" | replace: "test", "test2" }}
