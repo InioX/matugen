@@ -15,5 +15,18 @@
     "array": [
         1,
         2
-    ]
+    ],
+    "colors": {
+        "primary": {
+            "light": {
+                "color": "#ff0000"
+            },
+            "default": {
+                "color": "#ff0000"
+            },
+            "dark": {
+                "color": "#ff0000"
+            }
+        }
+    }
 }
