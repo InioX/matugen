@@ -23,13 +23,20 @@ use crate::{SchemesEnum, State};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Template {
     pub input_path: PathBuf,
-    pub output_path: Option<PathBuf>,
+    pub output_path: Option<OutputPath>,
     pub mode: Option<SchemesEnum>,
     pub colors_to_compare: Option<Vec<crate::color::color::ColorDefinition>>,
     pub compare_to: Option<String>,
     pub pre_hook: Option<String>,
     pub post_hook: Option<String>,
     pub input_path_modes: Option<InputPathModes>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum OutputPath {
+    Single(PathBuf),
+    Multiple(Vec<PathBuf>),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -54,7 +61,7 @@ impl TemplateFile<'_> {
             &self.state.config_file.templates.len()
         );
 
-        let mut paths_hashmap: HashMap<String, (PathBuf, Option<PathBuf>)> = HashMap::new();
+        let mut paths_hashmap = HashMap::new();
         let mut template_export_count = 0;
 
         for (_i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
@@ -67,7 +74,7 @@ impl TemplateFile<'_> {
                 &template.input_path
             };
 
-            let (input_path_absolute, output_path_absolute) =
+            let (input_path_absolute, output_paths_absolute) =
                 get_absolute_paths(&self.state.config_path, input_path, &template.output_path)?;
 
             if !input_path_absolute.exists() {
@@ -84,10 +91,12 @@ impl TemplateFile<'_> {
                 .suggestion("Try converting the file to use UTF-8 encoding.")?;
 
             self.engine.add_template(name.to_string(), data);
-            paths_hashmap.insert(
-                name.to_string(),
-                (input_path_absolute, output_path_absolute),
-            );
+            for output_path in output_paths_absolute {
+                paths_hashmap.insert(
+                    name.to_string(),
+                    (input_path_absolute.to_path_buf(), output_path),
+                );
+            }
         }
 
         for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
@@ -106,16 +115,14 @@ impl TemplateFile<'_> {
                 .get(name)
                 .wrap_err("Failed to get the input and output paths from hashmap")?;
 
-            if let Some(output_path_absolute) = output_path_absolute {
-                debug!(
-                    "Trying to write the {} template from {} to {}",
-                    name,
-                    input_path_absolute.display(),
-                    output_path_absolute.display()
-                );
+            debug!(
+                "Trying to write the {} template from {} to {}",
+                name,
+                input_path_absolute.display(),
+                output_path_absolute.display()
+            );
 
-                self.export_template(name, output_path_absolute, i, template_export_count)?;
-            }
+            self.export_template(name, output_path_absolute, i, template_export_count)?;
 
             if let Some(hook) = &template.post_hook {
                 info!("Running post_hook for the <b><cyan>{}</> template.", &name);
@@ -297,35 +304,42 @@ fn create_missing_folders(output_path_absolute: &Path) -> Result<(), Report> {
 fn get_absolute_paths(
     config_path: &Option<PathBuf>,
     input_path: &PathBuf,
-    output_path: &Option<PathBuf>,
-) -> Result<(PathBuf, Option<PathBuf>), Report> {
-    let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
-        let base = std::fs::canonicalize(config_path.as_ref().unwrap())?;
+    output_paths: &Option<OutputPath>,
+) -> Result<(PathBuf, Vec<PathBuf>), Report> {
+    let output_paths = match output_paths {
+        Some(OutputPath::Single(path)) => &Vec::from([path.to_path_buf()]),
+        Some(OutputPath::Multiple(paths)) => paths,
+        None => &Vec::new(),
+    };
+
+    let (input_path_absolute, output_paths_absolute) = if let Some(p) = config_path {
+        let base = std::fs::canonicalize(p)?;
+        let mut paths = Vec::new();
+
+        for output_path in output_paths {
+            paths.push(
+                output_path
+                    .try_resolve_in(&base)?
+                    .to_path_buf()
+                    .strip_canonicalization(),
+            );
+        }
+
         (
             input_path
                 .try_resolve_in(&base)?
                 .to_path_buf()
                 .strip_canonicalization(),
-            if let Some(output_path) = output_path {
-                Some(
-                    output_path
-                        .try_resolve_in(&base)?
-                        .to_path_buf()
-                        .strip_canonicalization(),
-                )
-            } else {
-                None
-            },
+            paths,
         )
     } else {
-        (
-            input_path.try_resolve()?.to_path_buf(),
-            if let Some(output_path) = output_path {
-                Some(output_path.try_resolve()?.to_path_buf())
-            } else {
-                None
-            },
-        )
+        let mut paths = Vec::new();
+
+        for output_path in output_paths {
+            paths.push(output_path.try_resolve()?.to_path_buf());
+        }
+
+        (input_path.try_resolve()?.to_path_buf(), paths)
     };
-    Ok((input_path_absolute, output_path_absolute))
+    Ok((input_path_absolute, output_paths_absolute))
 }
