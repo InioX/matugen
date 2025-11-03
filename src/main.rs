@@ -207,7 +207,7 @@ impl State {
         (engine, json)
     }
 
-    fn save_cache(&self, json: &Value) -> Result<(), Report> {
+    fn save_cache(&self, _json: &Value) -> Result<(), Report> {
         let json_modified = serde_json::json!({
             "colors": {
                 "dark": cache::convert_argb_scheme(&self.schemes.as_ref().unwrap().dark),
@@ -365,6 +365,7 @@ fn main() -> Result<(), Report> {
         import_json_string: None,
         include_image_in_json: Some(true),
         resize_filter: Some(FilterType::Triangle),
+        continue_on_error: Some(false),
     };
 
     let args = Cli::parse();

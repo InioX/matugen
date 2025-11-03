@@ -84,6 +84,9 @@ pub struct Cli {
     /// Uses a custom resize filter for extracting source color
     #[arg(value_enum, short, long, global = true)]
     pub resize_filter: Option<FilterType>,
+
+    #[arg(long, global = true, action=ArgAction::SetTrue)]
+    pub continue_on_error: Option<bool>,
 }
 
 #[derive(Parser, Debug, Clone, clap::ValueEnum)]
