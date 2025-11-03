@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     fmt,
     fs::{create_dir_all, read_to_string, File},
     io::{BufWriter, Write},
