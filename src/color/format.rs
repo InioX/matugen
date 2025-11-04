@@ -57,7 +57,7 @@ pub fn format_rgb(color: &Rgb) -> String {
 pub fn format_rgba(color: &Rgb, divide: bool) -> String {
     if divide {
         format!(
-            "rgba({:.0}, {:.0}, {:.0}, {:.2})",
+            "rgba({:.0}, {:.0}, {:.0}, {})",
             color.red(),
             color.green(),
             color.blue(),
@@ -65,7 +65,7 @@ pub fn format_rgba(color: &Rgb, divide: bool) -> String {
         )
     } else {
         format!(
-            "rgba({:.0}, {:.0}, {:.0}, {:.0})",
+            "rgba({:.0}, {:.0}, {:.0}, {})",
             color.red(),
             color.green(),
             color.blue(),
@@ -86,7 +86,7 @@ pub fn format_hsl(color: &Hsl) -> String {
 pub fn format_hsla(color: &Hsl, divide: bool) -> String {
     if divide {
         format!(
-            "hsla({:.0}, {:.0}%, {:.0}%, {:.2})",
+            "hsla({:.0}, {:.0}%, {:.0}%, {})",
             color.hue(),
             color.saturation(),
             color.lightness(),
@@ -94,7 +94,7 @@ pub fn format_hsla(color: &Hsl, divide: bool) -> String {
         )
     } else {
         format!(
-            "hsla({:.0}, {:.0}%, {:.0}%, {:.0})",
+            "hsla({:.0}, {:.0}%, {:.0}%, {})",
             color.hue(),
             color.saturation(),
             color.lightness(),
