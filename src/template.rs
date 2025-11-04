@@ -144,9 +144,9 @@ impl TemplateFile<'_> {
                 for err in errors {
                     err.emit(&self.engine);
                 }
-                
+
                 if self.state.args.continue_on_error.unwrap_or(false) {
-                   return Ok(()) 
+                    return Ok(());
                 }
 
                 std::process::exit(1);
