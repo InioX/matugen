@@ -55,7 +55,6 @@ impl TemplateFile<'_> {
         );
 
         let mut paths_hashmap: HashMap<String, (PathBuf, Option<PathBuf>)> = HashMap::new();
-        let mut template_export_count = 0;
 
         for (_i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
             let input_path = if let Some(input_path_mode) = &template.input_path_modes {
@@ -75,10 +74,6 @@ impl TemplateFile<'_> {
                 continue;
             }
 
-            if template.output_path.is_some() {
-                template_export_count += 1;
-            }
-
             let data = read_to_string(&input_path_absolute)
                 .wrap_err(format!("Could not read the {} template.", name))
                 .suggestion("Try converting the file to use UTF-8 encoding.")?;
@@ -90,7 +85,7 @@ impl TemplateFile<'_> {
             );
         }
 
-        for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
+        for (name, template) in self.state.config_file.templates.iter() {
             if let Some(hook) = &template.pre_hook {
                 info!("Running pre_hook for the <b><cyan>{}</> template.", &name);
                 format_hook(
@@ -114,7 +109,7 @@ impl TemplateFile<'_> {
                     output_path_absolute.display()
                 );
 
-                self.export_template(name, output_path_absolute, i, template_export_count)?;
+                self.export_template(name, output_path_absolute)?;
             }
 
             if let Some(hook) = &template.post_hook {
@@ -131,13 +126,7 @@ impl TemplateFile<'_> {
         Ok(())
     }
 
-    fn export_template(
-        &self,
-        name: &String,
-        output_path_absolute: &PathBuf,
-        i: usize,
-        template_count: i32,
-    ) -> Result<(), Report> {
+    fn export_template(&self, name: &String, output_path_absolute: &PathBuf) -> Result<(), Report> {
         let data = match self.engine.render(name) {
             Ok(v) => v,
             Err(errors) => {
@@ -198,9 +187,7 @@ impl TemplateFile<'_> {
         output_file.write_all(data.as_bytes())?;
 
         success!(
-            "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
-            i + 1,
-            &template_count,
+            "Exported the <b><green>{}</> template to <d><u>{}</>",
             name,
             output_path_absolute.display()
         );
