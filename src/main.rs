@@ -3,7 +3,7 @@
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate paris_log;
-use std::{fs::read_to_string, path::PathBuf};
+use std::path::PathBuf;
 
 use indexmap::IndexMap;
 use material_colors::theme::ThemeBuilder;
