@@ -20,6 +20,7 @@ use crate::{
     helpers::{color_entry, merge_json},
     parser::engine::EngineSyntax,
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
+    template::get_absolute_path,
     util::{
         arguments::{FilterType, Format},
         color::format_palettes,
@@ -190,6 +191,20 @@ impl State {
         if let Some(strings) = &self.args.import_json_string {
             for string in strings {
                 let json_file = serde_json::from_str(&string).unwrap();
+                merge_json(&mut json, json_file);
+            }
+        }
+
+        if let (Some(paths), Some(config_path)) = (
+            &self.config_file.config.import_json_files,
+            &self.config_path,
+        ) {
+            for path in paths {
+                let absolute = get_absolute_path(config_path, path).unwrap();
+
+                let string = read_to_string(absolute).unwrap();
+                let json_file = serde_json::from_str(&string).unwrap();
+
                 merge_json(&mut json, json_file);
             }
         }

@@ -299,36 +299,35 @@ fn create_missing_folders(output_path_absolute: &Path) -> Result<(), Report> {
     Ok(())
 }
 
+pub fn get_absolute_path(base_path: &PathBuf, relative_path: &PathBuf) -> Result<PathBuf, Report> {
+    let base = std::fs::canonicalize(base_path)?;
+    let absolute = relative_path
+        .try_resolve_in(&base)?
+        .to_path_buf()
+        .strip_canonicalization();
+    Ok(absolute)
+}
+
 fn get_absolute_paths(
     config_path: &Option<PathBuf>,
     input_path: &PathBuf,
     output_path: &Option<PathBuf>,
 ) -> Result<(PathBuf, Option<PathBuf>), Report> {
     let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
-        let base = std::fs::canonicalize(config_path.as_ref().unwrap())?;
+        let base = config_path.as_ref().unwrap();
         (
-            input_path
-                .try_resolve_in(&base)?
-                .to_path_buf()
-                .strip_canonicalization(),
-            if let Some(output_path) = output_path {
-                Some(
-                    output_path
-                        .try_resolve_in(&base)?
-                        .to_path_buf()
-                        .strip_canonicalization(),
-                )
-            } else {
-                None
+            get_absolute_path(&base, input_path)?,
+            match output_path {
+                Some(out) => Some(get_absolute_path(&base, out)?),
+                None => None,
             },
         )
     } else {
         (
             input_path.try_resolve()?.to_path_buf(),
-            if let Some(output_path) = output_path {
-                Some(output_path.try_resolve()?.to_path_buf())
-            } else {
-                None
+            match output_path {
+                Some(out) => Some(out.try_resolve()?.to_path_buf()),
+                None => None,
             },
         )
     };
