@@ -21,6 +21,10 @@ expr_postfix = "}}"
 block_prefix = "<*"
 block_postfix = "*>"
 
+# Imports json files just like `--import-json` does.
+# Relative paths will be resolved from the path `config.toml` is in.
+import_json_files = ["./custom3.json"]
+
 [config.wallpaper]
 # Whether to set the wallpaper or not
 set = true
