@@ -484,7 +484,7 @@ impl Engine {
                 } else {
                     if let Some(exprs) = else_branch {
                         if format_value {
-                            let str = self.build_string(&then_branch, source, name);
+                            let str = self.build_string(&exprs, source, name);
                             return Value::Ident(str);
                         } else {
                             for expr in exprs {
