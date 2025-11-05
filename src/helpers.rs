@@ -5,7 +5,7 @@ use crate::{
 use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
 use serde_json::{Map, Value};
-use std::io::Write;
+use std::{fs::read_to_string, io::Write, path::PathBuf};
 
 use crate::util::arguments::Cli;
 
@@ -37,6 +37,18 @@ pub fn check_version() {
             current_version, version
         );
     }
+}
+
+pub fn json_from_file(path: &PathBuf) -> Result<serde_json::Value, Report> {
+    if !path.exists() {
+        error!(
+            "<d>The path <red><b>{}</><d> doesnt exist.</>",
+            path.display()
+        );
+    }
+    let json_string = read_to_string(path)?;
+    let json = serde_json::from_str(&json_string)?;
+    Ok(json)
 }
 
 pub fn setup_logging(args: &Cli) -> Result<(), Report> {

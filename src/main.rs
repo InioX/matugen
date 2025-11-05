@@ -17,7 +17,7 @@ mod wallpaper;
 use crate::{
     cache::ImageCache,
     color::color::{get_source_color, Source},
-    helpers::{color_entry, merge_json},
+    helpers::{color_entry, json_from_file, merge_json},
     parser::engine::EngineSyntax,
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
     template::get_absolute_path,
@@ -141,11 +141,7 @@ impl State {
         self.add_engine_filters(&mut engine);
 
         let mut json = match &self.args.source {
-            Source::Json { path } => {
-                let string = read_to_string(&path).unwrap();
-
-                serde_json::from_str(&string).unwrap()
-            }
+            Source::Json { path } => json_from_file(&PathBuf::from(path)).unwrap(),
             _ => {
                 let schemes = schemes.unwrap();
                 let palettes = &self.theme.as_ref().unwrap().palettes;
@@ -181,17 +177,16 @@ impl State {
 
         if let Some(paths) = &self.args.import_json {
             for path in paths {
-                let string = read_to_string(path).unwrap();
-
-                let json_file = serde_json::from_str(&string).unwrap();
-                merge_json(&mut json, json_file);
+                let json2 = json_from_file(&PathBuf::from(path)).unwrap();
+                merge_json(&mut json, json2);
             }
         }
 
         if let Some(strings) = &self.args.import_json_string {
             for string in strings {
-                let json_file = serde_json::from_str(&string).unwrap();
-                merge_json(&mut json, json_file);
+                let json2 =
+                    serde_json::from_str(&string).expect("Failed to parse JSON from string.");
+                merge_json(&mut json, json2);
             }
         }
 
@@ -202,10 +197,9 @@ impl State {
             for path in paths {
                 let absolute = get_absolute_path(config_path, path).unwrap();
 
-                let string = read_to_string(absolute).unwrap();
-                let json_file = serde_json::from_str(&string).unwrap();
+                let json2 = json_from_file(&absolute).unwrap();
 
-                merge_json(&mut json, json_file);
+                merge_json(&mut json, json2);
             }
         }
 
