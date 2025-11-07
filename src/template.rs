@@ -5,7 +5,7 @@ use color_eyre::{
 use execute::{shell, Execute};
 use serde_json::json;
 
-use crate::{color::color::get_closest_color, parser::Engine as NewEngine};
+use crate::{color::color::get_closest_color, helpers::get_syntax, parser::Engine};
 use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, path::Path, process::Stdio, str};
@@ -30,6 +30,10 @@ pub struct Template {
     pub pre_hook: Option<String>,
     pub post_hook: Option<String>,
     pub input_path_modes: Option<InputPathModes>,
+    pub expr_prefix: Option<String>,
+    pub expr_postfix: Option<String>,
+    pub block_prefix: Option<String>,
+    pub block_postfix: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -40,11 +44,11 @@ pub struct InputPathModes {
 
 pub struct TemplateFile<'a> {
     state: &'a State,
-    engine: &'a mut NewEngine,
+    engine: &'a mut Engine,
 }
 
 impl TemplateFile<'_> {
-    pub fn new<'a>(state: &'a State, engine: &'a mut NewEngine) -> TemplateFile<'a> {
+    pub fn new<'a>(state: &'a State, engine: &'a mut Engine) -> TemplateFile<'a> {
         TemplateFile { state, engine }
     }
 
@@ -74,6 +78,24 @@ impl TemplateFile<'_> {
                 continue;
             }
 
+            let old_syntax = match (
+                &template.block_prefix,
+                &template.block_postfix,
+                &template.expr_prefix,
+                &template.expr_postfix,
+            ) {
+                (None, None, None, None) => None,
+                _ => {
+                    let old_syntax = self.engine.set_syntax(get_syntax(
+                        template.block_prefix.as_ref(),
+                        template.block_postfix.as_ref(),
+                        template.expr_prefix.as_ref(),
+                        template.expr_postfix.as_ref(),
+                    ));
+                    Some(old_syntax)
+                }
+            };
+
             let data = read_to_string(&input_path_absolute)
                 .wrap_err(format!("Could not read the {} template.", name))
                 .suggestion("Try converting the file to use UTF-8 encoding.")?;
@@ -83,6 +105,10 @@ impl TemplateFile<'_> {
                 name.to_string(),
                 (input_path_absolute, output_path_absolute),
             );
+
+            if let Some(old) = old_syntax {
+                self.engine.set_syntax(old);
+            };
         }
 
         for (name, template) in self.state.config_file.templates.iter() {
@@ -209,7 +235,7 @@ impl TemplateFile<'_> {
 }
 
 fn format_hook(
-    engine: &mut NewEngine,
+    engine: &mut Engine,
     hook: &String,
     colors_to_compare: &Option<Vec<crate::color::color::ColorDefinition>>,
     compare_to: &Option<String>,
