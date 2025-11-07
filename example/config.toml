@@ -83,6 +83,10 @@ pre_hook = 'echo "source color {{colors.source_color.default.hex}}, source image
 # Runs after the template is exported. You can use keywords here.
 post_hook = 'echo "after gen"'
 
+# For overriding the prefix for a specific template only
+expr_prefix = "{{"
+expr_postfix = "}}"
+
 # Only hex values
 # https://m3.material.io/styles/color/advanced/adjust-existing-colors#1cc12e43-237b-45b9-8fe0-9a3549c1f61e
 # Blend is set to true by default. 

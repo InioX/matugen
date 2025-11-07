@@ -17,8 +17,7 @@ mod wallpaper;
 use crate::{
     cache::ImageCache,
     color::color::{get_source_color, Source},
-    helpers::{color_entry, json_from_file, merge_json},
-    parser::engine::EngineSyntax,
+    helpers::{color_entry, get_syntax, json_from_file, merge_json},
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
     template::get_absolute_path,
     util::{
@@ -136,7 +135,12 @@ impl State {
 
         let mut engine = Engine::new();
 
-        engine.set_syntax(self.get_syntax());
+        engine.set_syntax(get_syntax(
+            self.config_file.config.block_prefix.as_ref(),
+            self.config_file.config.block_postfix.as_ref(),
+            self.config_file.config.expr_prefix.as_ref(),
+            self.config_file.config.expr_postfix.as_ref(),
+        ));
 
         self.add_engine_filters(&mut engine);
 
@@ -276,25 +280,6 @@ impl State {
         engine.add_filter("snake_case", crate::filters::snake_case);
         engine.add_filter("kebab_case", crate::filters::kebab_case);
         engine.add_filter("replace", crate::filters::replace);
-    }
-
-    fn get_syntax(&self) -> EngineSyntax {
-        let mut syntax = EngineSyntax::default();
-
-        if let Some(bprefix) = &self.config_file.config.block_prefix {
-            syntax.block_left = bprefix.clone();
-        }
-        if let Some(bpostfix) = &self.config_file.config.block_postfix {
-            syntax.block_right = bpostfix.clone();
-        }
-        if let Some(eprefix) = &self.config_file.config.expr_prefix {
-            syntax.keyword_left = eprefix.clone();
-        }
-        if let Some(epostfix) = &self.config_file.config.expr_postfix {
-            syntax.keyword_right = epostfix.clone();
-        }
-
-        syntax
     }
 
     fn init_in_term(&self) -> Result<(), Report> {

@@ -1,5 +1,6 @@
 use crate::{
     color::color::Source,
+    parser::engine::EngineSyntax,
     wallpaper::{self, Wallpaper},
 };
 use color_eyre::{eyre::Result, Report};
@@ -37,6 +38,30 @@ pub fn check_version() {
             current_version, version
         );
     }
+}
+
+pub fn get_syntax(
+    bprefix: Option<&String>,
+    bpostfix: Option<&String>,
+    eprefix: Option<&String>,
+    epostfix: Option<&String>,
+) -> EngineSyntax {
+    let mut syntax = EngineSyntax::default();
+
+    if let Some(bprefix) = bprefix {
+        syntax.block_left = bprefix.clone();
+    }
+    if let Some(bpostfix) = bpostfix {
+        syntax.block_right = bpostfix.clone();
+    }
+    if let Some(eprefix) = eprefix {
+        syntax.keyword_left = eprefix.clone();
+    }
+    if let Some(epostfix) = epostfix {
+        syntax.keyword_right = epostfix.clone();
+    }
+
+    syntax
 }
 
 pub fn json_from_file(path: &PathBuf) -> Result<serde_json::Value, Report> {
