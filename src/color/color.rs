@@ -264,12 +264,24 @@ pub fn make_custom_color(
     }
 }
 
-pub fn get_closest_color(colors_to_compare: &Vec<ColorDefinition>, compare_to: &str) -> String {
+pub fn get_closest_color(
+    colors_to_compare: &Vec<ColorDefinition>,
+    compare_to: &str,
+) -> Result<String, Report> {
     let mut closest_distance: Option<f64> = None;
     let mut closest_color: &str = "";
 
     for c in colors_to_compare {
-        let distance = get_color_distance_lab(&c.color, compare_to);
+        let distance = match get_color_distance_lab(&c.color, compare_to) {
+            Ok(v) => v,
+            Err(e) => {
+                error!(
+                    "Failed to get color distance between {} and {}",
+                    c.color, compare_to
+                );
+                return Err(Report::msg(format!("Could not get closest color: {}", e)));
+            }
+        };
         if closest_distance.is_none() || closest_distance.unwrap() > distance {
             closest_distance = Some(distance);
             closest_color = &c.name;
@@ -280,5 +292,5 @@ pub fn get_closest_color(colors_to_compare: &Vec<ColorDefinition>, compare_to: &
         "closest distance: {:?}, closest color: {}",
         closest_distance, closest_color
     );
-    closest_color.to_string()
+    Ok(closest_color.to_string())
 }

@@ -143,11 +143,23 @@ impl TemplateFile<'_> {
         };
 
         let out = if self.state.args.prefix.is_some() && !cfg!(windows) {
-            let mut prefix_path = PathBuf::from(self.state.args.prefix.as_ref().unwrap());
+            let mut prefix_path = PathBuf::from(
+                self.state
+                    .args
+                    .prefix
+                    .as_ref()
+                    .ok_or_else(|| Report::msg("Couldn't get the prefix path"))?,
+            );
 
-            let output_path = output_path_absolute
-                .strip_prefix("/")
-                .expect("output_path_absolute is not an absolute path.");
+            let output_path = match output_path_absolute.strip_prefix("/") {
+                Ok(v) => v,
+                Err(e) => {
+                    return Err(Report::msg(format!(
+                        "Output path is not an absolute path: {}",
+                        e
+                    )))
+                }
+            };
 
             prefix_path.push(output_path);
 
@@ -213,7 +225,7 @@ fn format_hook(
                 std::process::exit(1);
             }
         };
-        let closest_color = get_closest_color(compare, &res);
+        let closest_color = get_closest_color(compare, &res)?;
         engine.add_context(json!({
             "closest_color": closest_color
         }));
@@ -301,7 +313,9 @@ fn get_absolute_paths(
     output_path: &Option<PathBuf>,
 ) -> Result<(PathBuf, Option<PathBuf>), Report> {
     let (input_path_absolute, output_path_absolute) = if config_path.is_some() {
-        let base = config_path.as_ref().unwrap();
+        let base = config_path
+            .as_ref()
+            .ok_or_else(|| Report::msg("Couldn't get the base config path"))?;
         (
             get_absolute_path(&base, input_path)?,
             match output_path {
