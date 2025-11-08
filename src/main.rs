@@ -118,10 +118,10 @@ impl State {
         let (schemes, default_scheme, mut json, loaded_cache) =
             if self.config_file.config.caching.unwrap_or(false) && self.args.source.is_image() {
                 match self.image_hash.load() {
-                    Ok((schemes, default_scheme)) => {
+                    Ok((schemes, _default_scheme)) => {
                         let json = self.get_render_data().unwrap();
 
-                        (Some(schemes), default_scheme, json, true)
+                        (Some(schemes), self.default_scheme, json, true)
                     }
                     Err(_) => {
                         let json = self.get_render_data().unwrap();
@@ -226,7 +226,6 @@ impl State {
                 "dark": cache::convert_argb_scheme(&self.schemes.as_ref().unwrap().dark),
                 "light": cache::convert_argb_scheme(&self.schemes.as_ref().unwrap().light),
             },
-            "mode": self.default_scheme
         });
 
         self.image_hash.save(&json_modified)
