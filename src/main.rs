@@ -16,9 +16,9 @@ mod wallpaper;
 
 use crate::{
     cache::ImageCache,
-    color::color::{get_source_color, Source},
-    helpers::{color_entry, get_syntax, json_from_file, merge_json},
-    scheme::{get_custom_color_schemes, get_schemes, SchemeTypes},
+    color::color::Source,
+    helpers::{color_entry, generate_schemes_and_theme, get_syntax, json_from_file, merge_json},
+    scheme::SchemeTypes,
     template::get_absolute_path,
     util::{
         arguments::{FilterType, Format},
@@ -34,7 +34,7 @@ use crate::{
 };
 
 use clap::Parser;
-use color_eyre::Report;
+use color_eyre::{eyre::Context, Report};
 
 pub mod cache;
 pub mod color;
@@ -60,49 +60,43 @@ pub struct State {
     pub schemes: Option<Schemes>,
     pub default_scheme: SchemesEnum,
     pub image_hash: ImageCache,
+    pub loaded_cache: bool,
 }
 
 impl State {
-    pub fn new(args: Cli) -> Self {
+    pub fn new(args: Cli) -> Result<Self, Report> {
         let (config_file, config_path) =
-            ConfigFile::read(&args).expect("Failed to read config file.");
-
-        let source_color = match &args.source {
-            Source::Json { path: _ } => None,
-            _ => Some(
-                (get_source_color(&args.source, &args.resize_filter))
-                    .expect("Failed to get source color."),
-            ),
-        };
-
-        let default_scheme = args
-            .mode
-            .expect("Something went wrong while parsing the mode");
+            ConfigFile::read(&args).wrap_err("Failed to read config file.")?;
 
         let image_hash = ImageCache::new(&args.source);
 
-        let (schemes, theme) = match source_color {
-            Some(color) => {
-                let theme = ThemeBuilder::with_source(color).build();
-                let (scheme_dark, scheme_light) = get_schemes(color, &args.r#type, &args.contrast);
+        let mut loaded_cache = false;
 
-                let mut schemes = get_custom_color_schemes(
-                    color,
-                    scheme_dark,
-                    scheme_light,
-                    &config_file.config.custom_colors,
-                    &args.r#type,
-                    &args.contrast,
-                );
+        let caching_enabled = config_file.config.caching.unwrap_or(false) && args.source.is_image();
 
-                schemes.dark.insert("source_color".to_owned(), color);
-                schemes.light.insert("source_color".to_owned(), color);
-                (Some(schemes), Some(theme))
+        let default_scheme = args
+            .mode
+            .ok_or_else(|| Report::msg("Something went wrong while parsing the mode"))?;
+
+        let (schemes, source_color, theme) = if caching_enabled {
+            match image_hash.load() {
+                Ok(schemes) => {
+                    // Source color will be the same in both light and dark mode
+                    let source_color = *schemes.dark.clone().get("source_color").unwrap();
+
+                    let theme = ThemeBuilder::with_source(source_color).build();
+
+                    loaded_cache = true;
+
+                    (Some(schemes), Some(source_color), Some(theme))
+                }
+                Err(e) => return Err(e.wrap_err("Couldn't load the cache file")),
             }
-            None => (None, None),
+        } else {
+            generate_schemes_and_theme(&args, &config_file)
         };
 
-        Self {
+        Ok(Self {
             args,
             config_file,
             config_path,
@@ -111,27 +105,12 @@ impl State {
             schemes,
             default_scheme,
             image_hash,
-        }
+            loaded_cache,
+        })
     }
 
     fn init_engine(&self) -> (Engine, Value) {
-        let (schemes, default_scheme, mut json, loaded_cache) =
-            if self.config_file.config.caching.unwrap_or(false) && self.args.source.is_image() {
-                match self.image_hash.load() {
-                    Ok((schemes, _default_scheme)) => {
-                        let json = self.get_render_data().unwrap();
-
-                        (Some(schemes), self.default_scheme, json, true)
-                    }
-                    Err(_) => {
-                        let json = self.get_render_data().unwrap();
-                        (self.schemes.clone(), self.default_scheme, json, false)
-                    }
-                }
-            } else {
-                let json = self.get_render_data().unwrap();
-                (self.schemes.clone(), self.default_scheme, json, false)
-            };
+        let mut json = self.get_render_data().unwrap();
 
         let mut engine = Engine::new();
 
@@ -147,14 +126,14 @@ impl State {
         let mut json = match &self.args.source {
             Source::Json { path } => json_from_file(&PathBuf::from(path)).unwrap(),
             _ => {
-                let schemes = schemes.unwrap();
+                let schemes = self.schemes.as_ref().unwrap();
                 let palettes = &self.theme.as_ref().unwrap().palettes;
 
                 let mut modified = IndexMap::new();
                 for name in schemes.get_all_names() {
                     let dark_hex = schemes.dark.get(name).unwrap().to_hex_with_pound();
                     let light_hex = schemes.light.get(name).unwrap().to_hex_with_pound();
-                    let default_hex = match default_scheme {
+                    let default_hex = match self.default_scheme {
                         SchemesEnum::Dark => dark_hex.clone(),
                         SchemesEnum::Light => light_hex.clone(),
                     };
@@ -209,7 +188,7 @@ impl State {
 
         if self.config_file.config.caching.unwrap_or(false)
             && self.args.source.is_image()
-            && !loaded_cache
+            && !self.loaded_cache
         {
             self.save_cache(&mut json.clone())
                 .expect("Failed saving cache");
@@ -278,12 +257,11 @@ impl State {
         engine.add_filter("pascal_case", crate::filters::pascal_case);
         engine.add_filter("snake_case", crate::filters::snake_case);
         engine.add_filter("kebab_case", crate::filters::kebab_case);
+
         engine.add_filter("replace", crate::filters::replace);
     }
 
     fn init_in_term(&self) -> Result<(), Report> {
-        setup_logging(&self.args)?;
-
         #[cfg(feature = "update-informer")]
         if self.config_file.config.version_check == Some(true) {
             use crate::helpers::check_version;
@@ -362,8 +340,11 @@ fn main() -> Result<(), Report> {
     };
 
     let args = Cli::parse();
-    let prog = State::new(args.clone());
-    prog.run_in_term()?;
+
+    setup_logging(&args)?;
+
+    let state = State::new(args.clone())?;
+    state.run_in_term()?;
 
     Ok(())
 }
