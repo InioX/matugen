@@ -1,14 +1,56 @@
 use crate::{
-    color::color::Source,
+    color::color::{get_source_color, Source},
     parser::engine::EngineSyntax,
+    scheme::{get_custom_color_schemes, get_schemes, Schemes},
+    util::config::ConfigFile,
     wallpaper::{self, Wallpaper},
 };
 use color_eyre::{eyre::Result, Report};
 use log::LevelFilter;
+use material_colors::{
+    color::Argb,
+    theme::{Theme, ThemeBuilder},
+};
 use serde_json::{Map, Value};
 use std::{fs::read_to_string, io::Write, path::PathBuf};
 
 use crate::util::arguments::Cli;
+
+pub fn generate_schemes_and_theme(
+    args: &Cli,
+    config_file: &ConfigFile,
+) -> (Option<Schemes>, Option<Argb>, Option<Theme>) {
+    let source_color = match &args.source {
+        Source::Json { path: _ } => None,
+        _ => Some(
+            (get_source_color(&args.source, &args.resize_filter))
+                .expect("Failed to get source color."),
+        ),
+    };
+
+    let (schemes, theme) = match source_color {
+        Some(color) => {
+            let theme = ThemeBuilder::with_source(color).build();
+            let (scheme_dark, scheme_light) = get_schemes(color, &args.r#type, &args.contrast);
+
+            let mut schemes = get_custom_color_schemes(
+                color,
+                scheme_dark,
+                scheme_light,
+                &config_file.config.custom_colors,
+                &args.r#type,
+                &args.contrast,
+            );
+
+            schemes.dark.insert("source_color".to_owned(), color);
+            schemes.light.insert("source_color".to_owned(), color);
+            (Some(schemes), Some(theme))
+        }
+        None => (None, None),
+    };
+
+    (schemes, source_color, theme)
+}
 
 pub fn get_log_level(args: &Cli) -> LevelFilter {
     let log_level: LevelFilter = if args.verbose == Some(true) {

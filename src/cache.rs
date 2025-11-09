@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     color::color::Source,
-    scheme::{Schemes, SchemesEnum},
+    scheme::Schemes,
     util::config::{get_proj_path, ProjectDirsTypes},
 };
 use color_eyre::Report;
@@ -23,7 +23,6 @@ use sha2::{Digest, Sha256};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CacheFile {
-    mode: SchemesEnum,
     colors: SchemesCache,
 }
 
@@ -185,7 +184,7 @@ impl ImageCache {
         Ok(())
     }
 
-    pub fn load(&self) -> Result<(Schemes, SchemesEnum), Report> {
+    pub fn load(&self) -> Result<Schemes, Report> {
         let path = self.cache_folder.join(self.get_name());
 
         let string = read_to_string(&path)?;
@@ -197,9 +196,9 @@ impl ImageCache {
             light: convert_helper_scheme(&json.colors.light),
         };
 
-        success!("Loaded cache from <<d><u>{}</>", path.display());
+        success!("Loaded cache from <d><u>{}</>", path.display());
 
-        Ok((schemes_enum, json.mode))
+        Ok(schemes_enum)
     }
 
     fn get_name(&self) -> PathBuf {
