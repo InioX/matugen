@@ -74,7 +74,7 @@ impl TemplateFile<'_> {
                 get_absolute_paths(&self.state.config_path, input_path, &template.output_path)?;
 
             if !input_path_absolute.exists() {
-                warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesnt exist, skipping...</>", name, input_path_absolute.display());
+                warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesn't exist, skipping...</>", name, input_path_absolute.display());
                 continue;
             }
 

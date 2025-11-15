@@ -90,7 +90,17 @@ impl State {
 
                     (Some(schemes), Some(source_color), Some(theme))
                 }
-                Err(e) => return Err(e.wrap_err("Couldn't load the cache file")),
+                Err(e) => {
+                    if !image_hash.exists() {
+                        warn!(
+                            "<d>The cache in <yellow><b>{}</><d> doesn't exist.</>",
+                            image_hash.get_path().display()
+                        );
+                        generate_schemes_and_theme(&args, &config_file)
+                    } else {
+                        return Err(e.wrap_err("Couldn't load the cache file"));
+                    }
+                }
             }
         } else {
             generate_schemes_and_theme(&args, &config_file)
