@@ -6,6 +6,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0](https://github.com/InioX/matugen/compare/v3.0.0...v3.1.0) - 2025-11-15
+
+### Added
+
+- add `loop.index`, `loop.last`, `loop.first`
+- add overwriting syntax per template ([#213](https://github.com/InioX/matugen/pull/213))
+- add `[config.import_json_files]`
+- add `--continue-on-error` ([#209](https://github.com/InioX/matugen/pull/209))
+
+### Fixed
+
+- caching not working when it doesn't exist ([#184](https://github.com/InioX/matugen/pull/184))
+- cache not overwriting source_color ([#184](https://github.com/InioX/matugen/pull/184))
+- not using the actual mode for colors when caching is enabled ([#212](https://github.com/InioX/matugen/pull/212))
+- if not using the actual else branch when false ([#212](https://github.com/InioX/matugen/pull/212))
+- alpha value being rounded ([#211](https://github.com/InioX/matugen/pull/211))
+
+### Other
+
+- improve errors
+- run `cargo fmt`
+- remove count for exported templates
+- improve how json is imported
+- run `cargo fmt`
+
 ## [2.4.1](https://github.com/InioX/matugen/compare/v2.4.0...v2.4.1) - 2024-11-13
 
 ### Fixed
