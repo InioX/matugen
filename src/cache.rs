@@ -156,7 +156,7 @@ impl ImageCache {
     }
 
     pub fn save(&self, value: &Value) -> Result<(), Report> {
-        let path = self.cache_folder.join(self.get_name());
+        let path = self.get_path();
 
         if let Some(parent) = path.parent() {
             create_dir_all(parent)?;
@@ -185,7 +185,7 @@ impl ImageCache {
     }
 
     pub fn load(&self) -> Result<Schemes, Report> {
-        let path = self.cache_folder.join(self.get_name());
+        let path = self.get_path();
 
         let string = read_to_string(&path)?;
 
@@ -217,6 +217,15 @@ impl ImageCache {
         file.push(name);
 
         file
+    }
+
+    pub fn exists(&self) -> bool {
+        let path = self.get_path();
+        path.exists()
+    }
+
+    pub fn get_path(&self) -> PathBuf {
+        self.cache_folder.join(self.get_name())
     }
 }
 
