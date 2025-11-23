@@ -108,6 +108,7 @@ impl OwnCustomColor {
 pub fn get_source_color(
     source: &Source,
     resize_filter: &Option<OwnFilterType>,
+    fallback_color: Option<Argb>,
 ) -> Result<Argb, Report> {
     use crate::color::color;
 
@@ -119,7 +120,7 @@ pub fn get_source_color(
     let source_color: Argb = match source {
         Source::Image { path } => {
             info!("Opening image in <d><u>{}</>", path);
-            color::get_source_color_from_image(path, filter)
+            color::get_source_color_from_image(path, filter, fallback_color)
                 .wrap_err(format!("Could not get source color from image: {}", path))?
         }
         #[cfg(feature = "web-image")]
@@ -137,7 +138,11 @@ pub fn get_source_color(
     Ok(source_color)
 }
 
-pub fn get_source_color_from_image(path: &str, filter_type: FilterType) -> Result<Argb, Report> {
+pub fn get_source_color_from_image(
+    path: &str,
+    filter_type: FilterType,
+    fallback_color: Option<Argb>,
+) -> Result<Argb, Report> {
     let mut original = ImageReader::open(path)?;
     let image = original.resize(112, 112, filter_type);
     let pixels: Vec<Argb> = image
@@ -152,7 +157,9 @@ pub fn get_source_color_from_image(path: &str, filter_type: FilterType) -> Resul
         .color_to_count
         .retain(|&argb, _| Cam16::from(argb).chroma >= 5.0);
 
-    let ranked = Score::score(&result.color_to_count, None, None, None);
+    let ranked = Score::score(&result.color_to_count, None, fallback_color, None);
+
+    dbg!(&ranked);
 
     Ok(ranked[0])
 }

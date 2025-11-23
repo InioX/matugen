@@ -96,14 +96,24 @@ impl State {
                             "<d>The cache in <yellow><b>{}</><d> doesn't exist.</>",
                             image_hash.get_path().display()
                         );
-                        generate_schemes_and_theme(&args, &config_file)
+                        generate_schemes_and_theme(
+                            &args,
+                            &config_file,
+                            &config_file.config.fallback_color,
+                            &args.fallback_color,
+                        )?
                     } else {
                         return Err(e.wrap_err("Couldn't load the cache file"));
                     }
                 }
             }
         } else {
-            generate_schemes_and_theme(&args, &config_file)
+            generate_schemes_and_theme(
+                &args,
+                &config_file,
+                &config_file.config.fallback_color,
+                &args.fallback_color,
+            )?
         };
 
         Ok(Self {
@@ -347,6 +357,7 @@ fn main() -> Result<(), Report> {
         include_image_in_json: Some(true),
         resize_filter: Some(FilterType::Triangle),
         continue_on_error: Some(false),
+        fallback_color: None,
     };
 
     let args = Cli::parse();

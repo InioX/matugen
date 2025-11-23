@@ -3,6 +3,11 @@
 # WARNING: Matugen needs to be compiled with the `update-informer` feature for this to work.
 version_check = false
 
+# The color which should be used as the source_color if no good color was found from an image.
+# Can be defined in any css format.
+# The cli flag will override this if used.
+fallback_color = "#ffbf9b"
+
 # Enables caching which will cache the colorscheme, custom colors, etc. into a cache folder located in
 # Windows: C:\Users\user\AppData\Roaming\InioX\matugen\cache\images\<file>
 # Linux: $XDG_CACHE_HOME/matugen/<file> or $HOME/.cache/matugen/images/<file>
