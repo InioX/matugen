@@ -48,6 +48,34 @@ blue {{colors.blue.default.hsla}};
 
 source_color {{colors.source_color.default.hex}};
 
+<* for i in 0..3 *>
+    <* if {{ loop.first }} *>
+        HEADER
+        =================
+    <* endif *>
+    {{ loop.index }}
+    <* if {{ loop.last }} *>
+        ============
+        FOOTER
+    <* else *>
+        ,
+    <* endif *>
+<* endfor *>
+
+<* for entry in palettes.error *>
+    <* if {{ loop.first }} *>
+        HEADER
+        =================
+    <* endif *>
+    {{ loop.index }}: {{ entry }}
+    <* if {{ loop.last }} *>
+        ============
+        FOOTER
+    <* else *>
+        ,
+    <* endif *>
+<* endfor *>
+
 <* for i in -10..10 *>
     actual: {{ i }} multiplied: {{ {{ i }} * 10 }} {{ colors.red.default.hex | lighten: {{i}} * 10 }}
 <* endfor *>
@@ -57,7 +85,20 @@ source_color {{colors.source_color.default.hex}};
 <* endfor *>
 
 <* for name, value in colors *>
+
+    <* if {{ loop.first }} *>
+        HEADER
+        =================
+    <* endif *>
+
     {{name | replace: "_", "-" }} {{value.default.hex | invert | invert }};
+
+    <* if {{ loop.last }} *>
+        ============
+        FOOTER
+    <* else *>
+        ,
+    <* endif *>
 <* endfor *>
 
 Only works with rgba and hsla

@@ -84,6 +84,13 @@ pub struct Cli {
     /// Uses a custom resize filter for extracting source color
     #[arg(value_enum, short, long, global = true)]
     pub resize_filter: Option<FilterType>,
+
+    #[arg(long, global = true, action=ArgAction::SetTrue)]
+    pub continue_on_error: Option<bool>,
+
+    /// The color which should be used as the source_color if no good color was found from an image. (Overrides config value)
+    #[arg(value_enum, long, global = true, value_name = "STRING")]
+    pub fallback_color: Option<String>,
 }
 
 #[derive(Parser, Debug, Clone, clap::ValueEnum)]

@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     fmt,
     fs::{create_dir_all, read_to_string, File},
     io::{BufWriter, Write},
@@ -8,7 +7,7 @@ use std::{
 
 use crate::{
     color::color::Source,
-    scheme::{Schemes, SchemesEnum},
+    scheme::Schemes,
     util::config::{get_proj_path, ProjectDirsTypes},
 };
 use color_eyre::Report;
@@ -24,7 +23,6 @@ use sha2::{Digest, Sha256};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CacheFile {
-    mode: SchemesEnum,
     colors: SchemesCache,
 }
 
@@ -158,7 +156,7 @@ impl ImageCache {
     }
 
     pub fn save(&self, value: &Value) -> Result<(), Report> {
-        let path = self.cache_folder.join(self.get_name());
+        let path = self.get_path();
 
         if let Some(parent) = path.parent() {
             create_dir_all(parent)?;
@@ -186,8 +184,8 @@ impl ImageCache {
         Ok(())
     }
 
-    pub fn load(&self) -> Result<(Schemes, SchemesEnum), Report> {
-        let path = self.cache_folder.join(self.get_name());
+    pub fn load(&self) -> Result<Schemes, Report> {
+        let path = self.get_path();
 
         let string = read_to_string(&path)?;
 
@@ -198,9 +196,9 @@ impl ImageCache {
             light: convert_helper_scheme(&json.colors.light),
         };
 
-        success!("Loaded cache from <<d><u>{}</>", path.display());
+        success!("Loaded cache from <d><u>{}</>", path.display());
 
-        Ok((schemes_enum, json.mode))
+        Ok(schemes_enum)
     }
 
     fn get_name(&self) -> PathBuf {
@@ -219,6 +217,15 @@ impl ImageCache {
         file.push(name);
 
         file
+    }
+
+    pub fn exists(&self) -> bool {
+        let path = self.get_path();
+        path.exists()
+    }
+
+    pub fn get_path(&self) -> PathBuf {
+        self.cache_folder.join(self.get_name())
     }
 }
 

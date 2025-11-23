@@ -177,8 +177,8 @@ impl Engine {
         }
     }
 
-    pub fn set_syntax(&mut self, syntax: EngineSyntax) {
-        self.syntax = syntax;
+    pub fn set_syntax(&mut self, syntax: EngineSyntax) -> EngineSyntax {
+        std::mem::replace(&mut self.syntax, syntax)
     }
 
     pub fn add_filter(&mut self, name: &'static str, function: FilterFn) -> Option<FilterFn> {

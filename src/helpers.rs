@@ -1,13 +1,80 @@
 use crate::{
-    color::color::Source,
+    color::{
+        color::{get_source_color, Source},
+        format::argb_from_rgb,
+        parse::parse_css_color,
+    },
+    parser::engine::EngineSyntax,
+    scheme::{get_custom_color_schemes, get_schemes, Schemes},
+    util::config::ConfigFile,
     wallpaper::{self, Wallpaper},
 };
-use color_eyre::{eyre::Result, Report};
+use color_eyre::{
+    eyre::{Context, Result},
+    Report,
+};
 use log::LevelFilter;
+use material_colors::{
+    color::Argb,
+    theme::{Theme, ThemeBuilder},
+};
 use serde_json::{Map, Value};
-use std::io::Write;
+use std::{fs::read_to_string, io::Write, path::PathBuf};
 
 use crate::util::arguments::Cli;
+
+pub fn generate_schemes_and_theme(
+    args: &Cli,
+    config_file: &ConfigFile,
+    fallback_color: &Option<String>,
+    fallback_color_args: &Option<String>,
+) -> Result<(Option<Schemes>, Option<Argb>, Option<Theme>), Report> {
+    let fallback = if fallback_color_args.is_some() {
+        fallback_color_args
+    } else {
+        fallback_color
+    };
+
+    let parsed_fallback_color: Option<Argb> = match fallback {
+        Some(s) => {
+            let c = parse_css_color(&s)
+                .wrap_err("Failed to parse the fallback_color string as a css color")?;
+            Some(argb_from_rgb(c))
+        }
+        None => None,
+    };
+
+    let source_color = match &args.source {
+        Source::Json { path: _ } => None,
+        _ => Some(
+            (get_source_color(&args.source, &args.resize_filter, parsed_fallback_color))
+                .wrap_err("Failed to get source color.")?,
+        ),
+    };
+
+    let (schemes, theme) = match source_color {
+        Some(color) => {
+            let theme = ThemeBuilder::with_source(color).build();
+            let (scheme_dark, scheme_light) = get_schemes(color, &args.r#type, &args.contrast);
+
+            let mut schemes = get_custom_color_schemes(
+                color,
+                scheme_dark,
+                scheme_light,
+                &config_file.config.custom_colors,
+                &args.r#type,
+                &args.contrast,
+            );
+
+            schemes.dark.insert("source_color".to_owned(), color);
+            schemes.light.insert("source_color".to_owned(), color);
+            (Some(schemes), Some(theme))
+        }
+        None => (None, None),
+    };
+
+    Ok((schemes, source_color, theme))
+}
 
 pub fn get_log_level(args: &Cli) -> LevelFilter {
     let log_level: LevelFilter = if args.verbose == Some(true) {
@@ -37,6 +104,42 @@ pub fn check_version() {
             current_version, version
         );
     }
+}
+
+pub fn get_syntax(
+    bprefix: Option<&String>,
+    bpostfix: Option<&String>,
+    eprefix: Option<&String>,
+    epostfix: Option<&String>,
+) -> EngineSyntax {
+    let mut syntax = EngineSyntax::default();
+
+    if let Some(bprefix) = bprefix {
+        syntax.block_left = bprefix.clone();
+    }
+    if let Some(bpostfix) = bpostfix {
+        syntax.block_right = bpostfix.clone();
+    }
+    if let Some(eprefix) = eprefix {
+        syntax.keyword_left = eprefix.clone();
+    }
+    if let Some(epostfix) = epostfix {
+        syntax.keyword_right = epostfix.clone();
+    }
+
+    syntax
+}
+
+pub fn json_from_file(path: &PathBuf) -> Result<serde_json::Value, Report> {
+    if !path.exists() {
+        error!(
+            "<d>The path <red><b>{}</><d> doesnt exist.</>",
+            path.display()
+        );
+    }
+    let json_string = read_to_string(path)?;
+    let json = serde_json::from_str(&json_string)?;
+    Ok(json)
 }
 
 pub fn setup_logging(args: &Cli) -> Result<(), Report> {

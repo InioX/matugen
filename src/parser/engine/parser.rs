@@ -194,18 +194,6 @@ impl Engine {
                     })
                 });
 
-            let generic_raw = any()
-                .and_is(
-                    just('\\')
-                        .map(|_| ())
-                        .or(just(syntax.keyword_left.as_str()).map(|_| ()))
-                        .or(just(syntax.block_left.as_str()).map(|_| ()))
-                        .not(),
-                )
-                .repeated()
-                .at_least(1)
-                .map_with(|_, e| e.span());
-
             let escaped_raw = just("\\").ignore_then(
                 just(syntax.keyword_left.as_str())
                     .or(just(syntax.block_left.as_str()))
@@ -214,6 +202,18 @@ impl Engine {
                     .or(just("\\"))
                     .map_with(|_, e| e.span()),
             );
+
+            let generic_raw = any()
+                .and_is(
+                    just(syntax.keyword_left.as_str())
+                        .map(|_| ())
+                        .or(just(syntax.block_left.as_str()).map(|_| ()))
+                        .or(escaped_raw.map(|_| ()))
+                        .not(),
+                )
+                .repeated()
+                .at_least(1)
+                .map_with(|_, e| e.span());
 
             let raw = choice((escaped_raw, generic_raw)).map(|span| {
                 Box::new(SpannedExpr {
