@@ -1,11 +1,18 @@
 use crate::{
-    color::color::{get_source_color, Source},
+    color::{
+        color::{get_source_color, Source},
+        format::argb_from_rgb,
+        parse::parse_css_color,
+    },
     parser::engine::EngineSyntax,
     scheme::{get_custom_color_schemes, get_schemes, Schemes},
     util::config::ConfigFile,
     wallpaper::{self, Wallpaper},
 };
-use color_eyre::{eyre::Result, Report};
+use color_eyre::{
+    eyre::{Context, Result},
+    Report,
+};
 use log::LevelFilter;
 use material_colors::{
     color::Argb,
@@ -19,12 +26,29 @@ use crate::util::arguments::Cli;
 pub fn generate_schemes_and_theme(
     args: &Cli,
     config_file: &ConfigFile,
-) -> (Option<Schemes>, Option<Argb>, Option<Theme>) {
+    fallback_color: &Option<String>,
+    fallback_color_args: &Option<String>,
+) -> Result<(Option<Schemes>, Option<Argb>, Option<Theme>), Report> {
+    let fallback = if fallback_color_args.is_some() {
+        fallback_color_args
+    } else {
+        fallback_color
+    };
+
+    let parsed_fallback_color: Option<Argb> = match fallback {
+        Some(s) => {
+            let c = parse_css_color(&s)
+                .wrap_err("Failed to parse the fallback_color string as a css color")?;
+            Some(argb_from_rgb(c))
+        }
+        None => None,
+    };
+
     let source_color = match &args.source {
         Source::Json { path: _ } => None,
         _ => Some(
-            (get_source_color(&args.source, &args.resize_filter))
-                .expect("Failed to get source color."),
+            (get_source_color(&args.source, &args.resize_filter, parsed_fallback_color))
+                .wrap_err("Failed to get source color.")?,
         ),
     };
 
@@ -49,7 +73,7 @@ pub fn generate_schemes_and_theme(
         None => (None, None),
     };
 
-    (schemes, source_color, theme)
+    Ok((schemes, source_color, theme))
 }
 
 pub fn get_log_level(args: &Cli) -> LevelFilter {
