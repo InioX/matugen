@@ -159,8 +159,6 @@ pub fn get_source_color_from_image(
 
     let ranked = Score::score(&result.color_to_count, None, fallback_color, None);
 
-    dbg!(&ranked);
-
     Ok(ranked[0])
 }
 
