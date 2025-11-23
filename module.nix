@@ -136,6 +136,16 @@ in {
               example = "~/.config/sytle.css";
               apply = val: if lib.isList val then val else [val];
             };
+            pre_hook = lib.mkOption {
+              type = str;
+              description = "Runs before the template is exported. You can use keywords here.";
+              example = "echo source color {{colors.source_color.default.hex}}, source image {{image}}";
+            };
+            post_hook = lib.mkOption {
+              type = str;
+              description = "Runs after the template is exported. You can use keywords here.";
+              example = "echo after gen {{colors.primary.default.rgb}}";
+            };
           };
         });
       default = osCfg.templates or {};

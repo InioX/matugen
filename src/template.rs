@@ -5,7 +5,7 @@ use color_eyre::{
 use execute::{shell, Execute};
 use serde_json::json;
 
-use crate::{color::color::get_closest_color, parser::Engine as NewEngine};
+use crate::{color::color::get_closest_color, helpers::get_syntax, parser::Engine};
 use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, path::Path, process::Stdio, str};
@@ -30,6 +30,10 @@ pub struct Template {
     pub pre_hook: Option<String>,
     pub post_hook: Option<String>,
     pub input_path_modes: Option<InputPathModes>,
+    pub expr_prefix: Option<String>,
+    pub expr_postfix: Option<String>,
+    pub block_prefix: Option<String>,
+    pub block_postfix: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -47,11 +51,11 @@ pub struct InputPathModes {
 
 pub struct TemplateFile<'a> {
     state: &'a State,
-    engine: &'a mut NewEngine,
+    engine: &'a mut Engine,
 }
 
 impl TemplateFile<'_> {
-    pub fn new<'a>(state: &'a State, engine: &'a mut NewEngine) -> TemplateFile<'a> {
+    pub fn new<'a>(state: &'a State, engine: &'a mut Engine) -> TemplateFile<'a> {
         TemplateFile { state, engine }
     }
 
@@ -62,7 +66,6 @@ impl TemplateFile<'_> {
         );
 
         let mut paths_hashmap = HashMap::new();
-        let mut template_export_count = 0;
 
         for (_i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
             let input_path = if let Some(input_path_mode) = &template.input_path_modes {
@@ -78,28 +81,47 @@ impl TemplateFile<'_> {
                 get_absolute_paths(&self.state.config_path, input_path, &template.output_path)?;
 
             if !input_path_absolute.exists() {
-                warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesnt exist, skipping...</>", name, input_path_absolute.display());
+                warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesn't exist, skipping...</>", name, input_path_absolute.display());
                 continue;
             }
 
-            if template.output_path.is_some() {
-                template_export_count += 1;
-            }
+            let old_syntax = match (
+                &template.block_prefix,
+                &template.block_postfix,
+                &template.expr_prefix,
+                &template.expr_postfix,
+            ) {
+                (None, None, None, None) => None,
+                _ => {
+                    let old_syntax = self.engine.set_syntax(get_syntax(
+                        template.block_prefix.as_ref(),
+                        template.block_postfix.as_ref(),
+                        template.expr_prefix.as_ref(),
+                        template.expr_postfix.as_ref(),
+                    ));
+                    Some(old_syntax)
+                }
+            };
 
             let data = read_to_string(&input_path_absolute)
                 .wrap_err(format!("Could not read the {} template.", name))
                 .suggestion("Try converting the file to use UTF-8 encoding.")?;
 
             self.engine.add_template(name.to_string(), data);
+
             for output_path in output_paths_absolute {
                 paths_hashmap.insert(
                     name.to_string(),
                     (input_path_absolute.to_path_buf(), output_path),
                 );
             }
+
+            if let Some(old) = old_syntax {
+                self.engine.set_syntax(old);
+            };
         }
 
-        for (i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
+        for (name, template) in self.state.config_file.templates.iter() {
             if let Some(hook) = &template.pre_hook {
                 info!("Running pre_hook for the <b><cyan>{}</> template.", &name);
                 format_hook(
@@ -111,18 +133,20 @@ impl TemplateFile<'_> {
                 .wrap_err(format!("Failed to format the following hook:\n{}", hook))?;
             }
 
-            let (input_path_absolute, output_path_absolute) = paths_hashmap
-                .get(name)
-                .wrap_err("Failed to get the input and output paths from hashmap")?;
+            if template.output_path.is_some() {
+                let (input_path_absolute, output_path_absolute) = paths_hashmap
+                    .get(name)
+                    .wrap_err("Failed to get the input and output paths from hashmap")?;
 
-            debug!(
-                "Trying to write the {} template from {} to {}",
-                name,
-                input_path_absolute.display(),
-                output_path_absolute.display()
-            );
+                debug!(
+                    "Trying to write the {} template from {} to {}",
+                    name,
+                    input_path_absolute.display(),
+                    output_path_absolute.display()
+                );
 
-            self.export_template(name, output_path_absolute, i, template_export_count)?;
+                self.export_template(name, output_path_absolute)?;
+            }
 
             if let Some(hook) = &template.post_hook {
                 info!("Running post_hook for the <b><cyan>{}</> template.", &name);
@@ -135,32 +159,44 @@ impl TemplateFile<'_> {
                 .wrap_err(format!("Failed to format the following hook:\n{}", hook))?;
             }
         }
+
         Ok(())
     }
 
-    fn export_template(
-        &self,
-        name: &String,
-        output_path_absolute: &PathBuf,
-        i: usize,
-        template_count: i32,
-    ) -> Result<(), Report> {
+    fn export_template(&self, name: &String, output_path_absolute: &PathBuf) -> Result<(), Report> {
         let data = match self.engine.render(name) {
             Ok(v) => v,
             Err(errors) => {
                 for err in errors {
                     err.emit(&self.engine);
                 }
+
+                if self.state.args.continue_on_error.unwrap_or(false) {
+                    return Ok(());
+                }
+
                 std::process::exit(1);
             }
         };
 
         let out = if self.state.args.prefix.is_some() && !cfg!(windows) {
-            let mut prefix_path = PathBuf::from(self.state.args.prefix.as_ref().unwrap());
+            let mut prefix_path = PathBuf::from(
+                self.state
+                    .args
+                    .prefix
+                    .as_ref()
+                    .ok_or_else(|| Report::msg("Couldn't get the prefix path"))?,
+            );
 
-            let output_path = output_path_absolute
-                .strip_prefix("/")
-                .expect("output_path_absolute is not an absolute path.");
+            let output_path = match output_path_absolute.strip_prefix("/") {
+                Ok(v) => v,
+                Err(e) => {
+                    return Err(Report::msg(format!(
+                        "Output path is not an absolute path: {}",
+                        e
+                    )))
+                }
+            };
 
             prefix_path.push(output_path);
 
@@ -200,9 +236,7 @@ impl TemplateFile<'_> {
         output_file.write_all(data.as_bytes())?;
 
         success!(
-            "[{}/{}] Exported the <b><green>{}</> template to <d><u>{}</>",
-            i + 1,
-            &template_count,
+            "Exported the <b><green>{}</> template to <d><u>{}</>",
             name,
             output_path_absolute.display()
         );
@@ -212,7 +246,7 @@ impl TemplateFile<'_> {
 }
 
 fn format_hook(
-    engine: &mut NewEngine,
+    engine: &mut Engine,
     hook: &String,
     colors_to_compare: &Option<Vec<crate::color::color::ColorDefinition>>,
     compare_to: &Option<String>,
@@ -228,7 +262,7 @@ fn format_hook(
                 std::process::exit(1);
             }
         };
-        let closest_color = get_closest_color(compare, &res);
+        let closest_color = get_closest_color(compare, &res)?;
         engine.add_context(json!({
             "closest_color": closest_color
         }));
@@ -299,6 +333,15 @@ fn create_missing_folders(output_path_absolute: &Path) -> Result<(), Report> {
         create_dir_all(parent_folder)?;
     };
     Ok(())
+}
+
+pub fn get_absolute_path(base_path: &PathBuf, relative_path: &PathBuf) -> Result<PathBuf, Report> {
+    let base = std::fs::canonicalize(base_path)?;
+    let absolute = relative_path
+        .try_resolve_in(&base)?
+        .to_path_buf()
+        .strip_canonicalization();
+    Ok(absolute)
 }
 
 fn get_absolute_paths(

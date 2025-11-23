@@ -191,8 +191,12 @@ impl Engine {
                 match &iter.expr {
                     //     Expression::KeywordWithFilters { keyword, filters } => todo!(),
                     Expression::Range { start, end } => {
-                        for i in *start..*end {
+                        for (index, i) in (*start..*end).enumerate() {
                             self.runtime.borrow_mut().push_scope();
+
+                            let total = (*end - *start) as usize;
+
+                            self.add_loop_variables(index, total);
 
                             self.runtime.borrow_mut().insert("i", Value::Int(i));
 
@@ -230,7 +234,9 @@ impl Engine {
                                 src.push_str(&res);
                             }
                             Value::Array(arr) => {
-                                for item in arr {
+                                let total = arr.len();
+
+                                for (index, item) in arr.iter().enumerate() {
                                     self.runtime.borrow_mut().push_scope();
 
                                     if var.len() == 1 {
@@ -246,6 +252,8 @@ impl Engine {
                                             name: name.to_string(),
                                         });
                                     }
+
+                                    self.add_loop_variables(index, total);
 
                                     src.push_str(&self.eval_loop_body(body.clone(), source, name));
                                     self.runtime.borrow_mut().pop_scope();
@@ -286,7 +294,12 @@ impl Engine {
                 _ => {}
             },
             Expression::If { .. } => {
-                src.push_str(&self.get_value(expr, source, true, name).to_string());
+                let value = &self.get_value(expr, source, true, name);
+
+                match value {
+                    Value::Null => {}
+                    _ => src.push_str(&value.to_string()),
+                }
             }
             Expression::Filter { name: _, args: _ } => unreachable!(),
             Expression::Range { start: _, end: _ } => unreachable!(),
@@ -300,6 +313,18 @@ impl Engine {
         }
     }
 
+    fn add_loop_variables(&self, index: usize, total: usize) {
+        let is_first = index == 0;
+        let is_last = index == total - 1;
+
+        let mut map = IndexMap::new();
+        map.insert("index".to_string(), Value::Int(index as i64));
+        map.insert("first".to_string(), Value::Bool(is_first));
+        map.insert("last".to_string(), Value::Bool(is_last));
+
+        self.runtime.borrow_mut().insert("loop", Value::Map(map));
+    }
+
     fn eval_map(
         &self,
         map: IndexMap<String, Value>,
@@ -310,7 +335,9 @@ impl Engine {
         name: &str,
     ) -> String {
         let mut output = String::from("");
-        for (key, value) in map {
+        let total = map.len();
+
+        for (index, (key, value)) in map.iter().enumerate() {
             self.runtime.borrow_mut().push_scope();
 
             if var.len() == 1 {
@@ -331,6 +358,8 @@ impl Engine {
                     name: name.to_string(),
                 });
             }
+
+            self.add_loop_variables(index, total);
 
             output.push_str(&self.eval_loop_body(body.clone(), source, name));
 
@@ -484,7 +513,7 @@ impl Engine {
                 } else {
                     if let Some(exprs) = else_branch {
                         if format_value {
-                            let str = self.build_string(&then_branch, source, name);
+                            let str = self.build_string(&exprs, source, name);
                             return Value::Ident(str);
                         } else {
                             for expr in exprs {

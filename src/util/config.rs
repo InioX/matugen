@@ -24,6 +24,8 @@ pub struct Config {
     pub expr_postfix: Option<String>,
     pub block_prefix: Option<String>,
     pub block_postfix: Option<String>,
+    pub import_json_files: Option<Vec<PathBuf>>,
+    pub fallback_color: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
