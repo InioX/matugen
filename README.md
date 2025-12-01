@@ -48,28 +48,34 @@
 </h2>
 
 ### Features
-- **Generate/Export Material You Color Palette:**
-     - Generate a Material You color palette either from an image or a color
-     - Output the generated palette as JSON to stdout, or use keywords inside templates that get exported as files
-- **Keyword Filters:**
-     - Use filters to change values of the keywords, like changing lightness for colors and manipulating strings with `replace`, `to_upper`, `to_lower` and `set_lightness`
-- **Custom Keywords/Colors:**
-     - Define your own custom keywords or colors you would like to be harmonized inside the config file, that you can then use in templates
-- **Palette Customization:**
-     - Customize the contrast and scheme type for the palette
-- **Restart Apps/Change Wallpaper:**
-     - Restart supported apps and set the wallpaper on Windows, MacOS, Linux and NetBSD
 
-<br>
-<div align="center">
-<table>
-  <tr>
-     <th>
-     <p>If you would like to learn more about the features and configuration, read the wiki <a href="https://github.com/InioX/matugen/wiki">here.</a></p>
-     </th>
-  </tr>
-</table>
-</div>
+> [!TIP]
+> If you would like to learn more about the features and configuration, read the wiki <a href="https://github.com/InioX/matugen/wiki">here.</a>
+
+- **Templating engine built with Chumsky (designed for colors)**
+  - Custom engine focused on making color manipulation simple and efficient
+  - Import a color once in any format and automatically access all other formats (`hex`, `rgb`, `rgba`, `hsl`, etc.)
+  - Colors are parsed as real color objects, not strings, making filters faster and more reliable
+  - Supports piping, nested expressions, and can be used as a standalone templating engine
+
+- **Generate / Export Material You color palettes**
+  - Generate a full Material You palette from either an image or a single color
+  - Export the generated palette as JSON or reference palette keywords directly within templates
+  - Easily integrate palette values into config files, themes, or style templates
+
+- **Keyword Filters**
+  - Modify any keyword using filters such as `replace`, `to_upper`, `to_lower`, and `set_lightness`
+  - Includes built-in color filters for adjusting hue, saturation, lightness, opacity, and more
+  - Filters can be chained together for powerful inline transformations
+
+- **Custom Keywords / Colors**
+  - Import any JSON file (through CLI or config) and use its contents directly inside templates
+  - Imported colors receive full multi-format support, just like built-in palette colors
+  - Useful for adding custom theme data, config variables, or full color schemes
+
+- **Palette Customization**
+  - Adjust contrast levels and choose the scheme type (light, dark, or custom variants)
+  - Fine-tune the generated palette to match your preference or application theme
 
 ### Other projects
 - [Mitsugen](https://github.com/DimitrisMilonopoulos/mitsugen) - For gnome-shell, based on the [old](https://github.com/InioX/matugen/tree/python) version of Matugen
