@@ -3,7 +3,8 @@
      <br><br>
      <img src="https://github.com/InioX/matugen/assets/81521595/ec3a165d-442d-4494-9aec-24254d11ae61" width=50% height=50%>
      <br>
-     (pronounced: mat-uh-gen)
+     A cross-platform material you color generation tool<br>
+     <sub>(pronounced: mat-uh-gen)</sub>
      <br><br>
      <img alt="license" src="https://custom-icon-badges.demolab.com/crates/l/matugen?color=3D3838&logo=law&style=for-the-badge&logoColor=370D10&labelColor=FEB3B3">
      <img alt="version" src="https://custom-icon-badges.demolab.com/crates/v/matugen?color=3D3838&logo=package&style=for-the-badge&logoColor=370D10&labelColor=FEB3B3">
@@ -19,14 +20,18 @@
 </div>
 
 <div align="center">
-  <sub>A cross-platform material you color generation tool
+  <img src="https://github.com/InioX/matugen/assets/81521595/9008d8d9-0157-4b38-9500-597986a2cb9f" height=35% width=35%>
 </div>
 
 <div align="center">
+     <a href="https://ko-fi.com/iniox">
+          <img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Ko-fi/ko-fi2.svg">
+     </a>
      <a href="https://discord.gg/JA3C2U9EcC">
-          <br>
           <img src="https://github.com/user-attachments/assets/84f4e3a2-73ac-4112-8633-c02164c2c02c">
      </a>
+     <br>
+     <sub>Donations through Ko-Fi are welcome!
 </div>
 
 <div align="center">
