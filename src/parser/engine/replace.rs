@@ -42,48 +42,48 @@ pub fn get_str_vec<'a>(source: &'a str, spans: &Vec<SimpleSpan>) -> Vec<&'a str>
 }
 
 // TODO: Clean both of these up
-pub fn format_color(base_color: Rgb, format: &str) -> Option<String> {
+pub fn format_color(base_color: Rgb, format: &str) -> Option<Value> {
     let hsl_color = Hsl::from(&base_color);
 
     match format {
         f if FORMATS.contains(&f) => match f {
-            "hex" => Some(format_hex(&base_color)),
-            "hex_stripped" => Some(format_hex_stripped(&base_color)),
-            "rgb" => Some(format_rgb(&base_color)),
-            "rgba" => Some(format_rgba(&base_color, false)),
-            "hsl" => Some(format_hsl(&hsl_color)),
-            "hsla" => Some(format_hsla(&hsl_color, false)),
-            "red" => Some(format!("{:?}", base_color.red() as u8)),
-            "green" => Some(format!("{:?}", base_color.green() as u8)),
-            "blue" => Some(format!("{:?}", base_color.blue() as u8)),
-            "alpha" => Some(format!("{:?}", base_color.alpha() as u8)),
-            "hue" => Some(format!("{:?}", &hsl_color.hue())),
-            "saturation" => Some(format!("{:?}", &hsl_color.lightness())),
-            "lightness" => Some(format!("{:?}", &hsl_color.saturation())),
+            "hex" => Some(format_hex(&base_color).into()),
+            "hex_stripped" => Some(format_hex_stripped(&base_color).into()),
+            "rgb" => Some(format_rgb(&base_color).into()),
+            "rgba" => Some(format_rgba(&base_color, false).into()),
+            "hsl" => Some(format_hsl(&hsl_color).into()),
+            "hsla" => Some(format_hsla(&hsl_color, false).into()),
+            "red" => Some(Value::Int(base_color.red() as i64)),
+            "green" => Some(Value::Int(base_color.green() as i64)),
+            "blue" => Some(Value::Int(base_color.blue() as i64)),
+            "alpha" => Some(Value::Float(base_color.alpha())),
+            "hue" => Some(Value::Int(hsl_color.hue() as i64)),
+            "saturation" => Some(Value::Int(hsl_color.saturation() as i64)),
+            "lightness" => Some(Value::Int(hsl_color.lightness() as i64)),
             _ => unreachable!(),
         },
         _ => None,
     }
 }
 
-pub fn format_color_hsl(hsl_color: Hsl, format: &str) -> Option<String> {
+pub fn format_color_hsl(hsl_color: Hsl, format: &str) -> Option<Value> {
     let base_color = Rgb::from(&hsl_color);
 
     match format {
         f if FORMATS.contains(&f) => match f {
-            "hex" => Some(format_hex(&base_color)),
-            "hex_stripped" => Some(format_hex_stripped(&base_color)),
-            "rgb" => Some(format_rgb(&base_color)),
-            "rgba" => Some(format_rgba(&base_color, true)),
-            "hsl" => Some(format_hsl(&hsl_color)),
-            "hsla" => Some(format_hsla(&hsl_color, true)),
-            "red" => Some(format!("{:?}", base_color.red() as u8)),
-            "green" => Some(format!("{:?}", base_color.green() as u8)),
-            "blue" => Some(format!("{:?}", base_color.blue() as u8)),
-            "alpha" => Some(format!("{:?}", base_color.alpha() as u8)),
-            "hue" => Some(format!("{:?}", &hsl_color.hue())),
-            "saturation" => Some(format!("{:?}", &hsl_color.lightness())),
-            "lightness" => Some(format!("{:?}", &hsl_color.saturation())),
+            "hex" => Some(format_hex(&base_color).into()),
+            "hex_stripped" => Some(format_hex_stripped(&base_color).into()),
+            "rgb" => Some(format_rgb(&base_color).into()),
+            "rgba" => Some(format_rgba(&base_color, false).into()),
+            "hsl" => Some(format_hsl(&hsl_color).into()),
+            "hsla" => Some(format_hsla(&hsl_color, false).into()),
+            "red" => Some(Value::Int(base_color.red() as i64)),
+            "green" => Some(Value::Int(base_color.green() as i64)),
+            "blue" => Some(Value::Int(base_color.blue() as i64)),
+            "alpha" => Some(Value::Float(base_color.alpha())),
+            "hue" => Some(Value::Int(hsl_color.hue() as i64)),
+            "saturation" => Some(Value::Int(hsl_color.saturation() as i64)),
+            "lightness" => Some(Value::Int(hsl_color.lightness() as i64)),
             _ => unreachable!(),
         },
         _ => None,
@@ -110,18 +110,9 @@ pub fn format_color_all(base_color: Rgb) -> IndexMap<String, Value> {
         "hsla".to_string(),
         Value::Ident(format_hsla(&hsl_color, true)),
     );
-    map.insert(
-        "red".to_string(),
-        Value::Ident(format!("{:?}", base_color.red() as u8)),
-    );
-    map.insert(
-        "green".to_string(),
-        Value::Ident(format!("{:?}", base_color.green() as u8)),
-    );
-    map.insert(
-        "blue".to_string(),
-        Value::Ident(format!("{:?}", base_color.blue() as u8)),
-    );
+    map.insert("red".to_string(), Value::Int(base_color.red() as i64));
+    map.insert("green".to_string(), Value::Int(base_color.green() as i64));
+    map.insert("blue".to_string(), Value::Int(base_color.blue() as i64));
     map.insert(
         "alpha".to_string(),
         Value::Ident(format!("{:?}", base_color.alpha() as u8)),
@@ -162,10 +153,14 @@ impl Engine {
     fn eval(&self, src: &mut String, expr: &SpannedExpr, source: &String, name: &str) {
         match &expr.expr {
             Expression::Keyword { keywords } => {
-                src.push_str(&self.get_value(keywords, source, true, name).to_string());
+                src.push_str(
+                    &self
+                        .get_value(keywords, source, true, false, name)
+                        .to_string(),
+                );
             }
             Expression::KeywordWithFilters { keyword, filters } => {
-                let value = self.get_value(keyword, source, false, name);
+                let value = self.get_value(keyword, source, false, false, name);
                 let keywords = keyword.expr.as_keywords(source);
 
                 src.push_str(
@@ -294,7 +289,7 @@ impl Engine {
                 _ => {}
             },
             Expression::If { .. } => {
-                let value = &self.get_value(expr, source, true, name);
+                let value = &self.get_value(expr, source, true, false, name);
 
                 match value {
                     Value::Null => {}
@@ -384,10 +379,26 @@ impl Engine {
         keywords: &[&str],
         span: SimpleSpan,
         format_value: bool,
+        get_color_value: bool,
         name: &str,
     ) -> Value {
         match self.resolve_path(keywords.iter().copied(), format_value, span, name) {
-            Ok(v) => v,
+            Ok(v) => {
+                if get_color_value {
+                    match v {
+                        Value::Color(c) => format_color(c, self.get_format(keywords)).unwrap(),
+                        Value::HslColor(c) => {
+                            format_color_hsl(c, self.get_format(keywords)).unwrap()
+                        }
+                        Value::LazyColor { color: c, .. } => {
+                            format_color(c, self.get_format(keywords)).unwrap()
+                        }
+                        _ => v,
+                    }
+                } else {
+                    v
+                }
+            }
             Err(e) => {
                 self.errors.add(e);
 
@@ -409,11 +420,11 @@ impl Engine {
         span: SimpleSpan,
         name: &str,
     ) -> Value {
-        let left = self.get_value(lhs, source, false, name);
-        let right = self.get_value(rhs, source, false, name);
+        let left = self.get_value(lhs, source, false, true, name);
+        let right = self.get_value(rhs, source, false, true, name);
 
-        let left_val = left.get_int();
-        let right_val = right.get_int();
+        let left_val = left.get_float();
+        let right_val = right.get_float();
 
         match (left_val, right_val) {
             (Some(l), Some(r)) => self.apply_binary_op(l, r, op.op),
@@ -437,14 +448,23 @@ impl Engine {
         }
     }
 
-    fn apply_binary_op(&self, left: i64, right: i64, op: BinaryOperator) -> Value {
-        match op {
+    fn normalize_number(&self, v: f64) -> Value {
+        if v.fract() == 0.0 {
+            Value::Int(v as i64)
+        } else {
+            Value::Float(v)
+        }
+    }
+
+    fn apply_binary_op(&self, left: f64, right: f64, op: BinaryOperator) -> Value {
+        let v = match op {
             BinaryOperator::Add => left + right,
             BinaryOperator::Sub => left - right,
             BinaryOperator::Mul => left * right,
             BinaryOperator::Div => left / right,
-        }
-        .into()
+        };
+
+        self.normalize_number(v)
     }
 
     fn get_value(
@@ -452,14 +472,15 @@ impl Engine {
         expr: &SpannedExpr,
         source: &String,
         format_value: bool,
+        get_color_value: bool,
         name: &str,
     ) -> Value {
         match &expr.expr {
             Expression::Keyword { keywords } => {
-                self.get_value(&keywords, source, format_value, name)
+                self.get_value(&keywords, source, format_value, get_color_value, name)
             }
             Expression::KeywordWithFilters { keyword, filters } => {
-                let value = self.get_value(&keyword, source, false, name);
+                let value = self.get_value(&keyword, source, false, get_color_value, name);
                 let keywords = keyword.expr.as_keywords(source);
                 Value::from(self.get_replacement_filter(
                     value.into(),
@@ -475,6 +496,7 @@ impl Engine {
                 &get_str_vec(source, keywords),
                 expr.span,
                 format_value,
+                get_color_value,
                 name,
             ),
             Expression::BinaryOp { lhs, op, rhs } => {
@@ -486,7 +508,7 @@ impl Engine {
                 then_branch,
                 else_branch,
             } => {
-                let bool = match self.get_value(condition, source, false, name) {
+                let bool = match self.get_value(condition, source, false, get_color_value, name) {
                     Value::Bool(b) => b,
                     _ => {
                         self.errors.add(Error::ParseError {
@@ -505,7 +527,13 @@ impl Engine {
                         return Value::Ident(str);
                     } else {
                         for expr in then_branch {
-                            values.push(self.get_value(expr, source, format_value, name))
+                            values.push(self.get_value(
+                                expr,
+                                source,
+                                format_value,
+                                get_color_value,
+                                name,
+                            ))
                         }
                     }
 
@@ -517,7 +545,13 @@ impl Engine {
                             return Value::Ident(str);
                         } else {
                             for expr in exprs {
-                                values.push(self.get_value(expr, source, format_value, name))
+                                values.push(self.get_value(
+                                    expr,
+                                    source,
+                                    format_value,
+                                    get_color_value,
+                                    name,
+                                ))
                             }
                         }
                         return Value::Array(values);
@@ -559,11 +593,11 @@ impl Engine {
                 for arg in args {
                     match &arg.expr {
                         Expression::Keyword { keywords } => args_resolved.push(SpannedValue {
-                            value: self.get_value(keywords, source, false, name),
+                            value: self.get_value(keywords, source, false, false, name),
                             span: arg.span,
                         }),
                         Expression::KeywordWithFilters { keyword, filters } => {
-                            let value = self.get_value(&keyword, source, false, name);
+                            let value = self.get_value(&keyword, source, false, false, name);
                             let keywords = keyword.expr.as_keywords(source);
                             args_resolved.push(SpannedValue {
                                 value: self
@@ -588,7 +622,7 @@ impl Engine {
                             });
                         }
                         Expression::If { .. } => {
-                            let val = self.get_value(arg, source, false, name);
+                            let val = self.get_value(arg, source, false, false, name);
                             match val {
                                 Value::Array(array) => {
                                     for value in array {
@@ -645,7 +679,7 @@ impl Engine {
         match current_value {
             FilterReturnType::String(_) => current_value,
             FilterReturnType::Rgb(argb) => match format_color(argb, format) {
-                Some(v) => FilterReturnType::String(v.into()),
+                Some(v) => FilterReturnType::String(v.to_string()),
                 None => {
                     let error = Error::ParseError {
                         kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat {
@@ -659,7 +693,7 @@ impl Engine {
                 }
             },
             FilterReturnType::Hsl(hsl) => match format_color_hsl(hsl, format) {
-                Some(v) => FilterReturnType::String(v.into()),
+                Some(v) => FilterReturnType::String(v.to_string()),
                 None => {
                     let error = Error::ParseError {
                         kind: ParseErrorKind::Keyword(KeywordError::InvalidFormat {

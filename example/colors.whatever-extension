@@ -18,6 +18,20 @@ harmonized: {{ colors.green_source.default.hex | harmonize: {{ colors.source_col
 
 {{ "#ffbf9b" | to_color | set_lightness: <* if {{ is_dark_mode }} *> {{ int }} <* else *> {{ int2 }} <* endif *> }}
 
+RGB:
+{{ colors.source_color.default.rgba }}
+{{ colors.source_color.default.red }}
+{{ {{ colors.source_color.default.red }} / 255 }}
+{{ colors.source_color.default.green }}
+{{ colors.source_color.default.blue }}
+{{ colors.source_color.default.alpha }}
+
+HSL:
+{{ colors.source_color.default.hsla }}
+{{ colors.source_color.default.hue }}
+{{ colors.source_color.default.saturation }}
+{{ colors.source_color.default.lightness }}
+{{ colors.source_color.default.alpha }}
 
 red #FF0000;
 green #00FF00;
