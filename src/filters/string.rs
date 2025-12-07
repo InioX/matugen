@@ -20,12 +20,12 @@ pub(crate) fn replace(
         FilterReturnType::String(s) => Ok(FilterReturnType::String(s.replace(&find, &replace))),
         FilterReturnType::Rgb(color) => {
             let string = format_color(color, keywords.last().expect("Could not get format"));
-            let modified: String = string.unwrap().replace(&find, &replace);
+            let modified: String = string.unwrap().to_string().replace(&find, &replace);
             Ok(FilterReturnType::String(modified))
         }
         FilterReturnType::Hsl(color) => {
             let string = format_color_hsl(color, keywords.last().expect("Could not get format"));
-            let modified: String = string.unwrap().replace(&find, &replace);
+            let modified: String = string.unwrap().to_string().replace(&find, &replace);
             Ok(FilterReturnType::String(modified))
         }
         FilterReturnType::Bool(boolean) => match boolean {
@@ -46,12 +46,16 @@ pub(crate) fn lower_case(
         FilterReturnType::Rgb(color) => {
             let string =
                 format_color(color, keywords.last().expect("Could not get format")).unwrap();
-            Ok(FilterReturnType::String(string.to_case(Case::Lower)))
+            Ok(FilterReturnType::String(
+                string.to_string().to_case(Case::Lower),
+            ))
         }
         FilterReturnType::Hsl(color) => {
             let string =
                 format_color_hsl(color, keywords.last().expect("Could not get format")).unwrap();
-            Ok(FilterReturnType::String(string.to_case(Case::Lower)))
+            Ok(FilterReturnType::String(
+                string.to_string().to_case(Case::Lower),
+            ))
         }
         FilterReturnType::Bool(boolean) => match boolean {
             true => Ok(FilterReturnType::String(
@@ -75,12 +79,16 @@ pub(crate) fn camel_case(
         FilterReturnType::Rgb(color) => {
             let string =
                 format_color(color, keywords.last().expect("Could not get format")).unwrap();
-            Ok(FilterReturnType::String(string.to_case(Case::Camel)))
+            Ok(FilterReturnType::String(
+                string.to_string().to_case(Case::Camel),
+            ))
         }
         FilterReturnType::Hsl(color) => {
             let string =
                 format_color_hsl(color, keywords.last().expect("Could not get format")).unwrap();
-            Ok(FilterReturnType::String(string.to_case(Case::Camel)))
+            Ok(FilterReturnType::String(
+                string.to_string().to_case(Case::Camel),
+            ))
         }
         FilterReturnType::Bool(boolean) => match boolean {
             true => Ok(FilterReturnType::String(
@@ -104,12 +112,16 @@ pub(crate) fn pascal_case(
         FilterReturnType::Rgb(color) => {
             let string =
                 format_color(color, keywords.last().expect("Could not get format")).unwrap();
-            Ok(FilterReturnType::String(string.to_case(Case::Pascal)))
+            Ok(FilterReturnType::String(
+                string.to_string().to_case(Case::Pascal),
+            ))
         }
         FilterReturnType::Hsl(color) => {
             let string =
                 format_color_hsl(color, keywords.last().expect("Could not get format")).unwrap();
-            Ok(FilterReturnType::String(string.to_case(Case::Pascal)))
+            Ok(FilterReturnType::String(
+                string.to_string().to_case(Case::Pascal),
+            ))
         }
         FilterReturnType::Bool(boolean) => match boolean {
             true => Ok(FilterReturnType::String(
@@ -133,12 +145,16 @@ pub(crate) fn snake_case(
         FilterReturnType::Rgb(color) => {
             let string =
                 format_color(color, keywords.last().expect("Could not get format")).unwrap();
-            Ok(FilterReturnType::String(string.to_case(Case::Snake)))
+            Ok(FilterReturnType::String(
+                string.to_string().to_case(Case::Snake),
+            ))
         }
         FilterReturnType::Hsl(color) => {
             let string =
                 format_color_hsl(color, keywords.last().expect("Could not get format")).unwrap();
-            Ok(FilterReturnType::String(string.to_case(Case::Snake)))
+            Ok(FilterReturnType::String(
+                string.to_string().to_case(Case::Snake),
+            ))
         }
         FilterReturnType::Bool(boolean) => match boolean {
             true => Ok(FilterReturnType::String(
@@ -162,12 +178,16 @@ pub(crate) fn kebab_case(
         FilterReturnType::Rgb(color) => {
             let string =
                 format_color(color, keywords.last().expect("Could not get format")).unwrap();
-            Ok(FilterReturnType::String(string.to_case(Case::Kebab)))
+            Ok(FilterReturnType::String(
+                string.to_string().to_case(Case::Kebab),
+            ))
         }
         FilterReturnType::Hsl(color) => {
             let string =
                 format_color_hsl(color, keywords.last().expect("Could not get format")).unwrap();
-            Ok(FilterReturnType::String(string.to_case(Case::Kebab)))
+            Ok(FilterReturnType::String(
+                string.to_string().to_case(Case::Kebab),
+            ))
         }
         FilterReturnType::Bool(boolean) => match boolean {
             true => Ok(FilterReturnType::String(

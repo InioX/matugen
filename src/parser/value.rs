@@ -90,12 +90,21 @@ impl From<FilterReturnType> for Value {
     }
 }
 
+fn format_float(f: f64) -> String {
+    if f.fract() == 0.0 {
+        return format!("{}", f as i64);
+    }
+    let s = format!("{:.2}", f);
+    let s = s.trim_end_matches('0'); // "1.20" → "1."
+    s.trim_end_matches('.').to_string()
+}
+
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Value::Ident(v) => write!(f, "{}", v),
             Value::Int(v) => write!(f, "{}", v),
-            Value::Float(v) => write!(f, "{}", v),
+            Value::Float(v) => write!(f, "{}", format_float(*v)),
             Value::Bool(v) => write!(f, "{}", v),
             Value::Color(color) | Value::LazyColor { color, scheme: _ } => {
                 let formats = format_color_all(color.clone());
@@ -135,7 +144,14 @@ impl Value {
     pub fn get_int(&self) -> Option<i64> {
         match self {
             Value::Int(v) => Some(*v),
-            // Value::Float(_) => todo!(),
+            _ => None,
+        }
+    }
+
+    pub fn get_float(&self) -> Option<f64> {
+        match self {
+            Value::Int(v) => Some(*v as f64),
+            Value::Float(v) => Some(*v),
             _ => None,
         }
     }

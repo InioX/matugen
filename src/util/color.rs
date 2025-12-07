@@ -48,7 +48,8 @@ pub fn transform_colors(value: &mut Value, format: &str) {
                     if let Ok(parsed) = parse_css_color(color_str) {
                         *value = Value::String(
                             format_color(parsed, &format)
-                                .expect("Failed to transform color into json"),
+                                .expect("Failed to transform color into json")
+                                .to_string(),
                         );
                         return;
                     }
@@ -102,7 +103,7 @@ fn format_single_palette(palette: TonalPalette, format: &str) -> IndexMap<String
         map.insert(
             tone.to_string(),
             serde_json::json!({
-                "color": format_color(rgb_from_argb(palette.tone(tone)), format).unwrap()
+                "color": format_color(rgb_from_argb(palette.tone(tone)), format).unwrap().to_string()
             }),
         );
     }
