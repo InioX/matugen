@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.1](https://github.com/InioX/matugen/compare/v3.1.0...v3.1.1) - 2025-12-07
+
+### Fixed
+
+- make `red`,`green`,`blue` be actual ints ([#225](https://github.com/InioX/matugen/pull/225))
+
+### Other
+
+- change README features and add wiki reference
+- Add Kofi button and change text position in header
+- Add Ko-fi username for funding
+
 ## [3.1.0](https://github.com/InioX/matugen/compare/v3.0.0...v3.1.0) - 2025-11-23
 
 ### Added
