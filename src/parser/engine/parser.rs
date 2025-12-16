@@ -39,7 +39,6 @@ impl Engine {
             let quoted_ident = inner.delimited_by(just('"'), just('"'));
 
             let ident = quoted_ident.or(plain_ident);
-            // let ident = quoted_ident;
 
             let sign = just('-').or(just('+')).or_not();
 
@@ -51,9 +50,9 @@ impl Engine {
                 });
 
             let float = sign
-                .then(text::int(10)) // int part
+                .then(text::int(10))
                 .then_ignore(just('.'))
-                .then(text::int(10)) // frac part
+                .then(text::digits(10).to_slice())
                 .map(
                     |((sign, int_part), frac_part): ((Option<char>, &str), &str)| {
                         let number = format!("{}{}.{}", sign.unwrap_or('+'), int_part, frac_part);
