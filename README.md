@@ -50,7 +50,7 @@
 ### Features
 
 > [!TIP]
-> If you would like to learn more about the features and configuration, read the wiki <a href="https://github.com/InioX/matugen/wiki">here.</a>
+> If you would like to learn more about the features and configuration, read the wiki <a href="https://iniox.github.io/#matugen">here.</a>
 
 - **Templating engine built with Chumsky (designed for colors)**
   - Custom engine focused on making color manipulation simple and efficient
