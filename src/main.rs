@@ -312,7 +312,7 @@ impl State {
                     obj.remove("image");
                 };
             };
-            dump_json(&mut json_value, format);
+            dump_json(&mut json_value, format, self.args.alternative_json_output);
         }
 
         if self.args.dry_run == Some(true) {
@@ -358,6 +358,7 @@ fn main() -> Result<(), Report> {
         resize_filter: Some(FilterType::Triangle),
         continue_on_error: Some(false),
         fallback_color: None,
+        alternative_json_output: Some(false),
     };
 
     let args = Cli::parse();
