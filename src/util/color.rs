@@ -70,9 +70,13 @@ pub fn transform_colors(value: &mut Value, format: &str) {
 }
 
 #[cfg(feature = "dump-json")]
-pub fn dump_json(json: &mut Value, format: &Format) {
+pub fn dump_json(json: &mut Value, format: &Format, alt_output: Option<bool>) {
     let format_str = format.to_string();
-    transform_colors(json, &format_str);
+
+    if alt_output.unwrap_or(false) {
+    } else {
+        transform_colors(json, &format_str);
+    }
 
     println!("{}", serde_json::to_string_pretty(&json).unwrap());
 }

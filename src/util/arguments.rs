@@ -91,6 +91,10 @@ pub struct Cli {
     /// The color which should be used as the source_color if no good color was found from an image. (Overrides config value)
     #[arg(value_enum, long, global = true, value_name = "STRING")]
     pub fallback_color: Option<String>,
+
+    /// Whether to make the outputted json compatible with the --import-json flag.
+    #[arg(long, global = true, action=ArgAction::SetTrue)]
+    pub alternative_json_output: Option<bool>,
 }
 
 #[derive(Parser, Debug, Clone, clap::ValueEnum)]

@@ -12,4 +12,6 @@ cargo run --release --features=dump-json -- image "$ImagePath" `
     --config "./example/config.toml" `
     --continue-on-error `
     --fallback-color "#0000ff" `
-    --show-colors
+    --show-colors `
+    --alternative-json-output `
+    --json hex
