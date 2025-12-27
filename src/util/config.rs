@@ -35,7 +35,7 @@ pub struct ConfigFile {
 }
 
 const ERROR_TEXT: &str =
-    "Error reading config file, check https://github.com/InioX/Matugen#configuration for help";
+    "Error reading config file, check https://iniox.github.io/#matugen/configuration for help";
 
 const DEFAULT_CONFIG: &str = r#"
 [config]
