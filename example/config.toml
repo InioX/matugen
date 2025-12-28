@@ -66,7 +66,7 @@ output_path = "./a/colors-generated.whatever-extension"
 # input_path_modes = { dark = "./colors.whatever-extension", light = "./colors.whatever-extension" }
 
 # This will compare all of the colors inside the array with the color you set as `compare_to`, and returns the closest color to it.
-# You can then use `{{closest_color}}` inside templates and hooks.
+# You can then use `{{closest_color}}` inside hooks.
 colors_to_compare = [
     { name = "black", color = "#000000" },
     { name = "red", color = "#ff0000" },
