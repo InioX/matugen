@@ -324,7 +324,7 @@ impl State {
 
         if let Some(_wallpaper_cfg) = &self.config_file.config.wallpaper {
             if _wallpaper_cfg.set.unwrap_or(true) {
-                set_wallpaper(&self.args.source, _wallpaper_cfg)?;
+                set_wallpaper(&self.args.source, _wallpaper_cfg, &mut engine)?;
             }
         }
 
