@@ -4,7 +4,7 @@ use crate::{
         format::argb_from_rgb,
         parse::parse_css_color,
     },
-    parser::engine::EngineSyntax,
+    parser::{engine::EngineSyntax, Engine},
     scheme::{get_custom_color_schemes, get_schemes, Schemes},
     util::config::ConfigFile,
     wallpaper::{self, Wallpaper},
@@ -162,7 +162,11 @@ pub fn setup_logging(args: &Cli) -> Result<(), Report> {
     Ok(())
 }
 
-pub fn set_wallpaper(source: &Source, _wallpaper_cfg: &Wallpaper) -> Result<(), Report> {
+pub fn set_wallpaper(
+    source: &Source,
+    _wallpaper_cfg: &Wallpaper,
+    _engine: &mut Engine,
+) -> Result<(), Report> {
     let path = match &source {
         Source::Image { path } => path,
         Source::Color { .. } => return Ok(()),
@@ -176,7 +180,7 @@ pub fn set_wallpaper(source: &Source, _wallpaper_cfg: &Wallpaper) -> Result<(), 
     #[cfg(target_os = "macos")]
     wallpaper::macos::set(&path)?;
     #[cfg(any(target_os = "linux", target_os = "netbsd"))]
-    wallpaper::unix::set(path, _wallpaper_cfg)?;
+    wallpaper::unix::set(path, _wallpaper_cfg, _engine)?;
     Ok(())
 }
 
