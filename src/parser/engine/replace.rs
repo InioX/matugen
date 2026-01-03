@@ -172,6 +172,7 @@ impl Engine {
                             source,
                             keyword.span,
                             name,
+                            true,
                         )
                         .to_string(),
                 );
@@ -489,6 +490,7 @@ impl Engine {
                     source,
                     keyword.span,
                     name,
+                    format_value,
                 ))
             }
             Expression::LiteralValue { value } => value.value.clone(),
@@ -575,6 +577,7 @@ impl Engine {
         source: &String,
         span: SimpleSpan,
         name: &str,
+        format_value: bool,
     ) -> FilterReturnType {
         let is_color = match &current_value {
             FilterReturnType::Rgb(_) => true,
@@ -608,6 +611,7 @@ impl Engine {
                                         source,
                                         span,
                                         name,
+                                        false,
                                     )
                                     .into(),
                                 span: arg.span,
@@ -675,6 +679,10 @@ impl Engine {
             Some(v) => self.get_format(v),
             None => "hex",
         };
+
+        if !format_value {
+            return current_value;
+        }
 
         match current_value {
             FilterReturnType::String(_) => current_value,

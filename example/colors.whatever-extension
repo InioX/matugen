@@ -14,6 +14,9 @@ normal: {{ colors.green_source.default.hex }}
 blended_full: {{ colors.green_source.default.hex | blend: {{ colors.source_color.default.hex }}, 1.0 }}
 blended_half: {{ colors.green_source.default.hex | blend: {{ colors.source_color.default.hex }}, 0.5 }}
 harmonized: {{ colors.green_source.default.hex | harmonize: {{ colors.source_color.default.hex }} }}
+blended_full_red: {{ colors.green_source.default.hex | blend: {{ "#FF0000" | to_color }}, 1.0 }}
+blended_full_green: {{ colors.green_source.default.hex | blend: {{ "#00FF00" | to_color }}, 1.0 }}
+blended_full_blue: {{ colors.green_source.default.hex | blend: {{ "#0000FF" | to_color }}, 1.0 }}
 
 
 {{ "#ffbf9b" | to_color | set_lightness: <* if {{ is_dark_mode }} *> {{ int }} <* else *> {{ int2 }} <* endif *> }}
