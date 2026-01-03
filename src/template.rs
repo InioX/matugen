@@ -245,7 +245,7 @@ impl TemplateFile<'_> {
     }
 }
 
-fn format_hook(
+pub fn format_hook(
     engine: &mut Engine,
     hook: &String,
     colors_to_compare: &Option<Vec<crate::color::color::ColorDefinition>>,

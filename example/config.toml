@@ -35,13 +35,10 @@ import_json_files = ["./custom3.json"]
 # Whether to set the wallpaper or not
 set = true
 
-# The base command to run for applying the wallpaper, shouldn't have spaces in it.
-command = "swww"
-
-# The arguments that will be provided to the command.
-# Keywords like {{ mode }} or anything that works inside of hooks doesn't work here.
-# The last argument will be the image path.
-arguments = ["img", "--transition-type", "center"]
+# The base command to run for applying the wallpaper.
+# Keywords like {{ image }} or anything that works inside of hooks works here.
+# You could also set a static color if you use the color keywords and the wallpaper setter supports it.
+command = "swww img --transition-type center {{ image }}"
 
 # For example, killing the wallpaper daemon. Usage is like a normal hook.
 # pre_hook = ""
@@ -66,7 +63,7 @@ output_path = "./a/colors-generated.whatever-extension"
 # input_path_modes = { dark = "./colors.whatever-extension", light = "./colors.whatever-extension" }
 
 # This will compare all of the colors inside the array with the color you set as `compare_to`, and returns the closest color to it.
-# You can then use `{{closest_color}}` inside templates and hooks.
+# You can then use `{{closest_color}}` inside hooks.
 colors_to_compare = [
     { name = "black", color = "#000000" },
     { name = "red", color = "#ff0000" },
