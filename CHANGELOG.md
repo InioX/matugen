@@ -6,6 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0](https://github.com/InioX/matugen/compare/v3.1.0...v3.2.0) - 2026-01-03
+
+### Added
+
+- add `--alternative-json-output` ([#230](https://github.com/InioX/matugen/pull/230))
+
+### Fixed
+
+- `to_color` filter formatting value automatically
+- change error message wiki link
+- `0.05` not being parsed properly ([#232](https://github.com/InioX/matugen/pull/232))
+- make `red`,`green`,`blue` be actual ints ([#225](https://github.com/InioX/matugen/pull/225))
+
+### Other
+
+- update wiki link under header
+- update wiki link
+- change README features and add wiki reference
+- Add Kofi button and change text position in header
+- Add Ko-fi username for funding
+
 ## [3.1.0](https://github.com/InioX/matugen/compare/v3.0.0...v3.1.0) - 2025-11-23
 
 ### Added
