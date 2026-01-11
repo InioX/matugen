@@ -7,9 +7,11 @@ use material_colors::{palette::TonalPalette, theme::Palettes};
 use prettytable::{format, Cell, Row, Table};
 
 use colorsys::Rgb;
-use serde_json::Value;
+use serde_json::{Map, Value};
 
-use crate::{color::parse::parse_css_color, parser::engine::format_color, Schemes};
+use crate::{
+    color::parse::parse_css_color, parser::engine::format_color, scheme::SchemesEnum, Schemes,
+};
 
 #[cfg(feature = "dump-json")]
 use super::arguments::Format;
@@ -20,10 +22,17 @@ const DEFAULT_TONES: [i32; 18] = [
     0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100,
 ];
 
-pub fn show_color(schemes: &Schemes, source_color: &Argb) {
+pub fn show_color(schemes: &Schemes, source_color: &Argb, base16: &Schemes) {
     let mut table: Table = generate_table_format();
 
     for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark) {
+        let color_light: Rgb = rgb_from_argb(*color_light);
+        let color_dark: Rgb = rgb_from_argb(*color_dark);
+
+        generate_table_rows(&mut table, field, color_light, color_dark);
+    }
+
+    for ((field, color_light), (_, color_dark)) in std::iter::zip(&base16.light, &base16.dark) {
         let color_light: Rgb = rgb_from_argb(*color_light);
         let color_dark: Rgb = rgb_from_argb(*color_dark);
 
@@ -79,6 +88,37 @@ pub fn dump_json(json: &mut Value, format: &Format, alt_output: Option<bool>) {
     }
 
     println!("{}", serde_json::to_string_pretty(&json).unwrap());
+}
+
+pub fn format_schemes(
+    schemes: &Schemes,
+    default_scheme: SchemesEnum,
+    names: Vec<&String>,
+) -> IndexMap<String, Value> {
+    let mut scheme_map = IndexMap::new();
+
+    for name in names {
+        let dark_hex = schemes.dark.get(name).unwrap().to_hex_with_pound();
+        let light_hex = schemes.light.get(name).unwrap().to_hex_with_pound();
+        let default_hex = match default_scheme {
+            SchemesEnum::Dark => dark_hex.clone(),
+            SchemesEnum::Light => light_hex.clone(),
+        };
+
+        let mut schemes = Map::new();
+        schemes.insert("dark".to_string(), color_entry(dark_hex));
+        schemes.insert("light".to_string(), color_entry(light_hex));
+        schemes.insert("default".to_string(), color_entry(default_hex));
+        scheme_map.insert(name.to_string(), Value::Object(schemes));
+    }
+
+    scheme_map
+}
+
+pub fn color_entry(hex: String) -> Value {
+    let mut m = Map::new();
+    m.insert("color".to_string(), Value::String(hex));
+    Value::Object(m)
 }
 
 pub fn format_palettes(palettes: &Palettes, format: &Format) -> serde_json::Value {
