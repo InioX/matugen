@@ -23,11 +23,12 @@ use sha2::{Digest, Sha256};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CacheFile {
-    colors: SchemesCache,
+    colors: ArgbSchemes,
+    base16: ArgbSchemes,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct SchemesCache {
+struct ArgbSchemes {
     light: IndexMap<String, ArgbHelper>,
     dark: IndexMap<String, ArgbHelper>,
 }
@@ -184,7 +185,7 @@ impl ImageCache {
         Ok(())
     }
 
-    pub fn load(&self) -> Result<Schemes, Report> {
+    pub fn load(&self) -> Result<(Schemes, Schemes), Report> {
         let path = self.get_path();
 
         let string = read_to_string(&path)?;
@@ -196,9 +197,14 @@ impl ImageCache {
             light: convert_helper_scheme(&json.colors.light),
         };
 
+        let base16_schemes = Schemes {
+            dark: convert_helper_scheme(&json.base16.dark),
+            light: convert_helper_scheme(&json.base16.light),
+        };
+
         success!("Loaded cache from <d><u>{}</>", path.display());
 
-        Ok(schemes_enum)
+        Ok((schemes_enum, base16_schemes))
     }
 
     fn get_name(&self) -> PathBuf {

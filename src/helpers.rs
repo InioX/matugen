@@ -1,7 +1,8 @@
 use crate::{
     color::{
+        base16::generate_base16_schemes,
         color::{get_source_color, Source},
-        format::argb_from_rgb,
+        format::{argb_from_rgb, rgb_from_argb},
         parse::parse_css_color,
     },
     parser::{engine::EngineSyntax, Engine},
@@ -13,6 +14,7 @@ use color_eyre::{
     eyre::{Context, Result},
     Report,
 };
+use indexmap::IndexMap;
 use log::LevelFilter;
 use material_colors::{
     color::Argb,
@@ -28,7 +30,15 @@ pub fn generate_schemes_and_theme(
     config_file: &ConfigFile,
     fallback_color: &Option<String>,
     fallback_color_args: &Option<String>,
-) -> Result<(Option<Schemes>, Option<Argb>, Option<Theme>), Report> {
+) -> Result<
+    (
+        Option<Schemes>,
+        Option<Argb>,
+        Option<Theme>,
+        Option<Schemes>,
+    ),
+    Report,
+> {
     let fallback = if fallback_color_args.is_some() {
         fallback_color_args
     } else {
@@ -73,7 +83,18 @@ pub fn generate_schemes_and_theme(
         None => (None, None),
     };
 
-    Ok((schemes, source_color, theme))
+    let base_16 = match source_color {
+        Some(c) => {
+            let rgb = rgb_from_argb(c);
+
+            let schemes = generate_base16_schemes(rgb)
+                .wrap_err("Failed to generate base16 color schemes.")?;
+            Some(schemes)
+        }
+        None => None,
+    };
+
+    Ok((schemes, source_color, theme, base_16))
 }
 
 pub fn get_log_level(args: &Cli) -> LevelFilter {
@@ -182,12 +203,6 @@ pub fn set_wallpaper(
     #[cfg(any(target_os = "linux", target_os = "netbsd"))]
     wallpaper::unix::set(path, _wallpaper_cfg, _engine)?;
     Ok(())
-}
-
-pub fn color_entry(hex: String) -> Value {
-    let mut m = Map::new();
-    m.insert("color".to_string(), Value::String(hex));
-    Value::Object(m)
 }
 
 pub fn merge_json(a: &mut Value, b: Value) {

@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use indexmap::IndexMap;
 use material_colors::theme::ThemeBuilder;
-use serde_json::{Map, Value};
+use serde_json::{value::Index, Map, Value};
 
 mod helpers;
 pub mod template;
@@ -17,12 +17,12 @@ mod wallpaper;
 use crate::{
     cache::ImageCache,
     color::color::Source,
-    helpers::{color_entry, generate_schemes_and_theme, get_syntax, json_from_file, merge_json},
+    helpers::{generate_schemes_and_theme, get_syntax, json_from_file, merge_json},
     scheme::SchemeTypes,
     template::get_absolute_path,
     util::{
         arguments::{FilterType, Format},
-        color::format_palettes,
+        color::{format_palettes, format_schemes},
     },
 };
 use helpers::{set_wallpaper, setup_logging};
@@ -61,6 +61,7 @@ pub struct State {
     pub default_scheme: SchemesEnum,
     pub image_hash: ImageCache,
     pub loaded_cache: bool,
+    base16: Option<Schemes>,
 }
 
 impl State {
@@ -68,7 +69,7 @@ impl State {
         let (config_file, config_path) =
             ConfigFile::read(&args).wrap_err("Failed to read config file.")?;
 
-        let image_hash = ImageCache::new(&args.source);
+        let image_cache = ImageCache::new(&args.source);
 
         let mut loaded_cache = false;
 
@@ -78,9 +79,9 @@ impl State {
             .mode
             .ok_or_else(|| Report::msg("Something went wrong while parsing the mode"))?;
 
-        let (schemes, source_color, theme) = if caching_enabled {
-            match image_hash.load() {
-                Ok(schemes) => {
+        let (schemes, source_color, theme, base16) = if caching_enabled {
+            match image_cache.load() {
+                Ok((schemes, base16)) => {
                     // Source color will be the same in both light and dark mode
                     let source_color = *schemes.dark.clone().get("source_color").unwrap();
 
@@ -88,13 +89,13 @@ impl State {
 
                     loaded_cache = true;
 
-                    (Some(schemes), Some(source_color), Some(theme))
+                    (Some(schemes), Some(source_color), Some(theme), None)
                 }
                 Err(e) => {
-                    if !image_hash.exists() {
+                    if !image_cache.exists() {
                         warn!(
                             "<d>The cache in <yellow><b>{}</><d> doesn't exist.</>",
-                            image_hash.get_path().display()
+                            image_cache.get_path().display()
                         );
                         generate_schemes_and_theme(
                             &args,
@@ -124,8 +125,9 @@ impl State {
             theme,
             schemes,
             default_scheme,
-            image_hash,
+            image_hash: image_cache,
             loaded_cache,
+            base16,
         })
     }
 
@@ -147,28 +149,26 @@ impl State {
             Source::Json { path } => json_from_file(&PathBuf::from(path)).unwrap(),
             _ => {
                 let schemes = self.schemes.as_ref().unwrap();
+                let base16 = self.base16.as_ref().unwrap();
                 let palettes = &self.theme.as_ref().unwrap().palettes;
 
-                let mut modified = IndexMap::new();
-                for name in schemes.get_all_names() {
-                    let dark_hex = schemes.dark.get(name).unwrap().to_hex_with_pound();
-                    let light_hex = schemes.light.get(name).unwrap().to_hex_with_pound();
-                    let default_hex = match self.default_scheme {
-                        SchemesEnum::Dark => dark_hex.clone(),
-                        SchemesEnum::Light => light_hex.clone(),
-                    };
+                let colors_md3 = format_schemes(
+                    schemes,
+                    self.default_scheme,
+                    self.schemes.as_ref().unwrap().get_all_names(),
+                );
 
-                    let mut schemes = Map::new();
-                    schemes.insert("dark".to_string(), color_entry(dark_hex));
-                    schemes.insert("light".to_string(), color_entry(light_hex));
-                    schemes.insert("default".to_string(), color_entry(default_hex));
-                    modified.insert(name.to_string(), Value::Object(schemes));
-                }
+                let base16 = format_schemes(
+                    base16,
+                    self.default_scheme,
+                    self.base16.as_ref().unwrap().get_all_names(),
+                );
 
                 let palettes = format_palettes(palettes, &Format::Hex);
 
                 let modified = serde_json::json!({
-                    "colors": modified,
+                    "colors": colors_md3,
+                    "base16": base16,
                     "palettes": palettes
                 });
 
@@ -298,6 +298,7 @@ impl State {
             show_color(
                 &self.schemes.as_ref().unwrap(),
                 &self.source_color.as_ref().unwrap(),
+                &self.base16.as_ref().unwrap(),
             );
         }
 

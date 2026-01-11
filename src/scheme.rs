@@ -28,7 +28,7 @@ pub struct Schemes {
 }
 
 impl Schemes {
-    pub fn get_all_schemes(&self) -> [&str; 2] {
+    pub fn get_all_md3_schemes(&self) -> [&str; 2] {
         ["light", "dark"]
     }
     pub fn get_all_names(&self) -> Vec<&String> {
