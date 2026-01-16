@@ -1,7 +1,7 @@
-use clap::{arg, ArgAction, Parser};
+use clap::{ArgAction, Parser};
 use std::path::PathBuf;
 
-use crate::SchemesEnum;
+use crate::{color::base16::Backend, SchemesEnum};
 
 #[derive(Parser, Clone)]
 #[command(version, long_about = None)]
@@ -95,6 +95,10 @@ pub struct Cli {
     /// Whether to make the outputted json compatible with the --import-json flag.
     #[arg(long, global = true, action=ArgAction::SetTrue)]
     pub alternative_json_output: Option<bool>,
+
+    /// Backend to use for base16 color scheme generation
+    #[arg(value_enum, short, long, global = true)]
+    pub base16_backend: Option<Backend>,
 }
 
 #[derive(Parser, Debug, Clone, clap::ValueEnum)]

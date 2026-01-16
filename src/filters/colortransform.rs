@@ -174,11 +174,11 @@ pub(crate) fn blend(
     match original {
         FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(color) => {
-            let res = hct_hue(argb_from_rgb(color), argb_from_rgb(blend_with), amount);
+            let res = hct_hue(argb_from_rgb(&color), argb_from_rgb(&blend_with), amount);
             Ok(FilterReturnType::Rgb(rgb_from_argb(res)))
         }
         FilterReturnType::Hsl(color) => {
-            let res = hct_hue(argb_from_hsl(color), argb_from_rgb(blend_with), amount);
+            let res = hct_hue(argb_from_hsl(&color), argb_from_rgb(&blend_with), amount);
             Ok(FilterReturnType::Hsl(hsl_from_argb(res)))
         }
         FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
@@ -196,11 +196,11 @@ pub(crate) fn harmonize(
     match original {
         FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
         FilterReturnType::Rgb(color) => {
-            let res = md3_harmonize(argb_from_rgb(color), argb_from_rgb(blend_with));
+            let res = md3_harmonize(argb_from_rgb(&color), argb_from_rgb(&blend_with));
             Ok(FilterReturnType::Rgb(rgb_from_argb(res)))
         }
         FilterReturnType::Hsl(color) => {
-            let res = md3_harmonize(argb_from_hsl(color), argb_from_rgb(blend_with));
+            let res = md3_harmonize(argb_from_hsl(&color), argb_from_rgb(&blend_with));
             Ok(FilterReturnType::Hsl(hsl_from_argb(res)))
         }
         FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),

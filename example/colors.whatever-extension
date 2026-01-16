@@ -8,6 +8,13 @@
 
 {{ palettes.error._99.hex }}
 
+Base16
+{{ base16.base00.dark.hex }}
+{{ base16.base00.light.hex }}
+
+{{ base16.base0f.dark.hex }}
+{{ base16.base0f.light.hex }}
+
 Escaped: \{{
 
 normal: {{ colors.green_source.default.hex }}

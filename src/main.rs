@@ -5,9 +5,8 @@ extern crate pretty_env_logger;
 extern crate paris_log;
 use std::path::PathBuf;
 
-use indexmap::IndexMap;
 use material_colors::theme::ThemeBuilder;
-use serde_json::{value::Index, Map, Value};
+use serde_json::Value;
 
 mod helpers;
 pub mod template;
@@ -16,7 +15,7 @@ mod wallpaper;
 
 use crate::{
     cache::ImageCache,
-    color::color::Source,
+    color::{base16::Backend, color::Source},
     helpers::{generate_schemes_and_theme, get_syntax, json_from_file, merge_json},
     scheme::SchemeTypes,
     template::get_absolute_path,
@@ -34,7 +33,7 @@ use crate::{
 };
 
 use clap::Parser;
-use color_eyre::{eyre::Context, Report};
+use color_eyre::{eyre::Context, Report, Section};
 
 pub mod cache;
 pub mod color;
@@ -89,7 +88,7 @@ impl State {
 
                     loaded_cache = true;
 
-                    (Some(schemes), Some(source_color), Some(theme), None)
+                    (Some(schemes), Some(source_color), Some(theme), Some(base16))
                 }
                 Err(e) => {
                     if !image_cache.exists() {
@@ -101,20 +100,14 @@ impl State {
                             &args,
                             &config_file,
                             &config_file.config.fallback_color,
-                            &args.fallback_color,
                         )?
                     } else {
-                        return Err(e.wrap_err("Couldn't load the cache file"));
+                        return Err(e.wrap_err("Couldn't load the cache file").suggestion("You may need to regenerate your cache if coming from v3.1.0 and lower."));
                     }
                 }
             }
         } else {
-            generate_schemes_and_theme(
-                &args,
-                &config_file,
-                &config_file.config.fallback_color,
-                &args.fallback_color,
-            )?
+            generate_schemes_and_theme(&args, &config_file, &config_file.config.fallback_color)?
         };
 
         Ok(Self {
@@ -224,6 +217,10 @@ impl State {
             "colors": {
                 "dark": cache::convert_argb_scheme(&self.schemes.as_ref().unwrap().dark),
                 "light": cache::convert_argb_scheme(&self.schemes.as_ref().unwrap().light),
+            },
+            "base16": {
+                "dark": cache::convert_argb_scheme(&self.base16.as_ref().unwrap().dark),
+                "light": cache::convert_argb_scheme(&self.base16.as_ref().unwrap().light),
             },
         });
 
@@ -360,6 +357,7 @@ fn main() -> Result<(), Report> {
         continue_on_error: Some(false),
         fallback_color: None,
         alternative_json_output: Some(false),
+        base16_backend: Some(Backend::Wal),
     };
 
     let args = Cli::parse();

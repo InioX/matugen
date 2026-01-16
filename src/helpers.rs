@@ -1,8 +1,8 @@
 use crate::{
     color::{
-        base16::generate_base16_schemes,
+        base16::{generate_base16_schemes, Backend},
         color::{get_source_color, Source},
-        format::{argb_from_rgb, rgb_from_argb},
+        format::argb_from_rgb,
         parse::parse_css_color,
     },
     parser::{engine::EngineSyntax, Engine},
@@ -14,13 +14,12 @@ use color_eyre::{
     eyre::{Context, Result},
     Report,
 };
-use indexmap::IndexMap;
 use log::LevelFilter;
 use material_colors::{
     color::Argb,
     theme::{Theme, ThemeBuilder},
 };
-use serde_json::{Map, Value};
+use serde_json::Value;
 use std::{fs::read_to_string, io::Write, path::PathBuf};
 
 use crate::util::arguments::Cli;
@@ -29,7 +28,6 @@ pub fn generate_schemes_and_theme(
     args: &Cli,
     config_file: &ConfigFile,
     fallback_color: &Option<String>,
-    fallback_color_args: &Option<String>,
 ) -> Result<
     (
         Option<Schemes>,
@@ -39,8 +37,8 @@ pub fn generate_schemes_and_theme(
     ),
     Report,
 > {
-    let fallback = if fallback_color_args.is_some() {
-        fallback_color_args
+    let fallback = if args.fallback_color.is_some() {
+        &args.fallback_color
     } else {
         fallback_color
     };
@@ -49,7 +47,7 @@ pub fn generate_schemes_and_theme(
         Some(s) => {
             let c = parse_css_color(&s)
                 .wrap_err("Failed to parse the fallback_color string as a css color")?;
-            Some(argb_from_rgb(c))
+            Some(argb_from_rgb(&c))
         }
         None => None,
     };
@@ -83,15 +81,14 @@ pub fn generate_schemes_and_theme(
         None => (None, None),
     };
 
-    let base_16 = match source_color {
-        Some(c) => {
-            let rgb = rgb_from_argb(c);
-
-            let schemes = generate_base16_schemes(rgb)
-                .wrap_err("Failed to generate base16 color schemes.")?;
+    let base_16 = match &args.source {
+        Source::Image { path } => {
+            let schemes =
+                generate_base16_schemes(path, args.base16_backend.clone().unwrap_or(Backend::Wal))
+                    .wrap_err("Failed to generate base16 color schemes.")?;
             Some(schemes)
         }
-        None => None,
+        _ => None,
     };
 
     Ok((schemes, source_color, theme, base_16))
