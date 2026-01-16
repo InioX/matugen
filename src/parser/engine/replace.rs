@@ -123,11 +123,11 @@ pub fn format_color_all(base_color: Rgb) -> IndexMap<String, Value> {
     );
     map.insert(
         "saturation".to_string(),
-        Value::Ident(format!("{:?}", &hsl_color.lightness())),
+        Value::Ident(format!("{:?}", &hsl_color.saturation())),
     );
     map.insert(
         "lightness".to_string(),
-        Value::Ident(format!("{:?}", &hsl_color.saturation())),
+        Value::Ident(format!("{:?}", &hsl_color.lightness())),
     );
 
     map
