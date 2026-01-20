@@ -55,6 +55,12 @@ mode: {{ mode }}
     False
 <* endif *>
 
+<* if not {{ is_dark_mode }} *>
+    not dark mode
+<* else *>
+    is dark mode
+<* endif *>
+
 test {{ colors.source_color.default.rgb | lighten: 20.0 }}
 test {{ colors.source_color.default.rgb | lighten: -20.0 }}
 test {{ colors.source_color.default.rgb | saturate: -20.0, hsl }}

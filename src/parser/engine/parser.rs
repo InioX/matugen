@@ -235,9 +235,16 @@ impl Engine {
                     })
                 });
 
+            let negation = just("not")
+                .padded()
+                .to(true)
+                .or_not()
+                .map(|n| n.unwrap_or(false));
+
             let if_statement = just("if")
                 .padded()
-                .ignore_then(keyword_full.clone().padded())
+                .ignore_then(negation)
+                .then(keyword_full.clone().padded())
                 .then_ignore(just(syntax.block_right.as_str()).padded())
                 .then(expr.clone().repeated().collect())
                 .then(
@@ -255,12 +262,13 @@ impl Engine {
                         just(syntax.block_right.as_str()),
                     ),
                 )
-                .map_with(|((condition, then_branch), else_branch), e| {
+                .map_with(|(((negated, condition), then_branch), else_branch), e| {
                     Box::new(SpannedExpr {
                         expr: Expression::If {
                             condition: condition,
                             then_branch: then_branch,
                             else_branch: else_branch,
+                            negated: negated,
                         },
                         span: e.span(),
                     })

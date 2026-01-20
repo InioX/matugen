@@ -509,9 +509,16 @@ impl Engine {
                 condition,
                 then_branch,
                 else_branch,
+                negated,
             } => {
                 let bool = match self.get_value(condition, source, false, get_color_value, name) {
-                    Value::Bool(b) => b,
+                    Value::Bool(b) => {
+                        if *negated {
+                            !b
+                        } else {
+                            b
+                        }
+                    }
                     _ => {
                         self.errors.add(Error::ParseError {
                             kind: ParseErrorKind::If(IfError::InvalidIfCondition),

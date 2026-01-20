@@ -43,6 +43,7 @@ enum Expression {
         condition: Box<SpannedExpr>,
         then_branch: Vec<Box<SpannedExpr>>,
         else_branch: Option<Vec<Box<SpannedExpr>>>,
+        negated: bool,
     },
     Range {
         start: i64,
