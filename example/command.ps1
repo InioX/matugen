@@ -8,7 +8,7 @@ cargo run --release --features=dump-json -- image "$ImagePath" `
     --import-json "./example/custom.json" `
     --import-json "./example/custom2.json" `
     --import-json-string "{ \`"text3\`": \`"Hello from args!\`" }" `
-    --debug `
+    --verbose `
     --config "./example/config.toml" `
     --continue-on-error `
     --fallback-color "#0000ff" `
@@ -16,6 +16,6 @@ cargo run --release --features=dump-json -- image "$ImagePath" `
     --alternative-json-output `
     --base16-backend "wal" `
     --lightness-dark -0.1 `
-    --lightness-light -0.1 `
-    --source-color-index 0 
+    --lightness-light -0.1
+    # --source-color-index 0 
     # --json hex
