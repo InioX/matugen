@@ -99,6 +99,11 @@ pub struct Cli {
     /// Backend to use for base16 color scheme generation
     #[arg(value_enum, short, long, global = true)]
     pub base16_backend: Option<Backend>,
+
+    #[cfg(feature = "filter-docs")]
+    /// Outputs filter documentation in HTML format
+    #[arg(long, global = true, action=ArgAction::SetTrue)]
+    pub filter_docs_html: Option<bool>,
 }
 
 #[derive(Parser, Debug, Clone, clap::ValueEnum)]
