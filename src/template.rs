@@ -123,7 +123,8 @@ impl TemplateFile<'_> {
         }
 
         // Iterate over sorted templates when running command hooks
-        let mut templates: Vec<(&String, &Template)> = self.state.config_file.templates.iter().collect();
+        let mut templates: Vec<(&String, &Template)> =
+            self.state.config_file.templates.iter().collect();
         // Templates with an unspecified `index` default to 0
         templates.sort_by_key(|(_, Template { index, .. })| index.unwrap_or(0));
 
