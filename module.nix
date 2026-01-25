@@ -233,7 +233,7 @@ in {
     };
 
     source_color_index = lib.mkOption {
-      description = "Will automatically pick a source color based on the index provided (0 - 4), 0 = most dominant, 1 = 2nd most dominant, etc."
+      description = "Will automatically pick a source color based on the index provided (0 - 4), 0 = most dominant, 1 = 2nd most dominant, etc.";
       type = lib.types.ints.between 0 4;
       default = 0;
       example = "1";
