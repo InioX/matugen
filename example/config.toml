@@ -101,5 +101,5 @@ expr_postfix = "}}"
 # For an example of importing json see: https://iniox.github.io/#matugen/usage/importing-json
 [config.custom_colors]
 red = "#ff0000"
-blue = { color = "#0000ff" }
-green = { color = "#00ff00" }
+blue = "#0000ff"
+green = "#00ff00"
