@@ -222,8 +222,6 @@ in {
       type = lib.types.addCheck lib.types.number (lightness_dark: lightness_dark <= 1);
       default = 0;
       example = "0.2";
-      
-      check = lightness_light: lightness_light >= -1;
     };
 
     lightness_light = lib.mkOption {
