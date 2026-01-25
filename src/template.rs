@@ -34,6 +34,7 @@ pub struct Template {
     pub expr_postfix: Option<String>,
     pub block_prefix: Option<String>,
     pub block_postfix: Option<String>,
+    pub index: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -121,7 +122,12 @@ impl TemplateFile<'_> {
             };
         }
 
-        for (name, template) in self.state.config_file.templates.iter() {
+        // Iterate over sorted templates when running command hooks
+        let mut templates: Vec<(&String, &Template)> = self.state.config_file.templates.iter().collect();
+        // Templates with an unspecified `index` default to 0
+        templates.sort_by_key(|(_, Template { index, .. })| index.unwrap_or(0));
+
+        for (name, template) in templates {
             if let Some(hook) = &template.pre_hook {
                 info!("Running pre_hook for the <b><cyan>{}</> template.", &name);
                 format_hook(
