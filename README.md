@@ -52,18 +52,19 @@
 > [!TIP]
 > If you would like to learn more about the features and configuration, read the wiki <a href="https://iniox.github.io/#matugen">here.</a>
 
-- **Templating engine built with Chumsky (designed for colors)**
+- **Templating engine built with Chumsky (designed for colors)** - [Read More](https://iniox.github.io/#matugen/templates)
   - Custom engine focused on making color manipulation simple and efficient
   - Import a color once in any format and automatically access all other formats (`hex`, `rgb`, `rgba`, `hsl`, etc.)
   - Colors are parsed as real color objects, not strings, making filters faster and more reliable
-  - Supports piping, nested expressions, and can be used as a standalone templating engine
+  - Supports piping, nested expressions, conditionals, loops, filters, includes, arithmetic operations, escaping output.
+  - Can be used as a standalone templating engine. You can import custom json files or define and override them in the CLI.
 
 - **Generate / Export Material You color palettes**
   - Generate a full Material You palette from either an image or a single color
   - Export the generated palette as JSON or reference palette keywords directly within templates
   - Easily integrate palette values into config files, themes, or style templates
 
-- **Keyword Filters**
+- **Keyword Filters** - [Read More](https://iniox.github.io/#matugen/filters)
   - Modify any keyword using filters such as `replace`, `to_upper`, `to_lower`, and `set_lightness`
   - Includes built-in color filters for adjusting hue, saturation, lightness, opacity, and more
   - Filters can be chained together for powerful inline transformations
@@ -74,7 +75,7 @@
   - Useful for adding custom theme data, config variables, or full color schemes
 
 - **Palette Customization**
-  - Adjust contrast levels and choose the scheme type (light, dark, or custom variants)
+  - Adjust contrast, lightness and choose the scheme type (light, dark, or custom variants)
   - Fine-tune the generated palette to match your preference or application theme
 
 ### Other projects
