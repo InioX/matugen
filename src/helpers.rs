@@ -72,6 +72,8 @@ pub fn generate_schemes_and_theme(
                 &config_file.config.custom_colors,
                 &args.r#type,
                 &args.contrast,
+                &args.lightness_dark,
+                &args.lightness_light,
             );
 
             schemes.dark.insert("source_color".to_owned(), color);

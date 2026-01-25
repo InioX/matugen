@@ -662,6 +662,8 @@ fn main() -> Result<(), Report> {
         base16_backend: Some(Backend::Wal),
         #[cfg(feature = "filter-docs")]
         filter_docs_html: Some(false),
+        lightness_dark: Some(0.0),
+        lightness_light: Some(0.0),
     };
 
     let args = Cli::parse();

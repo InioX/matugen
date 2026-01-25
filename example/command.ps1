@@ -14,5 +14,7 @@ cargo run --release --features=dump-json -- image "$ImagePath" `
     --fallback-color "#0000ff" `
     --show-colors `
     --alternative-json-output `
-    --base16-backend "wal"
+    --base16-backend "wal" `
+    --lightness-dark -0.1 `
+    --lightness-light -0.1 `
     # --json hex

@@ -5,7 +5,10 @@ use indexmap::IndexMap;
 use material_colors::scheme::Scheme;
 use serde::Serialize;
 
-use crate::color::color::{generate_dynamic_scheme, make_custom_color, OwnCustomColor};
+use crate::color::color::{
+    adjust_color_lightness_dark, adjust_color_lightness_light, generate_dynamic_scheme,
+    make_custom_color, OwnCustomColor,
+};
 
 #[allow(clippy::enum_variant_names)]
 #[derive(Clone, clap::ValueEnum, Debug, Copy, PartialEq)]
@@ -76,6 +79,8 @@ pub fn get_custom_color_schemes(
     custom_colors: &Option<HashMap<String, OwnCustomColor, std::hash::RandomState>>,
     scheme_type: &Option<SchemeTypes>,
     contrast: &Option<f64>,
+    lightness_dark: &Option<f64>,
+    lightness_light: &Option<f64>,
 ) -> Schemes {
     macro_rules! from_color {
         ($color: expr, $variant: ident) => {
@@ -119,8 +124,18 @@ pub fn get_custom_color_schemes(
     let custom_colors_light = custom_colors.flat_map(|c| from_color!(c, light));
 
     let schemes: Schemes = Schemes {
-        dark: IndexMap::from_iter(scheme_dark.into_iter().chain(custom_colors_dark)),
-        light: IndexMap::from_iter(scheme_light.into_iter().chain(custom_colors_light)),
+        dark: IndexMap::from_iter(
+            scheme_dark
+                .into_iter()
+                .chain(custom_colors_dark)
+                .map(|(name, color)| (name, adjust_color_lightness_dark(color, lightness_dark))),
+        ),
+        light: IndexMap::from_iter(
+            scheme_light
+                .into_iter()
+                .chain(custom_colors_light)
+                .map(|(name, color)| (name, adjust_color_lightness_light(color, lightness_light))),
+        ),
     };
     schemes
 }
