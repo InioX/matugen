@@ -148,3 +148,5 @@ invert twice
 {{ colors.source_color.default.hex | invert | invert }}
 
 chain together {{ colors.source_color.default.hex | set_alpha: 0.7 | invert }}
+
+{{ "red" | to_color }}
