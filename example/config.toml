@@ -53,6 +53,10 @@ input_path = "./include.txt"
 input_path = "./colors.whatever-extension"
 output_path = "./a/colors-generated.whatever-extension"
 
+# Defaults to a value of 0 if unspecified, determines the order that each template is processed.
+# You can use index = n to force a particular template hook to run after everything else, and index = -n for before everything else
+index = 1
+
 # For testing of the `--continue-on-error` flag
 # [templates.ishoulderror]
 # Relative paths will be resolved from the path `config.toml` is in.
