@@ -55,8 +55,13 @@ pub fn generate_schemes_and_theme(
     let source_color = match &args.source {
         Source::Json { path: _ } => None,
         _ => Some(
-            (get_source_color(&args.source, &args.resize_filter, parsed_fallback_color))
-                .wrap_err("Failed to get source color.")?,
+            (get_source_color(
+                &args.source,
+                &args.resize_filter,
+                parsed_fallback_color,
+                &args.source_color_index,
+            ))
+            .wrap_err("Failed to get source color.")?,
         ),
     };
 
