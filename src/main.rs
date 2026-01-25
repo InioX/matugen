@@ -664,6 +664,7 @@ fn main() -> Result<(), Report> {
         filter_docs_html: Some(false),
         lightness_dark: Some(0.0),
         lightness_light: Some(0.0),
+        source_color_index: None,
     };
 
     let args = Cli::parse();

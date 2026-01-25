@@ -204,7 +204,7 @@ fn generate_table_rows(table: &mut Table, field: &str, color_light: Rgb, color_d
     ]));
 }
 
-fn generate_style(color: &Rgb) -> Style {
+pub fn generate_style(color: &Rgb) -> Style {
     let luma = color.red() as u16 + color.blue() as u16 + color.green() as u16;
 
     let owo_color: owo_colors::Rgb =

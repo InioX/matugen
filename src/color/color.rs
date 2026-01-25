@@ -1,3 +1,4 @@
+use dialoguer::Select;
 use material_colors::{
     blend::harmonize,
     color::Argb,
@@ -13,12 +14,13 @@ use material_colors::{
     theme::{ColorGroup, CustomColor, CustomColorGroup},
 };
 
+use crate::FilterType as OwnFilterType;
+use crate::{color::format::rgb_from_argb, util::color::generate_style};
+use crate::{color::math::get_color_distance_lab, scheme::SchemeTypes};
 use color_eyre::{eyre::WrapErr, Report};
 use colorsys::{Hsl, Rgb};
+use owo_colors::OwoColorize;
 use std::str::FromStr;
-
-use crate::FilterType as OwnFilterType;
-use crate::{color::math::get_color_distance_lab, scheme::SchemeTypes};
 
 use material_colors::image::AsPixels;
 
@@ -140,6 +142,7 @@ pub fn get_source_color(
     source: &Source,
     resize_filter: &Option<OwnFilterType>,
     fallback_color: Option<Argb>,
+    source_color_index: &Option<i64>,
 ) -> Result<Argb, Report> {
     use crate::color::color;
 
@@ -151,7 +154,7 @@ pub fn get_source_color(
     let source_color: Argb = match source {
         Source::Image { path } => {
             info!("Opening image in <d><u>{}</>", path);
-            color::get_source_color_from_image(path, filter, fallback_color)
+            color::get_source_color_from_image(path, filter, fallback_color, source_color_index)
                 .wrap_err(format!("Could not get source color from image: {}", path))?
         }
         #[cfg(feature = "web-image")]
@@ -173,6 +176,7 @@ pub fn get_source_color_from_image(
     path: &str,
     filter_type: FilterType,
     fallback_color: Option<Argb>,
+    source_color_index: &Option<i64>,
 ) -> Result<Argb, Report> {
     let mut original = ImageReader::open(path)?;
     let image = original.resize(112, 112, filter_type);
@@ -190,7 +194,40 @@ pub fn get_source_color_from_image(
 
     let ranked = Score::score(&result.color_to_count, None, fallback_color, None);
 
-    Ok(ranked[0])
+    let ranked_formatted: Vec<String> = ranked
+        .clone()
+        .iter()
+        .map(|c| {
+            format!(
+                "{} {}",
+                c.to_hex_with_pound(),
+                "  ".style(generate_style(&rgb_from_argb(*c)))
+            )
+        })
+        .collect();
+
+    debug!("Ranked colors:");
+    for (i, color) in ranked_formatted.iter().enumerate() {
+        debug!("{}: {}", i, color);
+    }
+
+    if let Some(index) = source_color_index {
+        // Should be safe because of the range in the argument definition but just in case...
+        if *index < 0 || (*index as usize) >= ranked.len() {
+            return Err(Report::msg(format!(
+                "Source color index {} is out of bounds (0-{})",
+                index,
+                ranked.len() - 1
+            )));
+        }
+        return Ok(ranked[*index as usize]);
+    }
+
+    info!("Select the color you want to use as source color");
+
+    let selection = Select::new().items(&ranked_formatted).interact()?;
+
+    Ok(ranked[selection])
 }
 
 #[cfg(feature = "web-image")]
