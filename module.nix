@@ -92,6 +92,7 @@ matugen: {
       --contrast ${lib.strings.floatToString cfg.contrast} \
       --lightness-dark ${lib.strings.floatToString cfg.lightness_dark} \
       --lightness-light ${lib.strings.floatToString cfg.lightness_light} \
+      --source-color-index ${toString cfg.source_color_index} \
       --quiet \
       --include-image-in-json=false \
       > $out/theme.json
@@ -222,8 +223,6 @@ in {
       type = lib.types.addCheck lib.types.number (lightness_dark: lightness_dark <= 1);
       default = 0;
       example = "0.2";
-      
-      check = lightness_light: lightness_light >= -1;
     };
 
     lightness_light = lib.mkOption {
@@ -231,6 +230,13 @@ in {
       type = lib.types.addCheck lib.types.number (lightness_light: lightness_light >= -1);
       default = 0;
       example = "0.2";
+    };
+
+    source_color_index = lib.mkOption {
+      description = "Will automatically pick a source color based on the index provided (0 - 4), 0 = most dominant, 1 = 2nd most dominant, etc.";
+      type = lib.types.ints.between 0 4;
+      default = 0;
+      example = "1";
     };
 
     config = lib.mkOption {
