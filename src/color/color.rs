@@ -223,9 +223,11 @@ pub fn get_source_color_from_image(
         return Ok(ranked[*index as usize]);
     }
 
-    info!("Select the color you want to use as source color");
-
-    let selection = Select::new().items(&ranked_formatted).interact()?;
+    let selection = Select::new()
+        .items(&ranked_formatted)
+        .with_prompt("Select the color you want to use as source color\nUse arrow keys to navigate and Enter to select")
+        .default(0)
+        .interact()?;
 
     Ok(ranked[selection])
 }
