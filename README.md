@@ -137,10 +137,8 @@ cargo install matugen
 
 <details><summary>Click to expand</summary>
 
-Using your favourite AUR helper:
-
 ```shell
-yay -S matugen-bin
+sudo pacman -S matugen
 ```
 
 </p>
