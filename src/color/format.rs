@@ -12,12 +12,7 @@ pub fn argb_from_rgb(color: &Rgb) -> Argb {
 
 pub fn argb_from_hsl(color: &Hsl) -> Argb {
     let color: Rgb = color.into();
-    Argb {
-        red: color.red() as u8,
-        green: color.blue() as u8,
-        blue: color.blue() as u8,
-        alpha: color.alpha() as u8,
-    }
+    argb_from_rgb(&color)
 }
 
 pub fn rgb_from_argb(color: Argb) -> Rgb {
