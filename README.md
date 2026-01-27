@@ -59,8 +59,8 @@
   - Supports piping, nested expressions, conditionals, loops, filters, includes, arithmetic operations, escaping output.
   - Can be used as a standalone templating engine. You can import custom json files or define and override them in the CLI.
 
-- **Generate / Export Material You color palettes**
-  - Generate a full Material You palette from either an image or a single color
+- **Generate / Export Material You and base16 color palettes**
+  - Generate a full Material You or base16 palette from either an image or a single color
   - Export the generated palette as JSON or reference palette keywords directly within templates
   - Easily integrate palette values into config files, themes, or style templates
 
