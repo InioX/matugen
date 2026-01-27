@@ -89,13 +89,14 @@ pub fn generate_schemes_and_theme(
     };
 
     let base_16 = match &args.source {
-        Source::Image { path } => {
-            let schemes =
-                generate_base16_schemes(path, args.base16_backend.clone().unwrap_or(Backend::Wal))
-                    .wrap_err("Failed to generate base16 color schemes.")?;
-            Some(schemes)
-        }
-        _ => None,
+        Source::Json { path: _ } => None,
+        _ => Some(
+            generate_base16_schemes(
+                &args.source,
+                args.base16_backend.clone().unwrap_or(Backend::Wal),
+            )
+            .wrap_err("Failed to generate base16 color schemes.")?,
+        ),
     };
 
     Ok((schemes, source_color, theme, base_16))
