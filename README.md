@@ -3,7 +3,7 @@
      <br><br>
      <img src="https://github.com/InioX/matugen/assets/81521595/ec3a165d-442d-4494-9aec-24254d11ae61" width=50% height=50%>
      <br>
-     A cross-platform material you color generation tool<br>
+     A cross-platform material you and base16 color generation tool<br>
      <sub>(pronounced: mat-uh-gen)</sub>
      <br><br>
      <img alt="license" src="https://custom-icon-badges.demolab.com/crates/l/matugen?color=3D3838&logo=law&style=for-the-badge&logoColor=370D10&labelColor=FEB3B3">
