@@ -22,29 +22,40 @@ const DEFAULT_TONES: [i32; 18] = [
     0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100,
 ];
 
-pub fn show_color(schemes: &Schemes, source_color: &Argb, base16: &Schemes) {
+pub fn show_color(
+    schemes: Option<&Schemes>,
+    source_color: Option<&Argb>,
+    base16: Option<&Schemes>,
+) {
     let mut table: Table = generate_table_format();
 
-    for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark) {
-        let color_light: Rgb = rgb_from_argb(*color_light);
-        let color_dark: Rgb = rgb_from_argb(*color_dark);
+    if let Some(schemes) = schemes {
+        for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark)
+        {
+            let color_light: Rgb = rgb_from_argb(*color_light);
+            let color_dark: Rgb = rgb_from_argb(*color_dark);
 
-        generate_table_rows(&mut table, field, color_light, color_dark);
+            generate_table_rows(&mut table, field, color_light, color_dark);
+        }
     }
 
-    for ((field, color_light), (_, color_dark)) in std::iter::zip(&base16.light, &base16.dark) {
-        let color_light: Rgb = rgb_from_argb(*color_light);
-        let color_dark: Rgb = rgb_from_argb(*color_dark);
+    if let Some(base16) = base16 {
+        for ((field, color_light), (_, color_dark)) in std::iter::zip(&base16.light, &base16.dark) {
+            let color_light: Rgb = rgb_from_argb(*color_light);
+            let color_dark: Rgb = rgb_from_argb(*color_dark);
 
-        generate_table_rows(&mut table, field, color_light, color_dark);
+            generate_table_rows(&mut table, field, color_light, color_dark);
+        }
     }
 
-    generate_table_rows(
-        &mut table,
-        "source_color",
-        rgb_from_argb(*source_color),
-        rgb_from_argb(*source_color),
-    );
+    if let Some(source_color) = source_color {
+        generate_table_rows(
+            &mut table,
+            "source_color",
+            rgb_from_argb(*source_color),
+            rgb_from_argb(*source_color),
+        );
+    }
 
     table.printstd();
 }

@@ -175,7 +175,7 @@ impl TemplateFile<'_> {
             Ok(v) => v,
             Err(errors) => {
                 for err in errors {
-                    err.emit(&self.engine);
+                    err.emit(&self.engine)?;
                 }
 
                 if self.state.args.continue_on_error.unwrap_or(false) {
@@ -264,7 +264,7 @@ pub fn format_hook(
             Err(errors) => {
                 eprintln!("Error when formatting hook:\n{}", &hook);
                 for err in errors {
-                    err.emit(&engine);
+                    err.emit(&engine)?;
                 }
                 std::process::exit(1);
             }
@@ -280,7 +280,7 @@ pub fn format_hook(
         Err(errors) => {
             eprintln!("Error when formatting hook:\n{}", &hook);
             for err in errors {
-                err.emit(&engine);
+                err.emit(&engine)?;
             }
             std::process::exit(1);
         }
