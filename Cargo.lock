@@ -1370,7 +1370,7 @@ dependencies = [
 
 [[package]]
 name = "matugen"
-version = "3.1.0"
+version = "4.0.0"
 dependencies = [
  "ariadne",
  "chumsky",
