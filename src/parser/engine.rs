@@ -219,14 +219,20 @@ impl Engine {
         self.context.merge_json(context);
     }
 
-    pub fn get_source(&self, name: &str) -> &String {
+    pub fn get_source(&self, name: &str) -> Result<&String, color_eyre::Report> {
         let template = self
             .templates
             .get(name)
-            .unwrap_or_else(|| panic!("Failed to get template: {}", name));
+            .ok_or(color_eyre::Report::msg(format!(
+                "Failed to get template: {}",
+                name
+            )))?;
         self.sources
             .get(template.source_id)
-            .unwrap_or_else(|| panic!("Failed to get source of template: {}", name))
+            .ok_or(color_eyre::Report::msg(format!(
+                "Failed to get source of template: {}",
+                name
+            )))
     }
 
     pub fn compile(&mut self, source: String) -> Result<String, Vec<Error>> {

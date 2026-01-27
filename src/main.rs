@@ -60,7 +60,7 @@ pub struct State {
     pub default_scheme: SchemesEnum,
     pub image_hash: ImageCache,
     pub loaded_cache: bool,
-    base16: Option<Schemes>,
+    pub base16: Option<Schemes>,
 }
 
 impl State {
@@ -124,8 +124,10 @@ impl State {
         })
     }
 
-    fn init_engine(&self) -> (Engine, Value) {
-        let mut json = self.get_render_data().unwrap();
+    fn init_engine(&self) -> Result<(Engine, Value), Report> {
+        let mut json = self
+            .get_render_data()
+            .wrap_err("Could not get render data")?;
 
         let mut engine = Engine::new();
 
@@ -141,31 +143,32 @@ impl State {
         let mut json = match &self.args.source {
             Source::Json { path } => json_from_file(&PathBuf::from(path)).unwrap(),
             _ => {
-                let schemes = self.schemes.as_ref().unwrap();
-                let base16 = self.base16.as_ref().unwrap();
-                let palettes = &self.theme.as_ref().unwrap().palettes;
+                if let Some(schemes) = &self.schemes {
+                    let colors_md3 =
+                        format_schemes(&schemes, self.default_scheme, schemes.get_all_names());
+                    let json_md3 = serde_json::json!({"colors": serde_json::to_value(colors_md3).wrap_err("Could not format md3 colors to JSON")?});
 
-                let colors_md3 = format_schemes(
-                    schemes,
-                    self.default_scheme,
-                    self.schemes.as_ref().unwrap().get_all_names(),
-                );
+                    merge_json(&mut json, json_md3);
+                }
 
-                let base16 = format_schemes(
-                    base16,
-                    self.default_scheme,
-                    self.base16.as_ref().unwrap().get_all_names(),
-                );
+                if let Some(base16) = &self.base16 {
+                    let colors_base16 =
+                        format_schemes(&base16, self.default_scheme, base16.get_all_names());
 
-                let palettes = format_palettes(palettes, &Format::Hex);
+                    let json_base16 = serde_json::json!({"base16": serde_json::to_value(colors_base16).wrap_err("Could not format base16 colors to JSON")?});
 
-                let modified = serde_json::json!({
-                    "colors": colors_md3,
-                    "base16": base16,
-                    "palettes": palettes
-                });
+                    merge_json(&mut json, json_base16);
+                } else {
+                    warn!("<d>Base16 colors are not available when <yellow><b>not generating with an image</></>. Expect errors in templates.</>");
+                }
 
-                merge_json(&mut json, modified);
+                if let Some(theme) = &self.theme {
+                    let palettes = format_palettes(&theme.palettes, &Format::Hex);
+
+                    let json_palettes = serde_json::json!({"palettes": serde_json::to_value(palettes).wrap_err("Could not format palettes to JSON")?});
+
+                    merge_json(&mut json, json_palettes);
+                }
 
                 json
             }
@@ -209,7 +212,7 @@ impl State {
 
         engine.add_context(json.clone());
 
-        (engine, json)
+        Ok((engine, json))
     }
 
     fn save_cache(&self, _json: &Value) -> Result<(), Report> {
@@ -584,13 +587,15 @@ impl State {
 
         if self.args.show_colors == Some(true) && !self.args.source.is_json() {
             show_color(
-                &self.schemes.as_ref().unwrap(),
-                &self.source_color.as_ref().unwrap(),
-                &self.base16.as_ref().unwrap(),
+                self.schemes.as_ref(),
+                self.source_color.as_ref(),
+                self.base16.as_ref(),
             );
         }
 
-        let (mut engine, mut json_value) = self.init_engine();
+        let (mut engine, mut json_value) = self
+            .init_engine()
+            .wrap_err("Something went wrong while initializing the engine")?;
         let mut template = TemplateFile::new(self, &mut engine);
 
         #[cfg(feature = "filter-docs")]

@@ -179,17 +179,17 @@ impl Error {
         }
     }
 
-    pub fn emit(&self, engine: &Engine) {
+    pub fn emit(&self, engine: &Engine) -> Result<(), color_eyre::Report> {
         let name = self.get_name();
         let message = self.to_string();
         let span = self.get_span();
         let file_name = self.get_file_name();
-        let source_code = engine.get_source(&file_name);
+        let source_code = engine.get_source(&file_name)?;
 
         if let Some(span) = span {
-            build_report(&name, source_code, message, span, file_name);
+            Ok(build_report(&name, source_code, message, span, file_name))
         } else {
-            eprintln!("{}", message)
+            Ok(eprintln!("{}", message))
         }
     }
 }
