@@ -6,8 +6,8 @@ use material_colors::color::Argb;
 
 use crate::{
     color::format::{
-        format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
-        rgb_from_argb,
+        format_hex, format_hex_alpha, format_hex_alpha_stripped, format_hex_stripped, format_hsl,
+        format_hsla, format_rgb, format_rgba, rgb_from_argb,
     },
     scheme::{Schemes, SchemesEnum},
 };
@@ -16,6 +16,8 @@ use crate::{
 pub struct Color {
     hex: String,
     hex_stripped: String,
+    hex_alpha: String,
+    hex_alpha_stripped: String,
     rgb: String,
     rgba: String,
     hsl: String,
@@ -100,6 +102,8 @@ fn generate_color_strings(color: Argb) -> Color {
     Color {
         hex: format_hex(&base_color),
         hex_stripped: format_hex_stripped(&base_color),
+        hex_alpha: format_hex_alpha(&base_color),
+        hex_alpha_stripped: format_hex_alpha_stripped(&base_color),
         rgb: format_rgb(&base_color),
         rgba: format_rgba(&base_color, true),
         hsl: format_hsl(&hsl_color),
