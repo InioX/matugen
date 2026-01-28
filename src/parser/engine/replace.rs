@@ -9,7 +9,8 @@ use crate::parser::{
 };
 
 use crate::color::format::{
-    format_hex, format_hex_stripped, format_hsl, format_hsla, format_rgb, format_rgba,
+    format_hex, format_hex_alpha, format_hex_alpha_stripped, format_hex_stripped, format_hsl,
+    format_hsla, format_rgb, format_rgba,
 };
 
 use super::Engine;
@@ -17,6 +18,8 @@ use super::Engine;
 pub const FORMATS: &[&str] = &[
     "hex",
     "hex_stripped",
+    "hex_alpha",
+    "hex_alpha_stripped",
     "rgb",
     "rgba",
     "hsl",
@@ -49,6 +52,8 @@ pub fn format_color(base_color: Rgb, format: &str) -> Option<Value> {
         f if FORMATS.contains(&f) => match f {
             "hex" => Some(format_hex(&base_color).into()),
             "hex_stripped" => Some(format_hex_stripped(&base_color).into()),
+            "hex_alpha" => Some(format_hex_alpha(&base_color).into()),
+            "hex_alpha_stripped" => Some(format_hex_alpha_stripped(&base_color).into()),
             "rgb" => Some(format_rgb(&base_color).into()),
             "rgba" => Some(format_rgba(&base_color, false).into()),
             "hsl" => Some(format_hsl(&hsl_color).into()),
@@ -73,6 +78,8 @@ pub fn format_color_hsl(hsl_color: Hsl, format: &str) -> Option<Value> {
         f if FORMATS.contains(&f) => match f {
             "hex" => Some(format_hex(&base_color).into()),
             "hex_stripped" => Some(format_hex_stripped(&base_color).into()),
+            "hex_alpha" => Some(format_hex_alpha(&base_color).into()),
+            "hex_alpha_stripped" => Some(format_hex_alpha_stripped(&base_color).into()),
             "rgb" => Some(format_rgb(&base_color).into()),
             "rgba" => Some(format_rgba(&base_color, false).into()),
             "hsl" => Some(format_hsl(&hsl_color).into()),
@@ -99,6 +106,14 @@ pub fn format_color_all(base_color: Rgb) -> IndexMap<String, Value> {
     map.insert(
         "hex_stripped".to_string(),
         Value::Ident(format_hex_stripped(&base_color)),
+    );
+    map.insert(
+        "hex_alpha".to_string(),
+        Value::Ident(format_hex_alpha(&base_color)),
+    );
+    map.insert(
+        "hex_alpha_stripped".to_string(),
+        Value::Ident(format_hex_alpha_stripped(&base_color)),
     );
     map.insert("rgb".to_string(), Value::Ident(format_rgb(&base_color)));
     map.insert(
