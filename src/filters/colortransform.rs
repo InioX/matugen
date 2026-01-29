@@ -1,3 +1,4 @@
+use color_eyre::eyre::Context;
 use colorsys::{ColorTransform, Hsl, Rgb, SaturationInSpace};
 use material_colors::blend::{harmonize as md3_harmonize, hct_hue};
 
@@ -7,7 +8,10 @@ use crate::{
         parse::parse_css_color,
     },
     expect_args,
-    parser::{Engine, FilterError, FilterReturnType, SpannedValue},
+    parser::{
+        engine::{format_color, format_color_hsl, FORMATS},
+        Engine, FilterError, FilterReturnType, SpannedValue,
+    },
 };
 
 fn adjust_rgb_lightness(color: &mut Rgb, amount: f64, threshold: f64) {
@@ -155,9 +159,47 @@ pub(crate) fn to_color(
     _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     match original {
-        FilterReturnType::String(s) => Ok(FilterReturnType::Rgb(parse_css_color(&s).unwrap())),
+        FilterReturnType::String(s) => Ok(FilterReturnType::Rgb(
+            parse_css_color(&s)
+                .wrap_err(format!(
+                    "Failed to use to_color filter on color string: {}",
+                    s
+                ))
+                .unwrap(),
+        )),
         FilterReturnType::Rgb(color) => Ok(FilterReturnType::Rgb(color)),
         FilterReturnType::Hsl(color) => Ok(FilterReturnType::Hsl(color)),
+        // TODO: Add proper error here
+        FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
+    }
+}
+
+pub(crate) fn format(
+    _keywords: &[&str],
+    args: &[SpannedValue],
+    original: FilterReturnType,
+    _engine: &Engine,
+) -> Result<FilterReturnType, FilterError> {
+    let format = expect_args!(args, String);
+
+    match original {
+        FilterReturnType::String(_) => Err(FilterError::ColorFilterOnString),
+        FilterReturnType::Rgb(color) => Ok(FilterReturnType::String(
+            format_color(color, &format)
+                .ok_or(FilterError::InvalidFormatString {
+                    expected: FORMATS,
+                    span: args[0].span,
+                })?
+                .to_string(),
+        )),
+        FilterReturnType::Hsl(color) => Ok(FilterReturnType::String(
+            format_color_hsl(color, &format)
+                .ok_or(FilterError::InvalidFormatString {
+                    expected: FORMATS,
+                    span: args[0].span,
+                })?
+                .to_string(),
+        )),
         // TODO: Add proper error here
         FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
     }

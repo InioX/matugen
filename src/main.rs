@@ -568,6 +568,23 @@ impl State {
                 ///     <pre class="code-block"><code class="language-bash">{{ "hello world" | replace: "world", "there" }}</code></pre>
                 /// </md-card>
                 "replace" => crate::filters::replace,
+
+                /// <p>Formats a color into a certain format just like what using the .<format> on a color keyword would. This is useful for colors that are defined in the templates as there is no way to format them otherwise.</p>
+                /// <md-card class="code-card">
+                ///     <pre class="code-block"><code class="language-bash">{{ "#ff00ff" | format: "hex" }}</code></pre>
+                /// </md-card>
+                ///
+                /// <p><strong>Arguments:</strong></p>
+                ///
+                /// <ul>
+                ///     <li><code>String</code> - what to format the color into</li>
+                /// </ul>
+                ///
+                /// <p><strong>Example:</strong></p>
+                /// <md-card class="code-card">
+                ///     <pre class="code-block"><code class="language-bash">{{ "#ff00ff" | to_color }}</code></pre>
+                /// </md-card>
+                "format" => crate::filters::format,
             },
         });
     }
