@@ -150,3 +150,6 @@ invert twice
 chain together {{ colors.source_color.default.hex | set_alpha: 0.7 | invert }}
 
 {{ "red" | to_color }}
+{{ "red" | to_color | set_alpha: 0.5 | format: "rgba" }}
+{{ "red" | to_color | set_alpha: 0.5 | format: "hsla" }}
+{{ "red" | to_color | set_alpha: 0.5 | format: "hsl" }}

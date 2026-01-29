@@ -143,6 +143,11 @@ pub enum FilterError {
     FilterNotFound { filter: String },
     #[error("Invalid String, expected one of: [{expected}]")]
     UnexpectedStringValue { expected: String, span: SimpleSpan },
+    #[error("Invalid format for the 'format' filter, expected one of: {expected:?}")]
+    InvalidFormatString {
+        expected: &'static [&'static str],
+        span: SimpleSpan,
+    },
 }
 
 impl Error {
@@ -203,6 +208,7 @@ impl FilterError {
             FilterError::ColorFilterOnBool => "ColorFilterOnBool",
             FilterError::FilterNotFound { .. } => "FilterNotFound",
             FilterError::UnexpectedStringValue { .. } => "UnexpectedStringValue",
+            FilterError::InvalidFormatString { .. } => "InvalidFormatString",
         }
     }
 }
