@@ -158,8 +158,6 @@ impl State {
                     let json_base16 = serde_json::json!({"base16": serde_json::to_value(colors_base16).wrap_err("Could not format base16 colors to JSON")?});
 
                     merge_json(&mut json, json_base16);
-                } else {
-                    warn!("<d>Base16 colors are not available when <yellow><b>not generating with an image</></>. Expect errors in templates.</>");
                 }
 
                 if let Some(theme) = &self.theme {
