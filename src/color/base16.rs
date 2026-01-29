@@ -154,22 +154,34 @@ fn interpolate_grays(base00: &Rgb, base05: &Rgb, dark: bool) -> Vec<Argb> {
 pub fn generate_base16_schemes(source: &Source, backend: Backend) -> Result<Schemes, Report> {
     let schemes = match source {
         Source::Json { path: _ } => unreachable!(),
-        Source::Image { path } => generate_base16_schemes_from_image(path, backend).wrap_err(
-            format!("Could not generate base16 scheme from image: {}", path),
-        )?,
+        Source::Image { path } => {
+            let image = image::open(path)?.to_rgb8();
+            generate_base16_schemes_from_image(&image, backend).wrap_err(format!(
+                "Could not generate base16 scheme from image: {}",
+                path
+            ))?
+        }
         Source::Color(color) => generate_base16_schemes_from_color(color).wrap_err(format!(
             "Could not generate base16 scheme from color: {}",
             color.get_string()
         ))?,
+        #[cfg(feature = "web-image")]
+        Source::WebImage { url } => {
+            let bytes = reqwest::blocking::get(url)?.bytes()?;
+            let image = image::load_from_memory(&bytes)?.to_rgb8();
+            generate_base16_schemes_from_image(&image, backend).wrap_err(format!(
+                "Could not generate base16 scheme from image: {}",
+                url
+            ))?
+        }
     };
     Ok(schemes)
 }
 
 pub fn generate_base16_schemes_from_image(
-    path: &String,
+    image: &RgbImage,
     backend: Backend,
 ) -> Result<Schemes, Report> {
-    let image = image::open(path)?.to_rgb8();
     let palette = backend.create().extract(&image);
 
     let dark_scheme = generate_base16_scheme_from_palette(&palette, true)?;
