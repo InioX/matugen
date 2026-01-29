@@ -1,13 +1,18 @@
-use color_eyre::eyre::Report;
-use colorsys::Rgb;
+use color_eyre::{eyre::WrapErr, Report};
+use colorsys::{Hsl, Rgb};
 use image::RgbImage;
 use indexmap::IndexMap;
-use material_colors::color::Argb;
+use material_colors::{
+    color::Argb,
+    hct::Hct,
+    utils::math::{difference_degrees, rotate_direction, sanitize_degrees_double},
+};
 
 use crate::{
     color::{
         backend::wal::WalBackend,
-        format::argb_from_rgb,
+        color::{get_source_color_from_color, ColorFormat, Source},
+        format::{argb_from_rgb, rgb_from_argb},
         math::{luminance, saturation},
     },
     scheme::Schemes,
@@ -38,7 +43,13 @@ pub trait PaletteBackend {
     fn extract(&self, image: &RgbImage) -> Vec<Rgb>;
 }
 
-pub fn generate_base16_scheme(
+fn drag_hue(source_hue: f64, target_hue: f64, amount: f64) -> f64 {
+    let rot_deg = difference_degrees(source_hue, target_hue);
+    let rot_dir = rotate_direction(source_hue, target_hue) * amount;
+    sanitize_degrees_double(rot_deg.mul_add(rot_dir, source_hue))
+}
+
+pub fn generate_base16_scheme_from_palette(
     palette: &[Rgb],
     dark: bool,
 ) -> Result<IndexMap<String, Argb>, Report> {
@@ -68,6 +79,54 @@ pub fn generate_base16_scheme(
     Ok(scheme)
 }
 
+pub fn generate_base16_scheme_from_color(
+    color: &Rgb,
+    dark: bool,
+) -> Result<IndexMap<String, Argb>, Report> {
+    let mut scheme = IndexMap::new();
+
+    let hsl: Hsl = color.into();
+    let (source_hue, source_sat, source_lit) = (hsl.hue(), hsl.saturation(), hsl.lightness());
+    let base00: Rgb = Hsl::new(source_hue, source_sat * 0.3, source_lit * 1.5, None).into();
+    let base05: Rgb = Hsl::new(source_hue, source_sat * 0.7, source_lit * 0.2, None).into();
+
+    let gray_ramp = interpolate_grays(&base00, &base05, dark);
+    for (i, &name) in GRAY_NAMES.iter().enumerate() {
+        scheme.insert(name.to_string(), gray_ramp[i]);
+    }
+
+    let hct: Hct = argb_from_rgb(color).into();
+    let source_chroma = hct.get_chroma();
+    let source_tone = hct.get_tone();
+    let pri_hue = hct.get_hue();
+    let acc_hue = pri_hue + 60.0;
+    let red_hue = drag_hue(pri_hue, 25.0, 0.8);
+    let grn_hue = drag_hue(pri_hue, 118.0, 0.8);
+    let off_hue = 10.0_f64.mul_add(rotate_direction(red_hue, pri_hue), red_hue);
+    let main_chroma = source_chroma.max(80.0);
+    let mute_chroma = main_chroma / 2.0;
+    let depr_chroma = (source_chroma / 6.0).min(10.0);
+    let main_tone = source_tone.mul_add(0.3, 50.0);
+    let depr_tone = source_tone.mul_add(0.5, 20.0);
+    let accent_parameters = [
+        (red_hue, main_chroma, main_tone), // Semantics: Variables, Diff Deleted
+        (off_hue, mute_chroma, main_tone), // Semantics: Literals
+        (pri_hue, mute_chroma, main_tone), // Semantics: Classes
+        (grn_hue, main_chroma, main_tone), // Semantics: Strings, Diff Inserted
+        (acc_hue, mute_chroma, main_tone), // Semantics: Escape Characters
+        (pri_hue, main_chroma, main_tone), // Semantics: Functions
+        (acc_hue, main_chroma, main_tone), // Semantics: Keywords, Diff Changed
+        (pri_hue, depr_chroma, depr_tone), // Semantics: Deprecated
+    ];
+
+    for (i, &name) in ACCENT_NAMES.iter().enumerate() {
+        let (hue, chroma, tone) = accent_parameters[i];
+        scheme.insert(name.to_string(), Hct::from(hue, chroma, tone).into());
+    }
+
+    Ok(scheme)
+}
+
 fn interpolate_grays(base00: &Rgb, base05: &Rgb, dark: bool) -> Vec<Argb> {
     let mut grays = Vec::new();
     let n = GRAY_NAMES.len();
@@ -92,12 +151,41 @@ fn interpolate_grays(base00: &Rgb, base05: &Rgb, dark: bool) -> Vec<Argb> {
     grays
 }
 
-pub fn generate_base16_schemes(path: &String, backend: Backend) -> Result<Schemes, Report> {
+pub fn generate_base16_schemes(source: &Source, backend: Backend) -> Result<Schemes, Report> {
+    let schemes = match source {
+        Source::Json { path: _ } => unreachable!(),
+        Source::Image { path } => generate_base16_schemes_from_image(path, backend).wrap_err(
+            format!("Could not generate base16 scheme from image: {}", path),
+        )?,
+        Source::Color(color) => generate_base16_schemes_from_color(color).wrap_err(format!(
+            "Could not generate base16 scheme from color: {}",
+            color.get_string()
+        ))?,
+    };
+    Ok(schemes)
+}
+
+pub fn generate_base16_schemes_from_image(
+    path: &String,
+    backend: Backend,
+) -> Result<Schemes, Report> {
     let image = image::open(path)?.to_rgb8();
     let palette = backend.create().extract(&image);
 
-    let dark_scheme = generate_base16_scheme(&palette, true)?;
-    let light_scheme = generate_base16_scheme(&palette, false)?;
+    let dark_scheme = generate_base16_scheme_from_palette(&palette, true)?;
+    let light_scheme = generate_base16_scheme_from_palette(&palette, false)?;
+
+    Ok(Schemes {
+        dark: dark_scheme,
+        light: light_scheme,
+    })
+}
+
+pub fn generate_base16_schemes_from_color(color: &ColorFormat) -> Result<Schemes, Report> {
+    let source_color = rgb_from_argb(get_source_color_from_color(color)?);
+
+    let dark_scheme = generate_base16_scheme_from_color(&source_color, true)?;
+    let light_scheme = generate_base16_scheme_from_color(&source_color, false)?;
 
     Ok(Schemes {
         dark: dark_scheme,
