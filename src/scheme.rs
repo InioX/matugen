@@ -2,7 +2,7 @@ use core::fmt;
 use std::collections::HashMap;
 
 use indexmap::IndexMap;
-use material_colors::scheme::Scheme;
+use material_colors::{dynamic_color::Variant as MaterialColorsVariant, scheme::Scheme};
 use serde::Serialize;
 
 use crate::color::color::{
@@ -22,6 +22,24 @@ pub enum SchemeTypes {
     SchemeRainbow,
     SchemeTonalSpot,
     SchemeVibrant,
+}
+
+impl SchemeTypes {
+    #[allow(unreachable_patterns)]
+    pub fn as_material_colors_variant(&self) -> Option<MaterialColorsVariant> {
+        match self {
+            SchemeTypes::SchemeContent => Some(MaterialColorsVariant::Content),
+            SchemeTypes::SchemeExpressive => Some(MaterialColorsVariant::Expressive),
+            SchemeTypes::SchemeFidelity => Some(MaterialColorsVariant::Fidelity),
+            SchemeTypes::SchemeFruitSalad => Some(MaterialColorsVariant::FruitSalad),
+            SchemeTypes::SchemeMonochrome => Some(MaterialColorsVariant::Monochrome),
+            SchemeTypes::SchemeNeutral => Some(MaterialColorsVariant::Neutral),
+            SchemeTypes::SchemeRainbow => Some(MaterialColorsVariant::Rainbow),
+            SchemeTypes::SchemeTonalSpot => Some(MaterialColorsVariant::TonalSpot),
+            SchemeTypes::SchemeVibrant => Some(MaterialColorsVariant::Vibrant),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]

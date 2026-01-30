@@ -3,13 +3,9 @@ use material_colors::{
     blend::harmonize,
     color::Argb,
     dynamic_color::{DynamicScheme, MaterialDynamicColors},
-    hct::{Cam16, Hct},
+    hct::Cam16,
     image::{FilterType, ImageReader},
     quantize::{Quantizer, QuantizerCelebi},
-    scheme::variant::{
-        SchemeContent, SchemeExpressive, SchemeFidelity, SchemeFruitSalad, SchemeMonochrome,
-        SchemeNeutral, SchemeRainbow, SchemeTonalSpot, SchemeVibrant,
-    },
     score::Score,
     theme::{ColorGroup, CustomColor, CustomColorGroup},
 };
@@ -274,34 +270,11 @@ pub fn generate_dynamic_scheme(
     is_dark: bool,
     contrast_level: Option<f64>,
 ) -> DynamicScheme {
-    match scheme_type.unwrap_or(SchemeTypes::SchemeContent) {
-        SchemeTypes::SchemeContent => {
-            SchemeContent::new(Hct::new(source_color), is_dark, contrast_level).scheme
-        }
-        SchemeTypes::SchemeExpressive => {
-            SchemeExpressive::new(Hct::new(source_color), is_dark, contrast_level).scheme
-        }
-        SchemeTypes::SchemeFidelity => {
-            SchemeFidelity::new(Hct::new(source_color), is_dark, contrast_level).scheme
-        }
-        SchemeTypes::SchemeFruitSalad => {
-            SchemeFruitSalad::new(Hct::new(source_color), is_dark, contrast_level).scheme
-        }
-        SchemeTypes::SchemeMonochrome => {
-            SchemeMonochrome::new(Hct::new(source_color), is_dark, contrast_level).scheme
-        }
-        SchemeTypes::SchemeNeutral => {
-            SchemeNeutral::new(Hct::new(source_color), is_dark, contrast_level).scheme
-        }
-        SchemeTypes::SchemeRainbow => {
-            SchemeRainbow::new(Hct::new(source_color), is_dark, contrast_level).scheme
-        }
-        SchemeTypes::SchemeTonalSpot => {
-            SchemeTonalSpot::new(Hct::new(source_color), is_dark, contrast_level).scheme
-        }
-        SchemeTypes::SchemeVibrant => {
-            SchemeVibrant::new(Hct::new(source_color), is_dark, contrast_level).scheme
-        }
+    let scheme_type: SchemeTypes = scheme_type.unwrap_or(SchemeTypes::SchemeContent);
+    if let Some(var) = scheme_type.as_material_colors_variant() {
+        DynamicScheme::by_variant(source_color, &var, is_dark, contrast_level)
+    } else {
+        unreachable!()
     }
 }
 
