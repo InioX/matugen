@@ -132,7 +132,7 @@ cargo install matugen
            width="20">
      </sub>
      Arch
-     <a href="https://aur.archlinux.org/packages/matugen-bin"><img alt="AUR Version" src="https://img.shields.io/aur/version/matugen-bin?color=brightgreen&label=" align="right"></a>
+     <a href="https://archlinux.org/packages/extra/x86_64/matugen"><img alt="Arch Linux package" src="https://img.shields.io/archlinux/v/extra/x86_64/matugen?color=brightgreen&label=" align="right"></a>
 </h4>
 
 <details><summary>Click to expand</summary>
