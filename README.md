@@ -38,6 +38,18 @@
   <img src="https://github.com/InioX/matugen/assets/81521595/9008d8d9-0157-4b38-9500-597986a2cb9f">
 </div>
 
+<h2>
+     <sub>
+     <img src="https://github.com/InioX/matugen-themes/assets/81521595/5e0b21af-62da-44ad-9492-f25689b260d9"
+           height="25"
+           width="25">
+     </sub>
+     Themes
+</h2>
+
+#### Templates for programs
+- [InioX/matugen-themes](https://github.com/InioX/matugen-themes)
+
 <h2 class="description">
      <sub>
           <img  src="https://github.com/InioX/matugen/assets/81521595/da0dfc26-e8c0-46c1-ad13-bfaac394109b"
@@ -228,19 +240,6 @@ make install
 
 </p>
 </details>
-
-
-<h2>
-     <sub>
-     <img src="https://github.com/InioX/matugen-themes/assets/81521595/5e0b21af-62da-44ad-9492-f25689b260d9"
-           height="25"
-           width="25">
-     </sub>
-     Themes
-</h2>
-
-#### Templates
-- [InioX/matugen-themes](https://github.com/InioX/matugen-themes)
 
 <h2>
      <sub>
