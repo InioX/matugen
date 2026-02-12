@@ -2,11 +2,11 @@
 name = "matugen"
 version = "3.1.0"
 authors = ["InioX"]
-description = "A material you color generation tool with templates"
+description = "A material you and base16 color generation tool with templates"
 repository = "https://github.com/InioX/matugen"
 categories = ["command-line-utilities"]
 exclude = ["default.nix", "flake.nix", "shell.nix", "example/*"]
-license = "GPL-2.0"
+license = "GPL-2.0-or-later"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
