@@ -6,6 +6,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0](https://github.com/InioX/matugen/compare/v3.1.0...v4.0.0) - 2026-02-12
+
+### Added
+
+- change default json output and add `--old-json-output`
+- add support for web image in base16 generation
+- add algorithm for a base16 theme from one source color
+- add `format` filter, add error for invalid format filter type ([#248](https://github.com/InioX/matugen/pull/248))
+- add hex alpha formats
+- [**breaking**] add `source-color-index` argument, add source color selection
+- add lightness adjustment ([#153](https://github.com/InioX/matugen/pull/153))
+- add filter documentation support and HTML output option
+- add negation support to if statements in parser ([#216](https://github.com/InioX/matugen/pull/216))
+- implement base16 color scheme support with wal backend
+- refactor color schemes and add base16 support
+- add `--alternative-json-output` ([#230](https://github.com/InioX/matugen/pull/230))
+
+### Fixed
+
+- specify license type (fixes  #256)
+- remove useless warning about base16 colors not generating from a color
+- add default color to the source color selection, add instructions for navigating and selecting
+- downgrade `csscolorparser` to version 0.7.2 ([#244](https://github.com/InioX/matugen/pull/244))
+- swap saturation and lightness values ([#241](https://github.com/InioX/matugen/pull/241))
+- `to_color` filter formatting value automatically
+- change error message wiki link
+- `0.05` not being parsed properly ([#232](https://github.com/InioX/matugen/pull/232))
+- make `red`,`green`,`blue` be actual ints ([#225](https://github.com/InioX/matugen/pull/225))
+
+### Other
+
+- move themes to the top of the readme
+- add .direnv to gitignore
+- add .envrc
+- update archlinux version badge
+- shorten flat match for `DynamicScheme` generation
+- *(readme)* update features to mention base16
+- *(readme)* add note about generating base16 colors
+- improve error handling, fix panicking because of base16 ([#246](https://github.com/InioX/matugen/pull/246))
+- run cargo fmt
+- update wiki link under header
+- update wiki link
+- change README features and add wiki reference
+- Add Kofi button and change text position in header
+- Add Ko-fi username for funding
+
 ## [3.1.0](https://github.com/InioX/matugen/compare/v3.0.0...v3.1.0) - 2025-11-23
 
 ### Added
