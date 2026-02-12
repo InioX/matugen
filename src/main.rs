@@ -632,7 +632,7 @@ impl State {
                     obj.remove("image");
                 };
             };
-            dump_json(&mut json_value, format, self.args.alternative_json_output);
+            dump_json(&mut json_value, format, self.args.old_json_output);
         }
 
         if self.args.dry_run == Some(true) {
@@ -678,7 +678,7 @@ fn main() -> Result<(), Report> {
         resize_filter: Some(FilterType::Triangle),
         continue_on_error: Some(false),
         fallback_color: None,
-        alternative_json_output: Some(false),
+        old_json_output: Some(false),
         base16_backend: Some(Backend::Wal),
         #[cfg(feature = "filter-docs")]
         filter_docs_html: Some(false),

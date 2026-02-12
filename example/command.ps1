@@ -13,7 +13,7 @@ cargo run --release --features=dump-json -- image "$ImagePath" `
     --continue-on-error `
     --fallback-color "#0000ff" `
     --show-colors `
-    --alternative-json-output `
+    --old-json-output `
     --base16-backend "wal" `
     --lightness-dark -0.1 `
     --lightness-light -0.1

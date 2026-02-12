@@ -17,7 +17,7 @@ RUST_BACKTRACE=1 cargo run --release --features=dump-json -- \
   --config ./example/config.toml \
   --continue-on-error \
   --fallback-color "#0000ff" \
-  --alternative-json-output \
   --base16-backend "wal" \
+  --json hex \
+  # --old-json-output \
   # --show-colors \ 
-  # --json hex
