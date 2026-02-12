@@ -90,11 +90,10 @@ pub fn transform_colors(value: &mut Value, format: &str) {
 }
 
 #[cfg(feature = "dump-json")]
-pub fn dump_json(json: &mut Value, format: &Format, alt_output: Option<bool>) {
+pub fn dump_json(json: &mut Value, format: &Format, old_output: Option<bool>) {
     let format_str = format.to_string();
 
-    if alt_output.unwrap_or(false) {
-    } else {
+    if old_output.unwrap_or(false) {
         transform_colors(json, &format_str);
     }
 

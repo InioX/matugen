@@ -94,7 +94,7 @@ pub struct Cli {
 
     /// Whether to make the outputted json compatible with the --import-json flag.
     #[arg(long, global = true, action=ArgAction::SetTrue)]
-    pub alternative_json_output: Option<bool>,
+    pub old_json_output: Option<bool>,
 
     /// Backend to use for base16 color scheme generation
     #[arg(value_enum, short, long, global = true)]
