@@ -1,6 +1,6 @@
 use color_eyre::{eyre::WrapErr, Report};
 use colorsys::{Hsl, Rgb};
-use image::RgbImage;
+use image::{ImageReader, RgbImage};
 use indexmap::IndexMap;
 use material_colors::{
     color::Argb,
@@ -155,7 +155,10 @@ pub fn generate_base16_schemes(source: &Source, backend: Backend) -> Result<Sche
     let schemes = match source {
         Source::Json { path: _ } => unreachable!(),
         Source::Image { path } => {
-            let image = image::open(path)?.to_rgb8();
+            let image = ImageReader::open(path)?
+                .with_guessed_format()?
+                .decode()?
+                .to_rgb8();
             generate_base16_schemes_from_image(&image, backend).wrap_err(format!(
                 "Could not generate base16 scheme from image: {}",
                 path
