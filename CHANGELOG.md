@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.1](https://github.com/InioX/matugen/compare/v4.0.0...v4.0.1) - 2026-02-14
+
+### Fixed
+
+- *(base16)* use image with guessed format (fixes #258)
+
 ## [4.0.0](https://github.com/InioX/matugen/compare/v3.1.0...v4.0.0) - 2026-02-12
 
 ### Added
