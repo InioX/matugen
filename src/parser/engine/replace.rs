@@ -2,10 +2,13 @@ use chumsky::span::SimpleSpan;
 use colorsys::{ColorAlpha, Hsl, Rgb};
 use indexmap::IndexMap;
 
-use crate::parser::{
-    engine::{BinaryOperator, Expression, SpannedBinaryOperator, SpannedExpr, Template},
-    BinaryOperatorError, Error, FilterError, FilterReturnType, IfError, KeywordError, LoopError,
-    ParseErrorKind, SpannedValue, Value,
+use crate::{
+    color::format::{format_alpha_hex, format_alpha_hex_stripped},
+    parser::{
+        engine::{BinaryOperator, Expression, SpannedBinaryOperator, SpannedExpr, Template},
+        BinaryOperatorError, Error, FilterError, FilterReturnType, IfError, KeywordError,
+        LoopError, ParseErrorKind, SpannedValue, Value,
+    },
 };
 
 use crate::color::format::{
@@ -20,6 +23,8 @@ pub const FORMATS: &[&str] = &[
     "hex_stripped",
     "hex_alpha",
     "hex_alpha_stripped",
+    "alpha_hex",
+    "alpha_hex_stripped",
     "rgb",
     "rgba",
     "hsl",
@@ -54,6 +59,8 @@ pub fn format_color(base_color: Rgb, format: &str) -> Option<Value> {
             "hex_stripped" => Some(format_hex_stripped(&base_color).into()),
             "hex_alpha" => Some(format_hex_alpha(&base_color).into()),
             "hex_alpha_stripped" => Some(format_hex_alpha_stripped(&base_color).into()),
+            "alpha_hex" => Some(format_alpha_hex(&base_color).into()),
+            "alpha_hex_stripped" => Some(format_alpha_hex_stripped(&base_color).into()),
             "rgb" => Some(format_rgb(&base_color).into()),
             "rgba" => Some(format_rgba(&base_color, false).into()),
             "hsl" => Some(format_hsl(&hsl_color).into()),
