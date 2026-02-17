@@ -15,6 +15,16 @@ Base16
 {{ base16.base0f.dark.hex }}
 {{ base16.base0f.light.hex }}
 
+Hex alpha
+
+{{ colors.secondary.default.hex_alpha }}
+{{ colors.secondary.default.hex_alpha_stripped }}
+
+Alpha hex
+
+{{ colors.secondary.default.alpha_hex }}
+{{ colors.secondary.default.alpha_hex_stripped }}
+
 Escaped: \{{
 
 normal: {{ colors.green_source.default.hex }}

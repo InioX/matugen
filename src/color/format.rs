@@ -62,6 +62,28 @@ pub fn format_hex_alpha_stripped(color: &Rgb) -> String {
     )
 }
 
+pub fn format_alpha_hex(color: &Rgb) -> String {
+    let alpha = alpha_u8(color.alpha());
+    format!(
+        "#{:02X}{:02X}{:02X}{:02X}",
+        alpha,
+        color.red() as u8,
+        color.green() as u8,
+        color.blue() as u8
+    )
+}
+
+pub fn format_alpha_hex_stripped(color: &Rgb) -> String {
+    let alpha = alpha_u8(color.alpha());
+    format!(
+        "{:02X}{:02X}{:02X}{:02X}",
+        alpha,
+        color.red() as u8,
+        color.green() as u8,
+        color.blue() as u8
+    )
+}
+
 // alpha can be 0..1 (CSS parsing / set_alpha) or 0..255 (ARGB conversions).
 // Normalize to 0..255 so hex output is consistent.
 fn alpha_u8(alpha: f64) -> u8 {
