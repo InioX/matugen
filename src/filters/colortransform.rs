@@ -9,7 +9,7 @@ use crate::{
     },
     expect_args,
     parser::{
-        engine::{format_color, format_color_hsl, FORMATS},
+        engine::{format_color, FORMATS},
         Engine, FilterError, FilterReturnType, SpannedValue,
     },
 };
@@ -193,7 +193,7 @@ pub(crate) fn format(
                 .to_string(),
         )),
         FilterReturnType::Hsl(color) => Ok(FilterReturnType::String(
-            format_color_hsl(color, &format)
+            format_color(color.into(), &format)
                 .ok_or(FilterError::InvalidFormatString {
                     expected: FORMATS,
                     span: args[0].span,

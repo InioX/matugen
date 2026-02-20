@@ -78,32 +78,6 @@ pub fn format_color(base_color: Rgb, format: &str) -> Option<Value> {
     }
 }
 
-pub fn format_color_hsl(hsl_color: Hsl, format: &str) -> Option<Value> {
-    let base_color = Rgb::from(&hsl_color);
-
-    match format {
-        f if FORMATS.contains(&f) => match f {
-            "hex" => Some(format_hex(&base_color).into()),
-            "hex_stripped" => Some(format_hex_stripped(&base_color).into()),
-            "hex_alpha" => Some(format_hex_alpha(&base_color).into()),
-            "hex_alpha_stripped" => Some(format_hex_alpha_stripped(&base_color).into()),
-            "rgb" => Some(format_rgb(&base_color).into()),
-            "rgba" => Some(format_rgba(&base_color, false).into()),
-            "hsl" => Some(format_hsl(&hsl_color).into()),
-            "hsla" => Some(format_hsla(&hsl_color, false).into()),
-            "red" => Some(Value::Int(base_color.red() as i64)),
-            "green" => Some(Value::Int(base_color.green() as i64)),
-            "blue" => Some(Value::Int(base_color.blue() as i64)),
-            "alpha" => Some(Value::Float(base_color.alpha())),
-            "hue" => Some(Value::Int(hsl_color.hue() as i64)),
-            "saturation" => Some(Value::Int(hsl_color.saturation() as i64)),
-            "lightness" => Some(Value::Int(hsl_color.lightness() as i64)),
-            _ => unreachable!(),
-        },
-        _ => None,
-    }
-}
-
 pub fn format_color_all(base_color: Rgb) -> IndexMap<String, Value> {
     let hsl_color = Hsl::from(&base_color);
 
@@ -411,7 +385,7 @@ impl Engine {
                     match v {
                         Value::Color(c) => format_color(c, self.get_format(keywords)).unwrap(),
                         Value::HslColor(c) => {
-                            format_color_hsl(c, self.get_format(keywords)).unwrap()
+                            format_color(c.into(), self.get_format(keywords)).unwrap()
                         }
                         Value::LazyColor { color: c, .. } => {
                             format_color(c, self.get_format(keywords)).unwrap()
@@ -729,7 +703,7 @@ impl Engine {
                     FilterReturnType::String(String::from(""))
                 }
             },
-            FilterReturnType::Hsl(hsl) => match format_color_hsl(hsl, format) {
+            FilterReturnType::Hsl(hsl) => match format_color(hsl.into(), format) {
                 Some(v) => FilterReturnType::String(v.to_string()),
                 None => {
                     let error = Error::ParseError {
