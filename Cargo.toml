@@ -42,7 +42,7 @@ paris-log = { version = "1.0.2", features = [
 pretty_env_logger = "0.5.0"
 
 # terminal output
-prettytable-rs = { default-features = false, version = "0.10.0" } # TODO feature-gate? This should definitely be a default feature tho.
+comfy-table = { version = "7.2.2" } # TODO feature-gate? This should definitely be a default feature tho.
 color-eyre = { version = "0.6.2", default-features = false }
 colorsys = { default-features = false, version = "0.6.7" }
 owo-colors = "4.0.0"

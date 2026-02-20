@@ -1,12 +1,13 @@
 #[cfg(feature = "dump-json")]
 use indexmap::IndexMap;
 use material_colors::color::Argb;
-use owo_colors::{OwoColorize, Style};
-
-use material_colors::{palette::TonalPalette, theme::Palettes};
-use prettytable::{format, Cell, Row, Table};
+use owo_colors::Style;
 
 use colorsys::Rgb;
+use comfy_table::{
+    modifiers::UTF8_ROUND_CORNERS, presets::UTF8_FULL_CONDENSED, Cell, CellAlignment, Table,
+};
+use material_colors::{palette::TonalPalette, theme::Palettes};
 use serde_json::{Map, Value};
 
 use crate::{
@@ -57,7 +58,7 @@ pub fn show_color(
         );
     }
 
-    table.printstd();
+    println!["{table}"];
 }
 
 pub fn transform_colors(value: &mut Value, format: &str) {
@@ -167,51 +168,44 @@ fn format_single_palette(palette: TonalPalette, format: &str) -> IndexMap<String
 
 fn generate_table_format() -> Table {
     let mut table = Table::new();
-    let format = format::FormatBuilder::new()
-        .column_separator('│')
-        .borders('│')
-        .separators(
-            &[format::LinePosition::Title],
-            format::LineSeparator::new('─', '┼', '├', '┤'),
-        )
-        .separators(
-            &[format::LinePosition::Top],
-            format::LineSeparator::new('─', '┬', '╭', '╮'),
-        )
-        .separators(
-            &[format::LinePosition::Bottom],
-            format::LineSeparator::new('─', '┴', '╰', '╯'),
-        )
-        .padding(1, 1)
-        .build();
+    table
+        .load_preset(UTF8_FULL_CONDENSED)
+        .apply_modifier(UTF8_ROUND_CORNERS)
+        .set_style(comfy_table::TableComponent::VerticalLines, '│');
 
-    table.set_format(format);
+    table.set_header([
+        Cell::new("NAME").set_alignment(CellAlignment::Center),
+        Cell::new("LIGHT").set_alignment(CellAlignment::Center),
+        Cell::new("").set_alignment(CellAlignment::Center),
+        Cell::new("DARK").set_alignment(CellAlignment::Center),
+        Cell::new("").set_alignment(CellAlignment::Center),
+    ]);
 
-    table.set_titles(Row::new(vec![
-        Cell::new("NAME").style_spec("c"),
-        Cell::new("LIGHT").style_spec("c"),
-        Cell::new("LIGHT").style_spec("c"),
-        Cell::new("DARK").style_spec("c"),
-        Cell::new("DARK").style_spec("c"),
-    ]));
+    table.column_mut(2).unwrap().set_padding((1, 0));
+    table.column_mut(4).unwrap().set_padding((1, 0));
+
     table
 }
 
 fn generate_table_rows(table: &mut Table, field: &str, color_light: Rgb, color_dark: Rgb) {
-    let formatstr = "  ";
-
-    table.add_row(Row::new(vec![
+    table.add_row([
         // Color names
-        Cell::new(field).style_spec(""),
+        Cell::new(field),
         // Light scheme
-        Cell::new(color_light.to_hex_string().to_uppercase().as_str()).style_spec("c"),
-        Cell::new(format!("{}", formatstr.style(generate_style(&color_light))).as_str())
-            .style_spec("c"),
+        Cell::new_owned(color_light.to_hex_string().to_uppercase()),
+        Cell::new("").bg(comfy_table::Color::Rgb {
+            r: color_light.red().round() as u8,
+            g: color_light.green() as u8,
+            b: color_light.blue() as u8,
+        }),
         // Dark scheme
-        Cell::new(color_dark.to_hex_string().to_uppercase().as_str()).style_spec("c"),
-        Cell::new(format!("{}", formatstr.style(generate_style(&color_dark))).as_str())
-            .style_spec("c"),
-    ]));
+        Cell::new_owned(color_dark.to_hex_string().to_uppercase()),
+        Cell::new("").bg(comfy_table::Color::Rgb {
+            r: color_dark.red() as u8,
+            g: color_dark.green() as u8,
+            b: color_dark.blue() as u8,
+        }),
+    ]);
 }
 
 pub fn generate_style(color: &Rgb) -> Style {
