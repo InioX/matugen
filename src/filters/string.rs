@@ -2,10 +2,7 @@ use convert_case::{Case, Casing};
 
 use crate::{
     expect_args,
-    parser::{
-        engine::{format_color, format_color_hsl},
-        Engine, FilterError, FilterReturnType, SpannedValue,
-    },
+    parser::{engine::format_color, Engine, FilterError, FilterReturnType, SpannedValue},
 };
 
 pub(crate) fn replace(
@@ -24,7 +21,7 @@ pub(crate) fn replace(
             Ok(FilterReturnType::String(modified))
         }
         FilterReturnType::Hsl(color) => {
-            let string = format_color_hsl(color, keywords.last().expect("Could not get format"));
+            let string = format_color(color.into(), keywords.last().expect("Could not get format"));
             let modified: String = string.unwrap().to_string().replace(&find, &replace);
             Ok(FilterReturnType::String(modified))
         }
@@ -52,7 +49,7 @@ pub(crate) fn lower_case(
         }
         FilterReturnType::Hsl(color) => {
             let string =
-                format_color_hsl(color, keywords.last().expect("Could not get format")).unwrap();
+                format_color(color.into(), keywords.last().expect("Could not get format")).unwrap();
             Ok(FilterReturnType::String(
                 string.to_string().to_case(Case::Lower),
             ))
@@ -85,7 +82,7 @@ pub(crate) fn camel_case(
         }
         FilterReturnType::Hsl(color) => {
             let string =
-                format_color_hsl(color, keywords.last().expect("Could not get format")).unwrap();
+                format_color(color.into(), keywords.last().expect("Could not get format")).unwrap();
             Ok(FilterReturnType::String(
                 string.to_string().to_case(Case::Camel),
             ))
@@ -118,7 +115,7 @@ pub(crate) fn pascal_case(
         }
         FilterReturnType::Hsl(color) => {
             let string =
-                format_color_hsl(color, keywords.last().expect("Could not get format")).unwrap();
+                format_color(color.into(), keywords.last().expect("Could not get format")).unwrap();
             Ok(FilterReturnType::String(
                 string.to_string().to_case(Case::Pascal),
             ))
@@ -151,7 +148,7 @@ pub(crate) fn snake_case(
         }
         FilterReturnType::Hsl(color) => {
             let string =
-                format_color_hsl(color, keywords.last().expect("Could not get format")).unwrap();
+                format_color(color.into(), keywords.last().expect("Could not get format")).unwrap();
             Ok(FilterReturnType::String(
                 string.to_string().to_case(Case::Snake),
             ))
@@ -184,7 +181,7 @@ pub(crate) fn kebab_case(
         }
         FilterReturnType::Hsl(color) => {
             let string =
-                format_color_hsl(color, keywords.last().expect("Could not get format")).unwrap();
+                format_color(color.into(), keywords.last().expect("Could not get format")).unwrap();
             Ok(FilterReturnType::String(
                 string.to_string().to_case(Case::Kebab),
             ))
