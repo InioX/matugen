@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.0](https://github.com/InioX/matugen/compare/v4.0.0...v4.1.0) - 2026-02-21
+
+### Added
+
+- add `alpha_hex` and `alpha_hex_stripped` (closes #260)
+
+### Fixed
+
+- use comfy-table to print colors table instead of prettytable-rs
+- *(base16)* use image with guessed format (fixes #258)
+
 ## [4.0.0](https://github.com/InioX/matugen/compare/v3.1.0...v4.0.0) - 2026-02-12
 
 ### Added
