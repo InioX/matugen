@@ -10,7 +10,7 @@ use color_eyre::{Help, Report};
 use serde::{Deserialize, Serialize};
 
 use super::arguments::Cli;
-use crate::{wallpaper::Wallpaper, Template};
+use crate::{util::arguments::SelectionPreference, wallpaper::Wallpaper, Template};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
@@ -26,6 +26,7 @@ pub struct Config {
     pub block_postfix: Option<String>,
     pub import_json_files: Option<Vec<PathBuf>>,
     pub fallback_color: Option<String>,
+    pub prefer: Option<SelectionPreference>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

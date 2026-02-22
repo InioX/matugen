@@ -1,4 +1,5 @@
 use clap::{ArgAction, Parser};
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::{color::base16::Backend, SchemesEnum};
@@ -92,6 +93,10 @@ pub struct Cli {
     #[arg(value_enum, long, global = true, value_name = "STRING")]
     pub fallback_color: Option<String>,
 
+    /// When multiple colors can be extracted from an image, this will decide which to pick without needing user input.
+    #[arg(value_enum, long, global = true)]
+    pub prefer: Option<SelectionPreference>,
+
     /// Whether to make the outputted json compatible with the --import-json flag.
     #[arg(long, global = true, action=ArgAction::SetTrue)]
     pub old_json_output: Option<bool>,
@@ -176,6 +181,31 @@ impl ToString for Format {
             Format::Hsl => "hsl",
             Format::Hsla => "hsla",
             Format::Strip => "hex_stripped",
+        }
+        .to_owned()
+    }
+}
+
+#[derive(Debug, Clone, clap::ValueEnum, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SelectionPreference {
+    Darkness,
+    Lightness,
+    Saturation,
+    LessSaturation,
+    Value,
+    ClosestToFallback,
+}
+
+impl ToString for SelectionPreference {
+    fn to_string(&self) -> String {
+        match &self {
+            SelectionPreference::Darkness => "darkness",
+            SelectionPreference::Lightness => "lightness",
+            SelectionPreference::Saturation => "saturation",
+            SelectionPreference::LessSaturation => "less_saturation",
+            SelectionPreference::Value => "value",
+            SelectionPreference::ClosestToFallback => "closest_to_fallback",
         }
         .to_owned()
     }
