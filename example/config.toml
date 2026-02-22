@@ -8,6 +8,11 @@ version_check = false
 # The cli flag will override this if used.
 fallback_color = "#ffbf9b"
 
+# Which color to choose if multiple good colors were found from an image.
+# choices: [darkness, lightness, saturation, less-saturation, value, first, last, closest-to-fallback]
+# The cli flag will override this if used.
+prefer = "first"
+
 # Enables caching which will cache the colorscheme, custom colors, etc. into a cache folder located in
 # Windows: C:\Users\user\AppData\Roaming\InioX\matugen\cache\images\<file>
 # Linux: $XDG_CACHE_HOME/matugen/<file> or $HOME/.cache/matugen/images/<file>

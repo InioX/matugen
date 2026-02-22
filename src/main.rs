@@ -96,18 +96,14 @@ impl State {
                             "<d>The cache in <yellow><b>{}</><d> doesn't exist.</>",
                             image_cache.get_path().display()
                         );
-                        generate_schemes_and_theme(
-                            &args,
-                            &config_file,
-                            &config_file.config.fallback_color,
-                        )?
+                        generate_schemes_and_theme(&args, &config_file)?
                     } else {
                         return Err(e.wrap_err("Couldn't load the cache file").suggestion("You may need to regenerate your cache if coming from v3.1.0 and lower."));
                     }
                 }
             }
         } else {
-            generate_schemes_and_theme(&args, &config_file, &config_file.config.fallback_color)?
+            generate_schemes_and_theme(&args, &config_file)?
         };
 
         Ok(Self {
@@ -678,6 +674,7 @@ fn main() -> Result<(), Report> {
         resize_filter: Some(FilterType::Triangle),
         continue_on_error: Some(false),
         fallback_color: None,
+        prefer: None,
         old_json_output: Some(false),
         base16_backend: Some(Backend::Wal),
         #[cfg(feature = "filter-docs")]
