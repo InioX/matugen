@@ -121,10 +121,11 @@ pub struct Cli {
     #[arg(long, global = true, allow_negative_numbers = true)]
     pub lightness_light: Option<f64>,
 
-    // Will automatically pick a source color based on the index provided (0 - 4)
-    // 0 = most dominant, 1 = 2nd most dominant, etc.
-    // Setting this to any value will not show the selection prompt.
-    // In earlier versions the default was 0.
+    /// Will automatically pick a source color based on the index provided (0 - 4)
+    /// 0 = most dominant, 1 = 2nd most dominant, etc.
+    ///
+    /// Setting this to any value will not show the selection prompt.
+    /// In earlier versions the default was 0.
     #[arg(long, global = true, value_parser = clap::builder::RangedI64ValueParser::<i64>::new().range(0..4))]
     pub source_color_index: Option<i64>,
 }
