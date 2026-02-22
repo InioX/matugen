@@ -589,6 +589,11 @@ impl Engine {
             FilterReturnType::Bool(_) => false,
         };
 
+        let (format, is_format_empty) = match keywords {
+            Some(v) => (self.get_format(v), false),
+            None => ("hex", true),
+        };
+
         for filter in filters {
             if let Expression::Filter {
                 name: filter_name,
@@ -652,8 +657,33 @@ impl Engine {
                         }
                     }
                 }
+
+                let filter_name = get_str(source, filter_name);
+
+                let (is_alpha_filter_invalid, format_replacement): (bool, Option<&'static str>) =
+                    match format {
+                        "hex" => (
+                            true,
+                            Some("hex_alpha, hex_alpha_stripped, alpha_hex or alpha_hex_stripped"),
+                        ),
+                        "rgb" => (true, Some("rgba")),
+                        "hsl" => (true, Some("hsla")),
+                        _ => (false, None),
+                    };
+
+                if filter_name == "set_alpha" && is_alpha_filter_invalid && !is_format_empty {
+                    let error = Error::ParseError {
+                        kind: ParseErrorKind::Filter(FilterError::SetAlphaOnNonAlphaFormat {
+                            replacement: format_replacement.unwrap(),
+                        }),
+                        span: filter.span,
+                        name: name.to_string(),
+                    };
+                    self.errors.add(error);
+                }
+
                 current_value = match self.apply_filter(
-                    get_str(source, filter_name),
+                    filter_name,
                     &args_resolved,
                     keywords.unwrap_or(&vec![]),
                     current_value,
@@ -677,11 +707,6 @@ impl Engine {
                 };
             }
         }
-
-        let format = match keywords {
-            Some(v) => self.get_format(v),
-            None => "hex",
-        };
 
         if !format_value {
             return current_value;
