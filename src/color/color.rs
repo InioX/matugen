@@ -259,8 +259,6 @@ pub fn select_source_color_from_ranks(
     preference: &SelectionPreference,
 ) -> Result<usize, Report> {
     let sel = match preference {
-        SelectionPreference::First => 0,
-        SelectionPreference::Last => ranked.len().saturating_sub(1),
         SelectionPreference::ClosestToFallback => {
             let Some(fallback) = fallback else {
                 return Err(Report::msg(format![

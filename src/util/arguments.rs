@@ -194,16 +194,12 @@ pub enum SelectionPreference {
     Saturation,
     LessSaturation,
     Value,
-    First,
-    Last,
     ClosestToFallback,
 }
 
 impl ToString for SelectionPreference {
     fn to_string(&self) -> String {
         match &self {
-            SelectionPreference::First => "first",
-            SelectionPreference::Last => "last",
             SelectionPreference::Darkness => "darkness",
             SelectionPreference::Lightness => "lightness",
             SelectionPreference::Saturation => "saturation",
