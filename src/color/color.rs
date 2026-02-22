@@ -1,7 +1,7 @@
 use dialoguer::Select;
 use material_colors::{
     blend::harmonize,
-    color::Argb,
+    color::{Argb, Lab},
     dynamic_color::{DynamicScheme, MaterialDynamicColors},
     hct::Cam16,
     image::{FilterType, ImageReader},
@@ -10,13 +10,19 @@ use material_colors::{
     theme::{ColorGroup, CustomColor, CustomColorGroup},
 };
 
-use crate::FilterType as OwnFilterType;
-use crate::{color::format::rgb_from_argb, util::color::generate_style};
-use crate::{color::math::get_color_distance_lab, scheme::SchemeTypes};
+use crate::{
+    color::math::{get_color_distance_lab, get_color_distance_lab_from_str, lightness, value},
+    scheme::SchemeTypes,
+};
+use crate::{
+    color::{format::rgb_from_argb, math::saturation},
+    util::color::generate_style,
+};
+use crate::{util::arguments::SelectionPreference, FilterType as OwnFilterType};
 use color_eyre::{eyre::WrapErr, Report};
 use colorsys::{Hsl, Rgb};
 use owo_colors::OwoColorize;
-use std::str::FromStr;
+use std::{io::IsTerminal as _, str::FromStr};
 
 use material_colors::image::AsPixels;
 
@@ -138,6 +144,7 @@ pub fn get_source_color(
     source: &Source,
     resize_filter: &Option<OwnFilterType>,
     fallback_color: Option<Argb>,
+    prefer: &Option<SelectionPreference>,
     source_color_index: &Option<i64>,
 ) -> Result<Argb, Report> {
     use crate::color::color;
@@ -150,8 +157,14 @@ pub fn get_source_color(
     let source_color: Argb = match source {
         Source::Image { path } => {
             info!("Opening image in <d><u>{}</>", path);
-            color::get_source_color_from_image(path, filter, fallback_color, source_color_index)
-                .wrap_err(format!("Could not get source color from image: {}", path))?
+            color::get_source_color_from_image(
+                path,
+                filter,
+                fallback_color,
+                &prefer,
+                source_color_index,
+            )
+            .wrap_err(format!("Could not get source color from image: {}", path))?
         }
         #[cfg(feature = "web-image")]
         Source::WebImage { url } => {
@@ -172,6 +185,7 @@ pub fn get_source_color_from_image(
     path: &str,
     filter_type: FilterType,
     fallback_color: Option<Argb>,
+    prefer: &Option<SelectionPreference>,
     source_color_index: &Option<i64>,
 ) -> Result<Argb, Report> {
     let mut original = ImageReader::open(path)?;
@@ -219,13 +233,78 @@ pub fn get_source_color_from_image(
         return Ok(ranked[*index as usize]);
     }
 
-    let selection = Select::new()
-        .items(&ranked_formatted)
-        .with_prompt("Select the color you want to use as source color\nUse arrow keys to navigate and Enter to select")
-        .default(0)
-        .interact()?;
+    let selection = match (prefer, std::io::stdin().is_terminal()) {
+        (None, false) => return Err(Report::msg(
+            "Multiple source colors found, no preference was inputted, and a terminal was not detected.\nUse --prefer=PREFERENCE to find suitable colors without needing user input.",
+        )),
+        (None, true) => Select::new()
+            .items(&ranked_formatted)
+            .with_prompt("Select the color you want to use as source color\nUse arrow keys to navigate and Enter to select")
+            .default(0)
+            .interact()?,
+        (Some(preference), _) => {
+            debug!["Multiple source colors found, attempting to pick a color by user preference \"{:?}\"", preference];
+
+            select_source_color_from_ranks(&ranked, fallback_color, preference)?
+        },
+    };
+    debug!["Chose {selection}"];
 
     Ok(ranked[selection])
+}
+
+pub fn select_source_color_from_ranks(
+    ranked: &[Argb],
+    fallback: Option<Argb>,
+    preference: &SelectionPreference,
+) -> Result<usize, Report> {
+    let sel = match preference {
+        SelectionPreference::ClosestToFallback => {
+            let Some(fallback) = fallback else {
+                return Err(Report::msg(format![
+                    "Preference {:?} chosen but no fallback color was provided",
+                    preference
+                ]));
+            };
+            let target = Lab::from(fallback);
+
+            ranked
+                .iter()
+                .map(|col| Lab::from(*col))
+                .enumerate()
+                .min_by(|(_, a), (_, b)| {
+                    get_color_distance_lab(&target, a)
+                        .total_cmp(&get_color_distance_lab(&target, b))
+                })
+                .map(|(idx, _)| idx)
+                .unwrap_or(0)
+        }
+
+        _ => ranked
+            .iter()
+            .enumerate()
+            .min_by(|(_, a), (_, b)| {
+                let (val_a, val_b) = get_comparison_values(a, b, preference);
+                val_a.total_cmp(&val_b)
+            })
+            .map(|(idx, _)| idx)
+            .unwrap_or(0),
+    };
+    Ok(sel)
+}
+
+fn get_comparison_values(a: &Argb, b: &Argb, pref: &SelectionPreference) -> (f32, f32) {
+    let rgb_a = rgb_from_argb(*a);
+    let rgb_b = rgb_from_argb(*b);
+
+    match pref {
+        SelectionPreference::Darkness => (lightness(&rgb_a), lightness(&rgb_b)),
+        SelectionPreference::Lightness => (lightness(&rgb_b), lightness(&rgb_a)),
+        SelectionPreference::Saturation => (saturation(&rgb_b), saturation(&rgb_a)),
+        SelectionPreference::LessSaturation => (saturation(&rgb_a), saturation(&rgb_b)),
+        SelectionPreference::Value => (value(&rgb_a), value(&rgb_b)),
+        _ => (0.0, 0.0),
+    }
 }
 
 #[cfg(feature = "web-image")]
@@ -320,7 +399,7 @@ pub fn get_closest_color(
     let mut closest_color: &str = "";
 
     for c in colors_to_compare {
-        let distance = match get_color_distance_lab(&c.color, compare_to) {
+        let distance = match get_color_distance_lab_from_str(&c.color, compare_to) {
             Ok(v) => v,
             Err(e) => {
                 error!(

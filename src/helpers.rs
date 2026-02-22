@@ -27,7 +27,6 @@ use crate::util::arguments::Cli;
 pub fn generate_schemes_and_theme(
     args: &Cli,
     config_file: &ConfigFile,
-    fallback_color: &Option<String>,
 ) -> Result<
     (
         Option<Schemes>,
@@ -40,7 +39,13 @@ pub fn generate_schemes_and_theme(
     let fallback = if args.fallback_color.is_some() {
         &args.fallback_color
     } else {
-        fallback_color
+        &config_file.config.fallback_color
+    };
+
+    let prefer = if args.prefer.is_some() {
+        &args.prefer
+    } else {
+        &config_file.config.prefer
     };
 
     let parsed_fallback_color: Option<Argb> = match fallback {
@@ -59,6 +64,7 @@ pub fn generate_schemes_and_theme(
                 &args.source,
                 &args.resize_filter,
                 parsed_fallback_color,
+                prefer,
                 &args.source_color_index,
             ))
             .wrap_err("Failed to get source color.")?,
