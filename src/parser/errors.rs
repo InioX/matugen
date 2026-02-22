@@ -148,6 +148,8 @@ pub enum FilterError {
         expected: &'static [&'static str],
         span: SimpleSpan,
     },
+    #[error("You should not use the set_alpha filter with a format that doesn't have an alpha channel. Consider using one of these formats instead: [{replacement}]")]
+    SetAlphaOnNonAlphaFormat { replacement: &'static str },
 }
 
 impl Error {
@@ -209,6 +211,7 @@ impl FilterError {
             FilterError::FilterNotFound { .. } => "FilterNotFound",
             FilterError::UnexpectedStringValue { .. } => "UnexpectedStringValue",
             FilterError::InvalidFormatString { .. } => "InvalidFormatString",
+            FilterError::SetAlphaOnNonAlphaFormat { .. } => "SetAlphaOnNonAlphaFormat",
         }
     }
 }

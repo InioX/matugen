@@ -25,6 +25,12 @@ Alpha hex
 {{ colors.secondary.default.alpha_hex }}
 {{ colors.secondary.default.alpha_hex_stripped }}
 
+{{ colors.secondary.default.hex | set_alpha: 0.5 }}
+{{ colors.secondary.default.hex_alpha | set_alpha: 0.5 }}
+
+{{ colors.secondary.default.rgb | set_alpha: 0.5 }}
+{{ colors.secondary.default.rgba | set_alpha: 0.5 }}
+
 Escaped: \{{
 
 normal: {{ colors.green_source.default.hex }}
@@ -141,10 +147,6 @@ source_color {{colors.source_color.default.hex}};
     <* endif *>
 <* endfor *>
 
-Only works with rgba and hsla
-
-{{ colors.source_color.default.hex | set_alpha: 0.5 }}
-
 original:
 {{ colors.source_color.default.hex }}
 
@@ -156,8 +158,6 @@ invert
 
 invert twice
 {{ colors.source_color.default.hex | invert | invert }}
-
-chain together {{ colors.source_color.default.hex | set_alpha: 0.7 | invert }}
 
 {{ "red" | to_color }}
 {{ "red" | to_color | set_alpha: 0.5 | format: "rgba" }}
