@@ -47,7 +47,7 @@
      Themes
 </h2>
 
-#### Templates for programs
+#### Templates for programs and websites
 - [InioX/matugen-themes](https://github.com/InioX/matugen-themes)
 
 <h2 class="description">
