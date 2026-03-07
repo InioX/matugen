@@ -61,29 +61,35 @@ pub fn show_color(
     println!["{table}"];
 }
 
-pub fn transform_colors(value: &mut Value, format: &str) {
+pub fn transform_colors(value: &mut Value, format: &str, keep_color_key: bool) {
     match value {
         Value::Object(map) => {
             if map.len() == 1 && map.contains_key("color") {
                 if let Some(color_str) = map.get("color").and_then(|v| v.as_str()) {
                     if let Ok(parsed) = parse_css_color(color_str) {
-                        *value = Value::String(
-                            format_color(parsed, &format)
-                                .expect("Failed to transform color into json")
-                                .to_string(),
-                        );
+                        let replaced = format_color(parsed, format)
+                            .expect("Failed to transform color")
+                            .to_string();
+
+                        if keep_color_key {
+                            if let Some(color_val) = map.get_mut("color") {
+                                *color_val = Value::String(replaced);
+                            }
+                        } else {
+                            *value = Value::String(replaced);
+                        }
                         return;
                     }
                 }
             }
 
             for val in map.values_mut() {
-                transform_colors(val, format);
+                transform_colors(val, format, keep_color_key);
             }
         }
         Value::Array(arr) => {
             for val in arr.iter_mut() {
-                transform_colors(val, format);
+                transform_colors(val, format, keep_color_key);
             }
         }
         _ => {}
@@ -95,7 +101,9 @@ pub fn dump_json(json: &mut Value, format: &Format, old_output: Option<bool>) {
     let format_str = format.to_string();
 
     if old_output.unwrap_or(false) {
-        transform_colors(json, &format_str);
+        transform_colors(json, &format_str, false);
+    } else {
+        transform_colors(json, &format_str, true);
     }
 
     println!("{}", serde_json::to_string_pretty(&json).unwrap());
