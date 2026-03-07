@@ -1,3 +1,13 @@
+{{ colors.secondary.default.rgba }}
+{{ base16.base00.default.rgba }}
+
+{{ colors.secondary.default.hsla }}
+{{ base16.base00.default.hsla }}
+
+{{ base16.base00.default.alpha }}
+{{ base16.base00.default.hex_alpha }}
+{{ base16.base00.default.alpha_hex }}
+
 <* include "includeme"*>
 
 {{ colors.primary.default.hex }}

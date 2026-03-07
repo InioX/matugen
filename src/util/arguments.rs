@@ -1,6 +1,6 @@
 use clap::{ArgAction, Parser};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::{fmt::Debug, ops::RangeBounds, path::PathBuf};
 
 use crate::{color::base16::Backend, SchemesEnum};
 
@@ -133,6 +133,26 @@ pub struct Cli {
     /// In earlier versions the default was 0.
     #[arg(long, global = true, value_parser = clap::builder::RangedI64ValueParser::<i64>::new().range(0..4))]
     pub source_color_index: Option<i64>,
+
+    // Value from 0.0 to 1.0 (inclusive)
+    // This will set the opacity for all colors inside templates.
+    #[arg(long, global = true , value_parser = |s: &str| validate_float_range(s, 0.0..=1.0))]
+    pub opacity: Option<f64>,
+}
+
+fn validate_float_range<R>(s: &str, range: R) -> Result<f64, String>
+where
+    R: RangeBounds<f64> + Debug,
+{
+    let val: f64 = s
+        .parse()
+        .map_err(|_| format!("`{s}` isn't a valid number"))?;
+
+    if (range).contains(&val) {
+        Ok(val)
+    } else {
+        Err(format!("Value {val} is out of range (0.0..1.0)"))
+    }
 }
 
 #[derive(Parser, Debug, Clone, clap::ValueEnum)]

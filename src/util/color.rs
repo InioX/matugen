@@ -11,7 +11,10 @@ use material_colors::{palette::TonalPalette, theme::Palettes};
 use serde_json::{Map, Value};
 
 use crate::{
-    color::parse::parse_css_color, parser::engine::format_color, scheme::SchemesEnum, Schemes,
+    color::{format::format_hex_alpha, parse::parse_css_color},
+    parser::engine::format_color,
+    scheme::SchemesEnum,
+    Schemes,
 };
 
 #[cfg(feature = "dump-json")]
@@ -117,8 +120,10 @@ pub fn format_schemes(
     let mut scheme_map = IndexMap::new();
 
     for name in names {
-        let dark_hex = schemes.dark.get(name).unwrap().to_hex_with_pound();
-        let light_hex = schemes.light.get(name).unwrap().to_hex_with_pound();
+        let dark_color = schemes.dark.get(name).unwrap();
+        let light_color = schemes.light.get(name).unwrap();
+        let dark_hex = format_hex_alpha(&rgb_from_argb(*dark_color));
+        let light_hex = format_hex_alpha(&rgb_from_argb(*light_color));
         let default_hex = match default_scheme {
             SchemesEnum::Dark => dark_hex.clone(),
             SchemesEnum::Light => light_hex.clone(),

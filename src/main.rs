@@ -16,7 +16,10 @@ mod wallpaper;
 use crate::{
     cache::ImageCache,
     color::{base16::Backend, color::Source},
-    helpers::{generate_schemes_and_theme, get_syntax, json_from_file, merge_json},
+    helpers::{
+        apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, json_from_file,
+        merge_json,
+    },
     scheme::SchemeTypes,
     template::get_absolute_path,
     util::{
@@ -78,7 +81,7 @@ impl State {
             .mode
             .ok_or_else(|| Report::msg("Something went wrong while parsing the mode"))?;
 
-        let (schemes, source_color, theme, base16) = if caching_enabled {
+        let (mut schemes, source_color, theme, mut base16) = if caching_enabled {
             match image_cache.load() {
                 Ok((schemes, base16)) => {
                     // Source color will be the same in both light and dark mode
@@ -105,6 +108,9 @@ impl State {
         } else {
             generate_schemes_and_theme(&args, &config_file)?
         };
+
+        apply_opacity_to_schemes(&mut base16, args.opacity);
+        apply_opacity_to_schemes(&mut schemes, args.opacity);
 
         Ok(Self {
             args,
@@ -142,7 +148,12 @@ impl State {
                 if let Some(schemes) = &self.schemes {
                     let colors_md3 =
                         format_schemes(&schemes, self.default_scheme, schemes.get_all_names());
+
+                    // dbg!(&colors_md3);
+
                     let json_md3 = serde_json::json!({"colors": serde_json::to_value(colors_md3).wrap_err("Could not format md3 colors to JSON")?});
+
+                    // dbg!(&json_md3);
 
                     merge_json(&mut json, json_md3);
                 }
@@ -682,6 +693,7 @@ fn main() -> Result<(), Report> {
         lightness_dark: Some(0.0),
         lightness_light: Some(0.0),
         source_color_index: None,
+        opacity: Some(1.0),
     };
 
     let args = Cli::parse();

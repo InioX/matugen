@@ -24,6 +24,20 @@ use std::{fs::read_to_string, io::Write, path::PathBuf};
 
 use crate::util::arguments::Cli;
 
+pub fn apply_opacity_to_schemes(schemes: &mut Option<Schemes>, opacity: Option<f64>) {
+    if let Some(schemes) = schemes {
+        let alpha_val = (opacity.unwrap_or(1.0) * 255.0).round() as u8;
+
+        for color in schemes.dark.values_mut() {
+            color.alpha = alpha_val;
+        }
+
+        for color in schemes.light.values_mut() {
+            color.alpha = alpha_val;
+        }
+    }
+}
+
 pub fn generate_schemes_and_theme(
     args: &Cli,
     config_file: &ConfigFile,
