@@ -62,9 +62,9 @@ pub fn format_color(base_color: Rgb, format: &str) -> Option<Value> {
             "alpha_hex" => Some(format_alpha_hex(&base_color).into()),
             "alpha_hex_stripped" => Some(format_alpha_hex_stripped(&base_color).into()),
             "rgb" => Some(format_rgb(&base_color).into()),
-            "rgba" => Some(format_rgba(&base_color, false).into()),
+            "rgba" => Some(format_rgba(&base_color).into()),
             "hsl" => Some(format_hsl(&hsl_color).into()),
-            "hsla" => Some(format_hsla(&hsl_color, false).into()),
+            "hsla" => Some(format_hsla(&hsl_color).into()),
             "red" => Some(Value::Int(base_color.red() as i64)),
             "green" => Some(Value::Int(base_color.green() as i64)),
             "blue" => Some(Value::Int(base_color.blue() as i64)),
@@ -97,15 +97,9 @@ pub fn format_color_all(base_color: Rgb) -> IndexMap<String, Value> {
         Value::Ident(format_hex_alpha_stripped(&base_color)),
     );
     map.insert("rgb".to_string(), Value::Ident(format_rgb(&base_color)));
-    map.insert(
-        "rgba".to_string(),
-        Value::Ident(format_rgba(&base_color, true)),
-    );
+    map.insert("rgba".to_string(), Value::Ident(format_rgba(&base_color)));
     map.insert("hsl".to_string(), Value::Ident(format_hsl(&hsl_color)));
-    map.insert(
-        "hsla".to_string(),
-        Value::Ident(format_hsla(&hsl_color, true)),
-    );
+    map.insert("hsla".to_string(), Value::Ident(format_hsla(&hsl_color)));
     map.insert("red".to_string(), Value::Int(base_color.red() as i64));
     map.insert("green".to_string(), Value::Int(base_color.green() as i64));
     map.insert("blue".to_string(), Value::Int(base_color.blue() as i64));

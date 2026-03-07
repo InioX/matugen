@@ -18,6 +18,8 @@ RUST_BACKTRACE=1 cargo run --release --features=dump-json -- \
   --continue-on-error \
   --fallback-color "#0000ff" \
   --base16-backend "wal" \
+  --opacity 0.5 \
+  # --show-colors \
   # --json hex \
   # --old-json-output \
   # --show-colors \ 

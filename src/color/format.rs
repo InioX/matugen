@@ -103,24 +103,16 @@ pub fn format_rgb(color: &Rgb) -> String {
     )
 }
 
-pub fn format_rgba(color: &Rgb, divide: bool) -> String {
-    if divide {
-        format!(
-            "rgba({:.0}, {:.0}, {:.0}, {})",
-            color.red(),
-            color.green(),
-            color.blue(),
-            color.alpha() / 255.
-        )
-    } else {
-        format!(
-            "rgba({:.0}, {:.0}, {:.0}, {})",
-            color.red(),
-            color.green(),
-            color.blue(),
-            color.alpha()
-        )
-    }
+pub fn format_rgba(color: &Rgb) -> String {
+    let alpha = (color.alpha() * 100.0).round() / 100.0;
+
+    format!(
+        "rgba({:.0}, {:.0}, {:.0}, {})",
+        color.red(),
+        color.green(),
+        color.blue(),
+        alpha
+    )
 }
 
 pub fn format_hsl(color: &Hsl) -> String {
@@ -132,22 +124,14 @@ pub fn format_hsl(color: &Hsl) -> String {
     )
 }
 
-pub fn format_hsla(color: &Hsl, divide: bool) -> String {
-    if divide {
-        format!(
-            "hsla({:.0}, {:.0}%, {:.0}%, {})",
-            color.hue(),
-            color.saturation(),
-            color.lightness(),
-            color.alpha() / 255.
-        )
-    } else {
-        format!(
-            "hsla({:.0}, {:.0}%, {:.0}%, {})",
-            color.hue(),
-            color.saturation(),
-            color.lightness(),
-            color.alpha()
-        )
-    }
+pub fn format_hsla(color: &Hsl) -> String {
+    let alpha = (color.alpha() * 100.0).round() / 100.0;
+
+    format!(
+        "hsla({:.0}, {:.0}%, {:.0}%, {})",
+        color.hue(),
+        color.saturation(),
+        color.lightness(),
+        alpha
+    )
 }
