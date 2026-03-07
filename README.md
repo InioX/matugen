@@ -149,6 +149,12 @@ cargo install matugen
 
 <details><summary>Click to expand</summary>
 
+#### AUR:
+```shell
+yay -S matugen-bin
+```
+
+#### Arch extra repo
 ```shell
 sudo pacman -S matugen
 ```
