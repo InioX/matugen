@@ -6,8 +6,12 @@ use crate::{
         parse::parse_css_color,
     },
     parser::{engine::EngineSyntax, Engine},
-    scheme::{get_custom_color_schemes, get_schemes, Schemes},
-    util::config::ConfigFile,
+    scheme::{get_custom_color_schemes, get_schemes, SchemeTypes, Schemes, SchemesEnum},
+    util::{
+        arguments::Format,
+        color::{format_palettes, format_schemes},
+        config::ConfigFile,
+    },
     wallpaper::{self, Wallpaper},
 };
 use color_eyre::{
@@ -38,9 +42,44 @@ pub fn apply_opacity_to_schemes(schemes: &mut Option<Schemes>, opacity: Option<f
     }
 }
 
+pub fn merge_json_source(
+    mut json: Value,
+    md3_schemes: &Option<Schemes>,
+    base16_schemes: &Option<Schemes>,
+    theme: &Option<Theme>,
+    default_scheme: SchemesEnum,
+) -> Result<Value, Report> {
+    if let Some(schemes) = &md3_schemes {
+        let colors_md3 = format_schemes(&schemes, default_scheme, schemes.get_all_names());
+
+        let json_md3 = serde_json::json!({"colors": serde_json::to_value(colors_md3).wrap_err("Could not format md3 colors to JSON")?});
+
+        merge_json(&mut json, json_md3);
+    }
+
+    if let Some(base16) = base16_schemes {
+        let colors_base16 = format_schemes(&base16, default_scheme, base16.get_all_names());
+
+        let json_base16 = serde_json::json!({"base16": serde_json::to_value(colors_base16).wrap_err("Could not format base16 colors to JSON")?});
+
+        merge_json(&mut json, json_base16);
+    }
+
+    if let Some(theme) = theme {
+        let palettes = format_palettes(&theme.palettes, &Format::Hex);
+
+        let json_palettes = serde_json::json!({"palettes": serde_json::to_value(palettes).wrap_err("Could not format palettes to JSON")?});
+
+        merge_json(&mut json, json_palettes);
+    }
+
+    Ok(json)
+}
+
 pub fn generate_schemes_and_theme(
     args: &Cli,
     config_file: &ConfigFile,
+    scheme_type: &Option<SchemeTypes>,
 ) -> Result<
     (
         Option<Schemes>,
@@ -88,7 +127,7 @@ pub fn generate_schemes_and_theme(
     let (schemes, theme) = match source_color {
         Some(color) => {
             let theme = ThemeBuilder::with_source(color).build();
-            let (scheme_dark, scheme_light) = get_schemes(color, &args.r#type, &args.contrast);
+            let (scheme_dark, scheme_light) = get_schemes(color, scheme_type, &args.contrast);
 
             let mut schemes = get_custom_color_schemes(
                 color,

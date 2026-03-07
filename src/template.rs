@@ -3,9 +3,17 @@ use color_eyre::{
     Help, Report,
 };
 use execute::{shell, Execute};
+use material_colors::theme::Theme;
 use serde_json::json;
 
-use crate::{color::color::get_closest_color, helpers::get_syntax, parser::Engine};
+use crate::{
+    color::color::get_closest_color,
+    helpers::{
+        apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, merge_json_source,
+    },
+    parser::Engine,
+    scheme::{SchemeTypes, Schemes},
+};
 use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, path::Path, process::Stdio, str};
@@ -35,6 +43,7 @@ pub struct Template {
     pub block_prefix: Option<String>,
     pub block_postfix: Option<String>,
     pub index: Option<i32>,
+    pub r#type: Option<SchemeTypes>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -129,6 +138,25 @@ impl TemplateFile<'_> {
         templates.sort_by_key(|(_, Template { index, .. })| index.unwrap_or(0));
 
         for (name, template) in templates {
+            if let Some(scheme_type) = template.r#type {
+                let (mut schemes, _, theme, mut base16) = generate_schemes_and_theme(
+                    &self.state.args,
+                    &self.state.config_file,
+                    &Some(scheme_type),
+                )?;
+
+                apply_opacity_to_schemes(&mut base16, self.state.args.opacity);
+                apply_opacity_to_schemes(&mut schemes, self.state.args.opacity);
+
+                change_scheme_type(
+                    self.engine,
+                    &schemes,
+                    &base16,
+                    &theme,
+                    self.state.default_scheme,
+                )?;
+            }
+
             if let Some(hook) = &template.pre_hook {
                 info!("Running pre_hook for the <b><cyan>{}</> template.", &name);
                 format_hook(
@@ -164,6 +192,16 @@ impl TemplateFile<'_> {
                     &template.compare_to,
                 )
                 .wrap_err(format!("Failed to format the following hook:\n{}", hook))?;
+            }
+
+            if let Some(_) = template.r#type {
+                change_scheme_type(
+                    self.engine,
+                    &self.state.schemes,
+                    &self.state.base16,
+                    &self.state.theme,
+                    self.state.default_scheme,
+                )?;
             }
         }
 
@@ -250,6 +288,30 @@ impl TemplateFile<'_> {
 
         Ok(())
     }
+}
+
+fn change_scheme_type(
+    engine: &mut Engine,
+    md3_schemes: &Option<Schemes>,
+    base16_schemes: &Option<Schemes>,
+    theme: &Option<Theme>,
+    default_scheme: SchemesEnum,
+) -> Result<(), Report> {
+    engine.remove_key_from_context("colors");
+    engine.remove_key_from_context("base16");
+    engine.remove_key_from_context("palettes");
+
+    let json = merge_json_source(
+        serde_json::json!({}),
+        md3_schemes,
+        base16_schemes,
+        theme,
+        default_scheme,
+    )?;
+
+    engine.add_context(json);
+
+    Ok(())
 }
 
 pub fn format_hook(

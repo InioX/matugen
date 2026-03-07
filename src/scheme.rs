@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use indexmap::IndexMap;
 use material_colors::{dynamic_color::Variant as MaterialColorsVariant, scheme::Scheme};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::color::color::{
     adjust_color_lightness_dark, adjust_color_lightness_light, generate_dynamic_scheme,
@@ -11,7 +11,7 @@ use crate::color::color::{
 };
 
 #[allow(clippy::enum_variant_names)]
-#[derive(Clone, clap::ValueEnum, Debug, Copy, PartialEq)]
+#[derive(Clone, clap::ValueEnum, Debug, Copy, PartialEq, Serialize, Deserialize)]
 pub enum SchemeTypes {
     SchemeContent,
     SchemeExpressive,

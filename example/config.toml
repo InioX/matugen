@@ -50,7 +50,7 @@ command = "swww img --transition-type center {{ image }}"
 
 [templates.includeme]
 input_path = "./include.txt"
-# The output path is optional if you just want to import the template anyways,
+# The output path is optional if you just want to import the template anyways.
 # output_path = "./a/include.txt"
 
 [templates.name1]
@@ -61,6 +61,10 @@ output_path = "./a/colors-generated.whatever-extension"
 # Defaults to a value of 0 if unspecified, determines the order that each template is processed.
 # You can use index = n to force a particular template hook to run after everything else, and index = -n for before everything else
 index = 1
+
+# Defaults to the type from CLI if unspecified.
+# One of `SchemeContent`, `SchemeExpressive`, `SchemeFidelity`, `SchemeFruitSalad`, `SchemeMonochrome`, `SchemeNeutral`, `SchemeRainbow`, `SchemeTonalSpot`, `SchemeVibrant`
+type = "SchemeExpressive"
 
 # For testing of the `--continue-on-error` flag
 # [templates.ishoulderror]

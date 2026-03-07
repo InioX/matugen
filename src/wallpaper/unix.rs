@@ -3,7 +3,6 @@ use crate::parser::Engine;
 use crate::template::format_hook;
 use crate::wallpaper::Wallpaper;
 use color_eyre::Report;
-use execute::Execute;
 use std::process::{Command, Stdio};
 
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
@@ -45,25 +44,6 @@ pub fn set(
         };
     } else {
         format_hook(engine, command, &None, &None)?;
-    }
-
-    Ok(())
-}
-
-#[cfg(any(target_os = "linux", target_os = "netbsd"))]
-fn spawn_hook(hook: String) -> Result<(), Report> {
-    let mut command = execute::shell(&hook);
-
-    command.stdout(Stdio::inherit());
-
-    let output = command.execute_output()?;
-
-    if let Some(exit_code) = output.status.code() {
-        if exit_code != 0 {
-            error!("Failed executing command: {:?}", hook)
-        }
-    } else {
-        eprintln!("Interrupted!");
     }
 
     Ok(())

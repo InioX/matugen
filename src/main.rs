@@ -18,14 +18,11 @@ use crate::{
     color::{base16::Backend, color::Source},
     helpers::{
         apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, json_from_file,
-        merge_json,
+        merge_json, merge_json_source,
     },
     scheme::SchemeTypes,
     template::get_absolute_path,
-    util::{
-        arguments::{FilterType, Format},
-        color::{format_palettes, format_schemes},
-    },
+    util::arguments::FilterType,
 };
 use helpers::{set_wallpaper, setup_logging};
 use template::TemplateFile;
@@ -99,14 +96,14 @@ impl State {
                             "<d>The cache in <yellow><b>{}</><d> doesn't exist.</>",
                             image_cache.get_path().display()
                         );
-                        generate_schemes_and_theme(&args, &config_file)?
+                        generate_schemes_and_theme(&args, &config_file, &args.r#type)?
                     } else {
                         return Err(e.wrap_err("Couldn't load the cache file").suggestion("You may need to regenerate your cache if coming from v3.1.0 and lower."));
                     }
                 }
             }
         } else {
-            generate_schemes_and_theme(&args, &config_file)?
+            generate_schemes_and_theme(&args, &config_file, &args.r#type)?
         };
 
         apply_opacity_to_schemes(&mut base16, args.opacity);
@@ -127,7 +124,7 @@ impl State {
     }
 
     fn init_engine(&self) -> Result<(Engine, Value), Report> {
-        let mut json = self
+        let json = self
             .get_render_data()
             .wrap_err("Could not get render data")?;
 
@@ -144,39 +141,13 @@ impl State {
 
         let mut json = match &self.args.source {
             Source::Json { path } => json_from_file(&PathBuf::from(path)).unwrap(),
-            _ => {
-                if let Some(schemes) = &self.schemes {
-                    let colors_md3 =
-                        format_schemes(&schemes, self.default_scheme, schemes.get_all_names());
-
-                    // dbg!(&colors_md3);
-
-                    let json_md3 = serde_json::json!({"colors": serde_json::to_value(colors_md3).wrap_err("Could not format md3 colors to JSON")?});
-
-                    // dbg!(&json_md3);
-
-                    merge_json(&mut json, json_md3);
-                }
-
-                if let Some(base16) = &self.base16 {
-                    let colors_base16 =
-                        format_schemes(&base16, self.default_scheme, base16.get_all_names());
-
-                    let json_base16 = serde_json::json!({"base16": serde_json::to_value(colors_base16).wrap_err("Could not format base16 colors to JSON")?});
-
-                    merge_json(&mut json, json_base16);
-                }
-
-                if let Some(theme) = &self.theme {
-                    let palettes = format_palettes(&theme.palettes, &Format::Hex);
-
-                    let json_palettes = serde_json::json!({"palettes": serde_json::to_value(palettes).wrap_err("Could not format palettes to JSON")?});
-
-                    merge_json(&mut json, json_palettes);
-                }
-
-                json
-            }
+            _ => merge_json_source(
+                json,
+                &self.schemes,
+                &self.base16,
+                &self.theme,
+                self.default_scheme,
+            )?,
         };
 
         if let Some(paths) = &self.args.import_json {
