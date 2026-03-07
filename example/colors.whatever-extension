@@ -25,10 +25,8 @@ Alpha hex
 {{ colors.secondary.default.alpha_hex }}
 {{ colors.secondary.default.alpha_hex_stripped }}
 
-{{ colors.secondary.default.hex | set_alpha: 0.5 }}
 {{ colors.secondary.default.hex_alpha | set_alpha: 0.5 }}
 
-{{ colors.secondary.default.rgb | set_alpha: 0.5 }}
 {{ colors.secondary.default.rgba | set_alpha: 0.5 }}
 
 Escaped: \{{
