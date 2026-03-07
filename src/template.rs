@@ -288,7 +288,8 @@ pub fn format_hook(
 
     let mut command = shell(&res);
 
-    command.stdout(Stdio::inherit());
+    command.stdout(Stdio::piped());
+    command.stderr(Stdio::piped());
 
     let output = command.execute_output()?;
 
@@ -299,6 +300,15 @@ pub fn format_hook(
     } else {
         eprintln!("Interrupted!");
     }
+
+    success!(
+        "<green><b>Stdout:</>\n{}",
+        String::from_utf8(output.stdout).unwrap()
+    );
+    error!(
+        "<red><b>Stderr:</>\n{}",
+        String::from_utf8(output.stderr).unwrap()
+    );
 
     Ok(())
 }
