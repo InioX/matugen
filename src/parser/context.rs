@@ -111,6 +111,10 @@ impl Context {
         }
     }
 
+    pub fn delete_key(&mut self, key: &str) {
+        self.data.remove(key);
+    }
+
     pub fn remove_path<'a, I>(&mut self, path: I) -> bool
     where
         I: IntoIterator<Item = &'a str>,

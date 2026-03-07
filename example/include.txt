@@ -11,3 +11,5 @@
 {{ map.nested.text }}
 
 {{ palettes }}
+
+{{ colors.secondary.default.rgba }}

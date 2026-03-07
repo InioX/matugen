@@ -219,6 +219,10 @@ impl Engine {
         self.context.merge_json(context);
     }
 
+    pub fn remove_key_from_context(&mut self, key: &str) {
+        self.context.delete_key(key);
+    }
+
     pub fn get_source(&self, name: &str) -> Result<&String, color_eyre::Report> {
         let template = self
             .templates
