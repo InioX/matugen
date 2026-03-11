@@ -19,10 +19,11 @@ enquote = "1.1.0"
 
 [features]
 filter-docs = []
-default = ["dump-json"]
+default = ["dump-json", "jxl-image"]
 update-informer = ["dep:update-informer"]
 web-image = ["dep:reqwest"]
 dump-json = ["dep:serde_json"]
+jxl-image = ["dep:jxl-oxide"]
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
@@ -86,3 +87,6 @@ csscolorparser = "0.7.2"
 convert_case = "0.10.0"
 palette = "0.7.6"
 dialoguer = { version = "0.12.0", default-features = false }
+
+# Jxl image feature
+jxl-oxide = { version = "0.12.5", features = ["image"], optional = true }
