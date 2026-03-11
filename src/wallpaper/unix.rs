@@ -16,11 +16,12 @@ pub fn set(
     }: &Wallpaper,
     engine: &mut Engine,
 ) -> Result<(), Report> {
-    info!("Setting wallpaper...");
-
+    info!("Executing pre_hook for wallpaper...");
     if let Some(hook) = pre_hook {
         format_hook(engine, hook, &None, &None)?
     }
+
+    info!("Setting wallpaper...");
 
     if let Some(args) = arguments {
         warn!("You should not define arguments inside of [config.wallpaper] anymore.\nUse the command instead and use the {{{{ image }}}} keyword to set the wallpaper.");
