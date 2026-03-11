@@ -7,7 +7,7 @@ if [ -z "$1" ]
 fi
 
 
-RUST_BACKTRACE=1 cargo run --release --features=dump-json -- \
+RUST_BACKTRACE=1 cargo run --release --features="dump-json, jxl-image" -- \
   image $1 \
   --type scheme-vibrant \
   --import-json ./example/custom.json \

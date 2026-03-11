@@ -65,6 +65,9 @@ pub struct State {
 
 impl State {
     pub fn new(args: Cli) -> Result<Self, Report> {
+        #[cfg(feature = "jxl-image")]
+        jxl_oxide::integration::register_image_decoding_hook();
+
         let (config_file, config_path) =
             ConfigFile::read(&args).wrap_err("Failed to read config file.")?;
 
