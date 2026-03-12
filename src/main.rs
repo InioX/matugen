@@ -211,7 +211,7 @@ impl State {
 
     pub fn get_render_data(&self) -> Result<serde_json::Value, Report> {
         let image = match &self.args.source {
-            Source::Image { path } => Some(path),
+            Source::Image { path } => Some(path.replace('\\', "\\\\")),
             #[cfg(feature = "web-image")]
             Source::WebImage { .. } => None,
             Source::Color { .. } => None,
