@@ -97,7 +97,7 @@ pub struct Cli {
     #[arg(value_enum, long, global = true)]
     pub prefer: Option<SelectionPreference>,
 
-    /// Whether to make the outputted json compatible with the --import-json flag.
+    /// Whether to make the outputted json be like before version 4.0.0
     #[arg(long, global = true, action=ArgAction::SetTrue)]
     pub old_json_output: Option<bool>,
 
