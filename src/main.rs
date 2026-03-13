@@ -211,7 +211,7 @@ impl State {
 
     pub fn get_render_data(&self) -> Result<serde_json::Value, Report> {
         let image = match &self.args.source {
-            Source::Image { path } => Some(path),
+            Source::Image { path } => Some(normalize_path_to_forward_slash(path)),
             #[cfg(feature = "web-image")]
             Source::WebImage { .. } => None,
             Source::Color { .. } => None,
@@ -631,6 +631,24 @@ impl State {
 
         Ok(())
     }
+}
+
+fn normalize_path_to_forward_slash(path: &str) -> String {
+    let mut result = String::with_capacity(path.len());
+    let mut prev_was_backslash = false;
+
+    for c in path.chars() {
+        if c == '\\' {
+            if !prev_was_backslash {
+                result.push(c);
+                prev_was_backslash = true;
+            }
+        } else {
+            result.push(c);
+            prev_was_backslash = false;
+        }
+    }
+    result.replace('\\', "/")
 }
 
 #[allow(unreachable_code)]
