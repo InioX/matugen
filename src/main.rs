@@ -211,10 +211,7 @@ impl State {
 
     pub fn get_render_data(&self) -> Result<serde_json::Value, Report> {
         let image = match &self.args.source {
-            Source::Image { path } => {
-                let normalized = normalize_backslashes(path);
-                Some(normalized.replace('\\', r"\\"))
-            }
+            Source::Image { path } => Some(normalize_path_to_forward_slash(path)),
             #[cfg(feature = "web-image")]
             Source::WebImage { .. } => None,
             Source::Color { .. } => None,
@@ -636,7 +633,7 @@ impl State {
     }
 }
 
-fn normalize_backslashes(path: &str) -> String {
+fn normalize_path_to_forward_slash(path: &str) -> String {
     let mut result = String::with_capacity(path.len());
     let mut prev_was_backslash = false;
 
@@ -651,7 +648,7 @@ fn normalize_backslashes(path: &str) -> String {
             prev_was_backslash = false;
         }
     }
-    result
+    result.replace('\\', "/")
 }
 
 #[allow(unreachable_code)]
