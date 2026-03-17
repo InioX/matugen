@@ -211,7 +211,11 @@ impl State {
 
     pub fn get_render_data(&self) -> Result<serde_json::Value, Report> {
         let image = match &self.args.source {
-            Source::Image { path } => Some(normalize_path_to_forward_slash(path)),
+            Source::Image { path } => Some(normalize_path_to_forward_slash(
+                std::fs::canonicalize(path)?
+                    .to_str()
+                    .ok_or_else(|| Report::msg("Could not canonicalize the image path"))?,
+            )),
             #[cfg(feature = "web-image")]
             Source::WebImage { .. } => None,
             Source::Color { .. } => None,
