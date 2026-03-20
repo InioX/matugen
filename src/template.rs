@@ -350,8 +350,9 @@ pub fn format_hook(
 
     let mut command = shell(&res);
 
-    command.stdout(Stdio::piped());
-    command.stderr(Stdio::piped());
+    // FIXME: figure out why this doesnt work even though its in the docs
+    // command.stdout(Stdio::piped());
+    // command.stderr(Stdio::piped());
 
     let output = command.execute_output()?;
 
