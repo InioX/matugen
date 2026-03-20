@@ -37,9 +37,16 @@ block_postfix = "*>"
 import_json_files = ["./custom3.json"]
 
 [config.wallpaper]
-command = "swaybg -m fill -i {{ image }} & disown"
+# Whether to set the wallpaper or not
 set = true
-pre_hook = "kill (pgrep -o swaybg)"
+
+# The base command to run for applying the wallpaper.
+# Keywords like {{ image }} or anything that works inside of hooks works here.
+# You could also set a static color if you use the color keywords and the wallpaper setter supports it.
+command = "swww img --transition-type center {{ image }}"
+
+# For example, killing the wallpaper daemon. Usage is like a normal hook.
+# pre_hook = ""
 
 [templates.includeme]
 input_path = "./include.txt"
