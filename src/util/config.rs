@@ -27,6 +27,7 @@ pub struct Config {
     pub import_json_files: Option<Vec<PathBuf>>,
     pub fallback_color: Option<String>,
     pub prefer: Option<SelectionPreference>,
+    pub contrast: Option<f64>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

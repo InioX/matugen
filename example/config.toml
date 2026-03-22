@@ -36,6 +36,12 @@ block_postfix = "*>"
 # Relative paths will be resolved from the path `config.toml` is in.
 import_json_files = ["./custom3.json"]
 
+# Defaults to the contrast from CLI if unspecified.
+# Value from -1 to 1. 
+# -1 represents minimum contrast, 0 represents standard (i.e. the design as spec'd),
+# and 1 represents maximum contrast.
+contrast = 1.0
+
 [config.wallpaper]
 # Whether to set the wallpaper or not
 set = true
