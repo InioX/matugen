@@ -170,7 +170,7 @@ sudo pacman -S matugen
      </sub>
      NixOS
      <a href="https://repology.org/project/matugen/versions">
-  <img src="https://repology.org/badge/version-for-repo/nix_stable_24_05/matugen.svg?header=" alt="nixpkgs" align="right">
+  <img src="https://repology.org/badge/version-for-repo/nix_unstable/matugen.svg?header=" alt="nixpkgs" align="right">
      </a><a href="j"><img alt="NixOS Version" src="https://img.shields.io/badge/git-brightgreen" align="right"></a>
 </h4>
 
