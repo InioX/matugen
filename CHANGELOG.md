@@ -6,6 +6,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.0](https://github.com/InioX/matugen/compare/v4.0.0...v4.1.0) - 2026-03-22
+
+### Added
+
+- add contrast config option (fixes #274)
+- add info when executing pre_hook for wallpaper
+- only show stout/stderr if not empty
+- add jxl image support (fixes #268)
+- add per template scheme types ([#261](https://github.com/InioX/matugen/pull/261))
+- add stdout and stderr for commands (fixes #227)
+- add `--opacity` flag ([#238](https://github.com/InioX/matugen/pull/238))
+- add error when using `set_format` on a color without alpha (fixes #266)
+- add `alpha_hex` and `alpha_hex_stripped` (closes #260)
+
+### Fixed
+
+- do not use `Stdio::piped()` for commands ([#270](https://github.com/InioX/matugen/pull/270))
+- canonicalize the image path ([#273](https://github.com/InioX/matugen/pull/273))
+- change description for `--old-json-output`
+- format new json output ([#267](https://github.com/InioX/matugen/pull/267))
+- add format into color filters category
+- update nix flake to allow building again
+- turn source_color_index comment into a doc comment
+- use comfy-table to print colors table instead of prettytable-rs
+- *(base16)* use image with guessed format (fixes #258)
+
+### Other
+
+- change nixos version badge to unstable
+- update arch installation ([#269](https://github.com/InioX/matugen/pull/269))
+- merge format_color and format_color_hsl into one
+- add website theming
+- Merge pull request #264 from zeptofine/feat/prefer-color-option
+
 ## [4.0.0](https://github.com/InioX/matugen/compare/v3.1.0...v4.0.0) - 2026-02-12
 
 ### Added
