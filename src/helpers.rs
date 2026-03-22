@@ -124,10 +124,12 @@ pub fn generate_schemes_and_theme(
         ),
     };
 
+    let contrast = args.contrast.or(config_file.config.contrast);
+
     let (schemes, theme) = match source_color {
         Some(color) => {
             let theme = ThemeBuilder::with_source(color).build();
-            let (scheme_dark, scheme_light) = get_schemes(color, scheme_type, &args.contrast);
+            let (scheme_dark, scheme_light) = get_schemes(color, scheme_type, &contrast);
 
             let mut schemes = get_custom_color_schemes(
                 color,
@@ -135,7 +137,7 @@ pub fn generate_schemes_and_theme(
                 scheme_light,
                 &config_file.config.custom_colors,
                 &args.r#type,
-                &args.contrast,
+                &contrast,
                 &args.lightness_dark,
                 &args.lightness_light,
             );
