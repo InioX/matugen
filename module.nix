@@ -39,7 +39,9 @@ matugen: {
     builtins.mapAttrs (_: v: {
       mode = capitalize cfg.variant;
       input_path = builtins.toString v.input_path;
-      output_path = map (p: builtins.replaceStrings ["$HOME"] ["~"] p) v.output_path;
+      output_path = let 
+        paths = map (p: builtins.replaceStrings ["$HOME"] ["~"] p) v.output_path;
+      in if (builtins.length paths == 1) then (builtins.head paths) else paths;
     })
     cfg.templates;
 
