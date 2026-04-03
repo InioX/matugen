@@ -351,7 +351,7 @@ pub fn generate_dynamic_scheme(
 ) -> DynamicScheme {
     let scheme_type: SchemeTypes = scheme_type.unwrap_or(SchemeTypes::SchemeContent);
     if let Some(var) = scheme_type.as_material_colors_variant() {
-        DynamicScheme::by_variant(source_color, &var, is_dark, contrast_level)
+        DynamicScheme::by_variant(&[source_color.into()], &var, is_dark, contrast_level)
     } else {
         unreachable!()
     }

@@ -22,6 +22,7 @@ pub enum SchemeTypes {
     SchemeRainbow,
     SchemeTonalSpot,
     SchemeVibrant,
+    SchemeCmf,
 }
 
 impl SchemeTypes {
@@ -37,6 +38,7 @@ impl SchemeTypes {
             SchemeTypes::SchemeRainbow => Some(MaterialColorsVariant::Rainbow),
             SchemeTypes::SchemeTonalSpot => Some(MaterialColorsVariant::TonalSpot),
             SchemeTypes::SchemeVibrant => Some(MaterialColorsVariant::Vibrant),
+            SchemeTypes::SchemeCmf => Some(MaterialColorsVariant::Cmf),
             _ => None,
         }
     }
