@@ -20,7 +20,7 @@ use color_eyre::{
 };
 use log::LevelFilter;
 use material_colors::{
-    color::Argb,
+    color::Rgb,
     theme::{Theme, ThemeBuilder},
 };
 use serde_json::Value;
@@ -28,19 +28,19 @@ use std::{fs::read_to_string, io::Write, path::PathBuf};
 
 use crate::util::arguments::Cli;
 
-pub fn apply_opacity_to_schemes(schemes: &mut Option<Schemes>, opacity: Option<f64>) {
-    if let Some(schemes) = schemes {
-        let alpha_val = (opacity.unwrap_or(1.0) * 255.0).round() as u8;
+// pub fn apply_opacity_to_schemes(schemes: &mut Option<Schemes>, opacity: Option<f64>) {
+//     if let Some(schemes) = schemes {
+//         let alpha_val = (opacity.unwrap_or(1.0) * 255.0).round() as u8;
 
-        for color in schemes.dark.values_mut() {
-            color.alpha = alpha_val;
-        }
+//         for color in schemes.dark.values_mut() {
+//             color.alpha = alpha_val;
+//         }
 
-        for color in schemes.light.values_mut() {
-            color.alpha = alpha_val;
-        }
-    }
-}
+//         for color in schemes.light.values_mut() {
+//             color.alpha = alpha_val;
+//         }
+//     }
+// }
 
 pub fn merge_json_source(
     mut json: Value,
@@ -80,15 +80,7 @@ pub fn generate_schemes_and_theme(
     args: &Cli,
     config_file: &ConfigFile,
     scheme_type: &Option<SchemeTypes>,
-) -> Result<
-    (
-        Option<Schemes>,
-        Option<Argb>,
-        Option<Theme>,
-        Option<Schemes>,
-    ),
-    Report,
-> {
+) -> Result<(Option<Schemes>, Option<Rgb>, Option<Theme>, Option<Schemes>), Report> {
     let fallback = if args.fallback_color.is_some() {
         &args.fallback_color
     } else {
@@ -101,7 +93,7 @@ pub fn generate_schemes_and_theme(
         &config_file.config.prefer
     };
 
-    let parsed_fallback_color: Option<Argb> = match fallback {
+    let parsed_fallback_color: Option<Rgb> = match fallback {
         Some(s) => {
             let c = parse_css_color(&s)
                 .wrap_err("Failed to parse the fallback_color string as a css color")?;

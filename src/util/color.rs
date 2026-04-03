@@ -1,9 +1,9 @@
 #[cfg(feature = "dump-json")]
 use indexmap::IndexMap;
-use material_colors::color::Argb;
+use material_colors::color::Rgb;
 use owo_colors::Style;
 
-use colorsys::Rgb;
+use colorsys::Rgb as ColorSysRgb;
 use comfy_table::{
     modifiers::UTF8_ROUND_CORNERS, presets::UTF8_FULL_CONDENSED, Cell, CellAlignment, Table,
 };
@@ -26,18 +26,14 @@ const DEFAULT_TONES: [i32; 18] = [
     0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100,
 ];
 
-pub fn show_color(
-    schemes: Option<&Schemes>,
-    source_color: Option<&Argb>,
-    base16: Option<&Schemes>,
-) {
+pub fn show_color(schemes: Option<&Schemes>, source_color: Option<&Rgb>, base16: Option<&Schemes>) {
     let mut table: Table = generate_table_format();
 
     if let Some(schemes) = schemes {
         for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark)
         {
-            let color_light: Rgb = rgb_from_argb(*color_light);
-            let color_dark: Rgb = rgb_from_argb(*color_dark);
+            let color_light: ColorSysRgb = rgb_from_argb(*color_light);
+            let color_dark: ColorSysRgb = rgb_from_argb(*color_dark);
 
             generate_table_rows(&mut table, field, color_light, color_dark);
         }
@@ -45,8 +41,8 @@ pub fn show_color(
 
     if let Some(base16) = base16 {
         for ((field, color_light), (_, color_dark)) in std::iter::zip(&base16.light, &base16.dark) {
-            let color_light: Rgb = rgb_from_argb(*color_light);
-            let color_dark: Rgb = rgb_from_argb(*color_dark);
+            let color_light: ColorSysRgb = rgb_from_argb(*color_light);
+            let color_dark: ColorSysRgb = rgb_from_argb(*color_dark);
 
             generate_table_rows(&mut table, field, color_light, color_dark);
         }
@@ -200,7 +196,12 @@ fn generate_table_format() -> Table {
     table
 }
 
-fn generate_table_rows(table: &mut Table, field: &str, color_light: Rgb, color_dark: Rgb) {
+fn generate_table_rows(
+    table: &mut Table,
+    field: &str,
+    color_light: ColorSysRgb,
+    color_dark: ColorSysRgb,
+) {
     table.add_row([
         // Color names
         Cell::new(field),
@@ -221,7 +222,7 @@ fn generate_table_rows(table: &mut Table, field: &str, color_light: Rgb, color_d
     ]);
 }
 
-pub fn generate_style(color: &Rgb) -> Style {
+pub fn generate_style(color: &ColorSysRgb) -> Style {
     let luma = color.red() as u16 + color.blue() as u16 + color.green() as u16;
 
     let owo_color: owo_colors::Rgb =

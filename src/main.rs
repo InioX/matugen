@@ -17,8 +17,7 @@ use crate::{
     cache::ImageCache,
     color::{base16::Backend, color::Source},
     helpers::{
-        apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, json_from_file,
-        merge_json, merge_json_source,
+        generate_schemes_and_theme, get_syntax, json_from_file, merge_json, merge_json_source,
     },
     scheme::SchemeTypes,
     template::get_absolute_path,
@@ -48,13 +47,13 @@ use crate::{
     scheme::{Schemes, SchemesEnum},
 };
 
-use material_colors::{color::Argb, theme::Theme};
+use material_colors::{color::Rgb, theme::Theme};
 
 pub struct State {
     pub args: Cli,
     pub config_file: ConfigFile,
     pub config_path: Option<PathBuf>,
-    pub source_color: Option<Argb>,
+    pub source_color: Option<Rgb>,
     pub theme: Option<Theme>,
     pub schemes: Option<Schemes>,
     pub default_scheme: SchemesEnum,
@@ -109,8 +108,8 @@ impl State {
             generate_schemes_and_theme(&args, &config_file, &args.r#type)?
         };
 
-        apply_opacity_to_schemes(&mut base16, args.opacity);
-        apply_opacity_to_schemes(&mut schemes, args.opacity);
+        // apply_opacity_to_schemes(&mut base16, args.opacity);
+        // apply_opacity_to_schemes(&mut schemes, args.opacity);
 
         Ok(Self {
             args,

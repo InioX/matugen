@@ -8,9 +8,7 @@ use serde_json::json;
 
 use crate::{
     color::color::get_closest_color,
-    helpers::{
-        apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, merge_json_source,
-    },
+    helpers::{generate_schemes_and_theme, get_syntax, merge_json_source},
     parser::Engine,
     scheme::{SchemeTypes, Schemes},
 };
@@ -145,8 +143,8 @@ impl TemplateFile<'_> {
                     &Some(scheme_type),
                 )?;
 
-                apply_opacity_to_schemes(&mut base16, self.state.args.opacity);
-                apply_opacity_to_schemes(&mut schemes, self.state.args.opacity);
+                // apply_opacity_to_schemes(&mut base16, self.state.args.opacity);
+                // apply_opacity_to_schemes(&mut schemes, self.state.args.opacity);
 
                 change_scheme_type(
                     self.engine,

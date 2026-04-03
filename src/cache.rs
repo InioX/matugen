@@ -13,7 +13,7 @@ use crate::{
 use color_eyre::Report;
 use image::ImageReader;
 use indexmap::IndexMap;
-use material_colors::color::Argb;
+use material_colors::color::Rgb;
 use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
@@ -96,10 +96,10 @@ impl<'de> Deserialize<'de> for ArgbHelper {
     }
 }
 
-impl From<ArgbHelper> for Argb {
+impl From<ArgbHelper> for Rgb {
     fn from(value: ArgbHelper) -> Self {
-        Argb {
-            alpha: value.alpha,
+        Rgb {
+            // alpha: value.alpha,
             red: value.red,
             green: value.green,
             blue: value.blue,
@@ -107,10 +107,11 @@ impl From<ArgbHelper> for Argb {
     }
 }
 
-impl From<Argb> for ArgbHelper {
-    fn from(value: Argb) -> Self {
+impl From<Rgb> for ArgbHelper {
+    fn from(value: Rgb) -> Self {
         ArgbHelper {
-            alpha: value.alpha,
+            // alpha: value.alpha,
+            alpha: 255,
             red: value.red,
             green: value.green,
             blue: value.blue,
@@ -118,14 +119,14 @@ impl From<Argb> for ArgbHelper {
     }
 }
 
-fn convert_helper_scheme(scheme: &IndexMap<String, ArgbHelper>) -> IndexMap<String, Argb> {
+fn convert_helper_scheme(scheme: &IndexMap<String, ArgbHelper>) -> IndexMap<String, Rgb> {
     scheme
         .iter()
         .map(|(k, v)| (k.clone(), (*v).into()))
         .collect()
 }
 
-pub fn convert_argb_scheme(scheme: &IndexMap<String, Argb>) -> IndexMap<String, ArgbHelper> {
+pub fn convert_argb_scheme(scheme: &IndexMap<String, Rgb>) -> IndexMap<String, ArgbHelper> {
     scheme
         .iter()
         .map(|(k, v)| (k.clone(), (*v).into()))

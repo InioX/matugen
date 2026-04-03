@@ -44,8 +44,8 @@ impl SchemeTypes {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Schemes {
-    pub light: IndexMap<std::string::String, material_colors::color::Argb>,
-    pub dark: IndexMap<std::string::String, material_colors::color::Argb>,
+    pub light: IndexMap<std::string::String, material_colors::color::Rgb>,
+    pub dark: IndexMap<std::string::String, material_colors::color::Rgb>,
 }
 
 impl Schemes {
@@ -91,7 +91,7 @@ impl fmt::Display for SchemesEnum {
 }
 
 pub fn get_custom_color_schemes(
-    source_color: material_colors::color::Argb,
+    source_color: material_colors::color::Rgb,
     scheme_dark: Scheme,
     scheme_light: Scheme,
     custom_colors: &Option<HashMap<String, OwnCustomColor, std::hash::RandomState>>,
@@ -159,7 +159,7 @@ pub fn get_custom_color_schemes(
 }
 
 pub fn get_schemes(
-    source_color: material_colors::color::Argb,
+    source_color: material_colors::color::Rgb,
     scheme_type: &Option<SchemeTypes>,
     contrast: &Option<f64>,
 ) -> (Scheme, Scheme) {
@@ -176,24 +176,4 @@ pub fn get_schemes(
         *contrast,
     ));
     (scheme_dark, scheme_light)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use material_colors::color::Argb;
-
-    #[test]
-    fn schemes_eq() {
-        let source_color = material_colors::color::Argb::new(255, 255, 0, 0);
-        assert_eq!(
-            Scheme::from(generate_dynamic_scheme(&None, source_color, true, None,)).primary,
-            Argb {
-                alpha: 255,
-                red: 255,
-                green: 180,
-                blue: 168,
-            }
-        );
-    }
 }

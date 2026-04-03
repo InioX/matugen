@@ -1,46 +1,46 @@
-use colorsys::{ColorAlpha, Hsl, Rgb};
-use material_colors::color::Argb;
+use colorsys::{ColorAlpha, Hsl, Rgb as ColorSysRgb};
+use material_colors::color::Rgb;
 
-pub fn argb_from_rgb(color: &Rgb) -> Argb {
-    Argb {
+pub fn argb_from_rgb(color: &ColorSysRgb) -> Rgb {
+    Rgb {
         red: color.red() as u8,
         green: color.green() as u8,
         blue: color.blue() as u8,
-        alpha: (color.alpha() * 255.0) as u8,
+        // alpha: (color.alpha() * 255.0) as u8,
     }
 }
 
-pub fn argb_from_hsl(color: &Hsl) -> Argb {
-    let color: Rgb = color.into();
+pub fn argb_from_hsl(color: &Hsl) -> Rgb {
+    let color: ColorSysRgb = color.into();
     argb_from_rgb(&color)
 }
 
-pub fn rgb_from_argb(color: Argb) -> Rgb {
-    Rgb::from([
+pub fn rgb_from_argb(color: Rgb) -> ColorSysRgb {
+    ColorSysRgb::from([
         color.red as f64,
         color.green as f64,
         color.blue as f64,
-        color.alpha as f64,
+        // color.alpha as f64,
     ])
 }
 
-pub fn hsl_from_argb(color: Argb) -> Hsl {
+pub fn hsl_from_argb(color: Rgb) -> Hsl {
     rgb_from_argb(color).as_ref().into()
 }
 
-pub fn hsl_from_rgb(color: Rgb) -> Hsl {
+pub fn hsl_from_rgb(color: ColorSysRgb) -> Hsl {
     color.as_ref().into()
 }
 
-pub fn format_hex(color: &Rgb) -> String {
+pub fn format_hex(color: &ColorSysRgb) -> String {
     color.to_hex_string()
 }
 
-pub fn format_hex_stripped(color: &Rgb) -> String {
+pub fn format_hex_stripped(color: &ColorSysRgb) -> String {
     color.to_hex_string()[1..].to_string()
 }
 
-pub fn format_hex_alpha(color: &Rgb) -> String {
+pub fn format_hex_alpha(color: &ColorSysRgb) -> String {
     let alpha = alpha_u8(color.alpha());
     format!(
         "#{:02X}{:02X}{:02X}{:02X}",
@@ -51,7 +51,7 @@ pub fn format_hex_alpha(color: &Rgb) -> String {
     )
 }
 
-pub fn format_hex_alpha_stripped(color: &Rgb) -> String {
+pub fn format_hex_alpha_stripped(color: &ColorSysRgb) -> String {
     let alpha = alpha_u8(color.alpha());
     format!(
         "{:02X}{:02X}{:02X}{:02X}",
@@ -62,7 +62,7 @@ pub fn format_hex_alpha_stripped(color: &Rgb) -> String {
     )
 }
 
-pub fn format_alpha_hex(color: &Rgb) -> String {
+pub fn format_alpha_hex(color: &ColorSysRgb) -> String {
     let alpha = alpha_u8(color.alpha());
     format!(
         "#{:02X}{:02X}{:02X}{:02X}",
@@ -73,7 +73,7 @@ pub fn format_alpha_hex(color: &Rgb) -> String {
     )
 }
 
-pub fn format_alpha_hex_stripped(color: &Rgb) -> String {
+pub fn format_alpha_hex_stripped(color: &ColorSysRgb) -> String {
     let alpha = alpha_u8(color.alpha());
     format!(
         "{:02X}{:02X}{:02X}{:02X}",
@@ -94,7 +94,7 @@ fn alpha_u8(alpha: f64) -> u8 {
     }
 }
 
-pub fn format_rgb(color: &Rgb) -> String {
+pub fn format_rgb(color: &ColorSysRgb) -> String {
     format!(
         "rgb({:?}, {:?}, {:?})",
         color.red() as u8,
@@ -103,7 +103,7 @@ pub fn format_rgb(color: &Rgb) -> String {
     )
 }
 
-pub fn format_rgba(color: &Rgb) -> String {
+pub fn format_rgba(color: &ColorSysRgb) -> String {
     let alpha = (color.alpha() * 100.0).round() / 100.0;
 
     format!(

@@ -1,9 +1,9 @@
 use color_eyre::{eyre::WrapErr, Report};
-use colorsys::{Hsl, Rgb};
+use colorsys::{Hsl, Rgb as ColorSysRgb};
 use image::{ImageReader, RgbImage};
 use indexmap::IndexMap;
 use material_colors::{
-    color::Argb,
+    color::Rgb,
     hct::Hct,
     utils::math::{difference_degrees, rotate_direction, sanitize_degrees_double},
 };
@@ -40,7 +40,7 @@ impl Backend {
 }
 
 pub trait PaletteBackend {
-    fn extract(&self, image: &RgbImage) -> Vec<Rgb>;
+    fn extract(&self, image: &RgbImage) -> Vec<ColorSysRgb>;
 }
 
 fn drag_hue(source_hue: f64, target_hue: f64, amount: f64) -> f64 {
@@ -50,9 +50,9 @@ fn drag_hue(source_hue: f64, target_hue: f64, amount: f64) -> f64 {
 }
 
 pub fn generate_base16_scheme_from_palette(
-    palette: &[Rgb],
+    palette: &[ColorSysRgb],
     dark: bool,
-) -> Result<IndexMap<String, Argb>, Report> {
+) -> Result<IndexMap<String, Rgb>, Report> {
     let mut scheme = IndexMap::new();
 
     let mut sorted = palette.to_vec();
@@ -69,7 +69,7 @@ pub fn generate_base16_scheme_from_palette(
         scheme.insert(name.to_string(), gray_ramp[i]);
     }
 
-    let mut accents: Vec<&Rgb> = sorted.iter().collect();
+    let mut accents: Vec<&ColorSysRgb> = sorted.iter().collect();
     accents.sort_by(|a, b| saturation(b).partial_cmp(&saturation(a)).unwrap());
 
     for (i, &name) in ACCENT_NAMES.iter().enumerate() {
@@ -80,15 +80,15 @@ pub fn generate_base16_scheme_from_palette(
 }
 
 pub fn generate_base16_scheme_from_color(
-    color: &Rgb,
+    color: &ColorSysRgb,
     dark: bool,
-) -> Result<IndexMap<String, Argb>, Report> {
+) -> Result<IndexMap<String, Rgb>, Report> {
     let mut scheme = IndexMap::new();
 
     let hsl: Hsl = color.into();
     let (source_hue, source_sat, source_lit) = (hsl.hue(), hsl.saturation(), hsl.lightness());
-    let base00: Rgb = Hsl::new(source_hue, source_sat * 0.3, source_lit * 1.5, None).into();
-    let base05: Rgb = Hsl::new(source_hue, source_sat * 0.7, source_lit * 0.2, None).into();
+    let base00: ColorSysRgb = Hsl::new(source_hue, source_sat * 0.3, source_lit * 1.5, None).into();
+    let base05: ColorSysRgb = Hsl::new(source_hue, source_sat * 0.7, source_lit * 0.2, None).into();
 
     let gray_ramp = interpolate_grays(&base00, &base05, dark);
     for (i, &name) in GRAY_NAMES.iter().enumerate() {
@@ -127,7 +127,7 @@ pub fn generate_base16_scheme_from_color(
     Ok(scheme)
 }
 
-fn interpolate_grays(base00: &Rgb, base05: &Rgb, dark: bool) -> Vec<Argb> {
+fn interpolate_grays(base00: &ColorSysRgb, base05: &ColorSysRgb, dark: bool) -> Vec<Rgb> {
     let mut grays = Vec::new();
     let n = GRAY_NAMES.len();
 
@@ -136,8 +136,8 @@ fn interpolate_grays(base00: &Rgb, base05: &Rgb, dark: bool) -> Vec<Argb> {
         let r = base00.red() as f32 + t * (base05.red() as f32 - base00.red() as f32);
         let g = base00.green() as f32 + t * (base05.green() as f32 - base00.green() as f32);
         let b = base00.blue() as f32 + t * (base05.blue() as f32 - base00.blue() as f32);
-        grays.push(Argb::new(
-            255,
+        grays.push(Rgb::new(
+            // 255,
             r.round() as u8,
             g.round() as u8,
             b.round() as u8,

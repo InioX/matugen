@@ -1,7 +1,7 @@
 use dialoguer::Select;
 use material_colors::{
     blend::harmonize,
-    color::{Argb, Lab},
+    color::{Lab, Rgb},
     dynamic_color::{DynamicScheme, MaterialDynamicColors},
     hct::Cam16,
     image::{FilterType, ImageReader},
@@ -20,7 +20,7 @@ use crate::{
 };
 use crate::{util::arguments::SelectionPreference, FilterType as OwnFilterType};
 use color_eyre::{eyre::WrapErr, Report};
-use colorsys::{Hsl, Rgb};
+use colorsys::{Hsl, Rgb as ColorSysRgb};
 use owo_colors::OwoColorize;
 use std::{io::IsTerminal as _, str::FromStr};
 
@@ -96,12 +96,12 @@ impl OwnCustomColor {
     ) -> Result<material_colors::theme::CustomColor, material_colors::error::Error> {
         Ok(match self {
             OwnCustomColor::Color(color) => material_colors::theme::CustomColor {
-                value: Argb::from_str(color)?,
+                value: Rgb::from_str(color)?,
                 blend: true,
                 name,
             },
             OwnCustomColor::Options { color, blend } => material_colors::theme::CustomColor {
-                value: Argb::from_str(color)?,
+                value: Rgb::from_str(color)?,
                 blend: *blend,
                 name,
             },
@@ -109,7 +109,7 @@ impl OwnCustomColor {
     }
 }
 
-pub fn adjust_color_lightness_dark(color: Argb, lightness_level_dark: &Option<f64>) -> Argb {
+pub fn adjust_color_lightness_dark(color: Rgb, lightness_level_dark: &Option<f64>) -> Rgb {
     // If lightness values were plotted on a graph, the effect of this function is to rotate the line corresponding to the identity function about x = 255 and y = 255 by setting the value at x = 0 to -lightness_level*255 and then clamping the values to between 0 and 255.
     let pre_lightness_level =
         ((color.red as f64) + (color.green as f64) + (color.blue as f64)) / 3.0;
@@ -117,23 +117,23 @@ pub fn adjust_color_lightness_dark(color: Argb, lightness_level_dark: &Option<f6
         + lightness_level_dark.unwrap_or(0.0))
         / pre_lightness_level
         * 255.0;
-    Argb::new(
-        color.alpha,
+    Rgb::new(
+        // color.alpha,
         (color.red as f64 * adj).clamp(0.0, 255.0) as u8,
         (color.green as f64 * adj).clamp(0.0, 255.0) as u8,
         (color.blue as f64 * adj).clamp(0.0, 255.0) as u8,
     )
 }
 
-pub fn adjust_color_lightness_light(color: Argb, lightness_level_light: &Option<f64>) -> Argb {
+pub fn adjust_color_lightness_light(color: Rgb, lightness_level_light: &Option<f64>) -> Rgb {
     // If lightness values were plotted on a graph, the effect of this function is to rotate the line corresponding to the identity function about x = 0 and y = 0 by setting the value at x = 255 to 255+lightness_level*255 and then clamping the values to between 0 and 255.
     let pre_lightness_level =
         ((color.red as f64) + (color.green as f64) + (color.blue as f64)) / 3.0;
     let adj = pre_lightness_level / 255.0 * (1.0 + lightness_level_light.unwrap_or(0.0))
         / pre_lightness_level
         * 255.0;
-    Argb::new(
-        color.alpha,
+    Rgb::new(
+        // color.alpha,
         (color.red as f64 * adj).clamp(0.0, 255.0) as u8,
         (color.green as f64 * adj).clamp(0.0, 255.0) as u8,
         (color.blue as f64 * adj).clamp(0.0, 255.0) as u8,
@@ -143,10 +143,10 @@ pub fn adjust_color_lightness_light(color: Argb, lightness_level_light: &Option<
 pub fn get_source_color(
     source: &Source,
     resize_filter: &Option<OwnFilterType>,
-    fallback_color: Option<Argb>,
+    fallback_color: Option<Rgb>,
     prefer: &Option<SelectionPreference>,
     source_color_index: &Option<i64>,
-) -> Result<Argb, Report> {
+) -> Result<Rgb, Report> {
     use crate::color::color;
 
     let filter: FilterType = match resize_filter {
@@ -154,7 +154,7 @@ pub fn get_source_color(
         None => FilterType::from(&OwnFilterType::Triangle),
     };
 
-    let source_color: Argb = match source {
+    let source_color: Rgb = match source {
         Source::Image { path } => {
             info!("Opening image in <d><u>{}</>", path);
             color::get_source_color_from_image(
@@ -184,17 +184,17 @@ pub fn get_source_color(
 pub fn get_source_color_from_image(
     path: &str,
     filter_type: FilterType,
-    fallback_color: Option<Argb>,
+    fallback_color: Option<Rgb>,
     prefer: &Option<SelectionPreference>,
     source_color_index: &Option<i64>,
-) -> Result<Argb, Report> {
+) -> Result<Rgb, Report> {
     let mut original = ImageReader::open(path)?;
     let image = original.resize(112, 112, filter_type);
-    let pixels: Vec<Argb> = image
+    let pixels: Vec<Rgb> = image
         .as_pixels()
         .iter()
         .copied()
-        .filter(|argb| argb.alpha == 255)
+        // .filter(|argb| argb.alpha == 255)
         .collect();
     let mut result = QuantizerCelebi::quantize(&pixels, 128);
 
@@ -254,8 +254,8 @@ pub fn get_source_color_from_image(
 }
 
 pub fn select_source_color_from_ranks(
-    ranked: &[Argb],
-    fallback: Option<Argb>,
+    ranked: &[Rgb],
+    fallback: Option<Rgb>,
     preference: &SelectionPreference,
 ) -> Result<usize, Report> {
     let sel = match preference {
@@ -293,7 +293,7 @@ pub fn select_source_color_from_ranks(
     Ok(sel)
 }
 
-fn get_comparison_values(a: &Argb, b: &Argb, pref: &SelectionPreference) -> (f32, f32) {
+fn get_comparison_values(a: &Rgb, b: &Rgb, pref: &SelectionPreference) -> (f32, f32) {
     let rgb_a = rgb_from_argb(*a);
     let rgb_b = rgb_from_argb(*b);
 
@@ -308,36 +308,36 @@ fn get_comparison_values(a: &Argb, b: &Argb, pref: &SelectionPreference) -> (f32
 }
 
 #[cfg(feature = "web-image")]
-pub fn get_source_color_from_web_image(url: &str, filter_type: FilterType) -> Result<Argb, Report> {
+pub fn get_source_color_from_web_image(url: &str, filter_type: FilterType) -> Result<Rgb, Report> {
     let bytes = reqwest::blocking::get(url)?.bytes()?;
     Ok(ImageReader::extract_color(
         ImageReader::read(&bytes)?.resize(128, 128, filter_type),
     ))
 }
 
-pub fn get_source_color_from_color(color: &ColorFormat) -> Result<Argb, Report> {
+pub fn get_source_color_from_color(color: &ColorFormat) -> Result<Rgb, Report> {
     match color {
         ColorFormat::Hex { string } => {
-            Ok(Argb::from_str(string).expect("Invalid hex color string provided"))
+            Ok(Rgb::from_str(string).expect("Invalid hex color string provided"))
         }
         ColorFormat::Rgb { string } => {
-            let rgb = Rgb::from_str(string).expect("Invalid rgb color string provided");
-            Ok(Argb {
+            let rgb = ColorSysRgb::from_str(string).expect("Invalid rgb color string provided");
+            Ok(Rgb {
                 red: rgb.red() as u8,
                 green: rgb.green() as u8,
                 blue: rgb.blue() as u8,
-                alpha: 255,
+                // alpha: 255,
             })
         }
         ColorFormat::Hsl { string } => {
-            let rgb: Rgb = Hsl::from_str(string)
+            let rgb: ColorSysRgb = Hsl::from_str(string)
                 .expect("Invalid hsl color string provided")
                 .into();
-            Ok(Argb {
+            Ok(Rgb {
                 red: rgb.red() as u8,
                 green: rgb.green() as u8,
                 blue: rgb.blue() as u8,
-                alpha: 255,
+                // alpha: 255,
             })
         }
     }
@@ -345,7 +345,7 @@ pub fn get_source_color_from_color(color: &ColorFormat) -> Result<Argb, Report> 
 
 pub fn generate_dynamic_scheme(
     scheme_type: &Option<SchemeTypes>,
-    source_color: Argb,
+    source_color: Rgb,
     is_dark: bool,
     contrast_level: Option<f64>,
 ) -> DynamicScheme {
@@ -360,7 +360,7 @@ pub fn generate_dynamic_scheme(
 pub fn make_custom_color(
     color: CustomColor,
     scheme_type: &Option<SchemeTypes>,
-    source_color: Argb,
+    source_color: Rgb,
     contrast_level: Option<f64>,
 ) -> CustomColorGroup {
     let value = if color.blend {
@@ -377,16 +377,16 @@ pub fn make_custom_color(
         color,
         value,
         light: ColorGroup {
-            color: MaterialDynamicColors::primary().get_argb(&light),
-            on_color: MaterialDynamicColors::on_primary().get_argb(&light),
-            color_container: MaterialDynamicColors::primary_container().get_argb(&light),
-            on_color_container: MaterialDynamicColors::on_primary_container().get_argb(&light),
+            color: MaterialDynamicColors::primary().get_rgb(&light),
+            on_color: MaterialDynamicColors::on_primary().get_rgb(&light),
+            color_container: MaterialDynamicColors::primary_container().get_rgb(&light),
+            on_color_container: MaterialDynamicColors::on_primary_container().get_rgb(&light),
         },
         dark: ColorGroup {
-            color: MaterialDynamicColors::primary().get_argb(&dark),
-            on_color: MaterialDynamicColors::on_primary().get_argb(&dark),
-            color_container: MaterialDynamicColors::primary_container().get_argb(&dark),
-            on_color_container: MaterialDynamicColors::on_primary_container().get_argb(&dark),
+            color: MaterialDynamicColors::primary().get_rgb(&dark),
+            on_color: MaterialDynamicColors::on_primary().get_rgb(&dark),
+            color_container: MaterialDynamicColors::primary_container().get_rgb(&dark),
+            on_color_container: MaterialDynamicColors::on_primary_container().get_rgb(&dark),
         },
     }
 }

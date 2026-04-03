@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use color_eyre::{eyre::Result, Report};
 use colorsys::{ColorAlpha, Hsl};
-use material_colors::color::Argb;
+use material_colors::color::Rgb;
 
 use crate::{
     color::format::{
@@ -40,7 +40,7 @@ pub struct ColorVariants {
 
 pub fn generate_colors(
     schemes: &Schemes,
-    source_color: &Argb,
+    source_color: &Rgb,
     default_scheme: &SchemesEnum,
 ) -> Result<HashMap<String, ColorVariants>, Report> {
     let mut hashmap: HashMap<String, ColorVariants> = Default::default();
@@ -71,10 +71,10 @@ pub fn generate_colors(
 
 pub fn generate_single_color(
     field: &str,
-    source_color: &Argb,
+    source_color: &Rgb,
     default_scheme: &SchemesEnum,
-    color_light: Argb,
-    color_dark: Argb,
+    color_light: Rgb,
+    color_dark: Rgb,
 ) -> Result<ColorVariants, Report> {
     let default_scheme_color = match default_scheme {
         SchemesEnum::Light => color_light,
@@ -96,7 +96,7 @@ pub fn generate_single_color(
     })
 }
 
-fn generate_color_strings(color: Argb) -> Color {
+fn generate_color_strings(color: Rgb) -> Color {
     let base_color = rgb_from_argb(color);
     let hsl_color = Hsl::from(&base_color);
     Color {

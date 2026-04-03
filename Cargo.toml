@@ -62,7 +62,10 @@ clap = { version = "4.2.4", features = [
   "derive",
   "std",
 ], default-features = true }
-material-colors = { version = "0.4.0", features = ["image", "serde"] }
+material-colors = { version = "0.4.0", features = [
+  "image",
+  "serde",
+], path = "./material-colors" }
 image = { default-features = false, version = "0.25.2" }
 directories = "5.0"
 
