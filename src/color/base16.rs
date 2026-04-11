@@ -1,13 +1,3 @@
-use color_eyre::{eyre::WrapErr, Report};
-use colorsys::{Hsl, Rgb};
-use image::{ImageReader, RgbImage};
-use indexmap::IndexMap;
-use material_colors::{
-    color::Argb,
-    hct::Hct,
-    utils::math::{difference_degrees, rotate_direction, sanitize_degrees_double},
-};
-
 use crate::{
     color::{
         backend::wal::WalBackend,
@@ -16,6 +6,15 @@ use crate::{
         math::{luminance, saturation},
     },
     scheme::Schemes,
+};
+use color_eyre::{eyre::WrapErr, Report};
+use colorsys::{Hsl, Rgb};
+use image::{ImageReader, RgbImage};
+use indexmap::IndexMap;
+use material_colors::{
+    color::Argb,
+    hct::Hct,
+    utils::math::{difference_degrees, rotate_direction, sanitize_degrees_double},
 };
 
 const GRAY_NAMES: [&str; 8] = [
@@ -70,7 +69,7 @@ pub fn generate_base16_scheme_from_palette(
     }
 
     let mut accents: Vec<&Rgb> = sorted.iter().collect();
-    accents.sort_by(|a, b| saturation(b).partial_cmp(&saturation(a)).unwrap());
+    accents.sort_by(|a, b| saturation(a).partial_cmp(&saturation(b)).unwrap());
 
     for (i, &name) in ACCENT_NAMES.iter().enumerate() {
         scheme.insert(name.to_string(), argb_from_rgb(accents[i % accents.len()]));
