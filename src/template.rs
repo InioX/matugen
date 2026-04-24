@@ -62,11 +62,23 @@ pub struct InputPathModes {
 pub struct TemplateFile<'a> {
     state: &'a State,
     engine: &'a mut Engine,
+    scheme_cache: HashMap<SchemeTypes, SchemeCacheEntry>,
+}
+
+#[derive(Debug)]
+pub struct SchemeCacheEntry {
+    pub schemes: Option<Schemes>,
+    pub base16: Option<Schemes>,
+    pub theme: Option<Theme>,
 }
 
 impl TemplateFile<'_> {
     pub fn new<'a>(state: &'a State, engine: &'a mut Engine) -> TemplateFile<'a> {
-        TemplateFile { state, engine }
+        TemplateFile {
+            state,
+            engine,
+            scheme_cache: HashMap::new(),
+        }
     }
 
     pub fn generate(&mut self) -> Result<(), Report> {
@@ -139,22 +151,41 @@ impl TemplateFile<'_> {
 
         for (name, template) in templates {
             if let Some(scheme_type) = template.r#type {
-                let (mut schemes, _, theme, mut base16) = generate_schemes_and_theme(
-                    &self.state.args,
-                    &self.state.config_file,
-                    &Some(scheme_type),
-                )?;
+                if let Some(entry) = self.scheme_cache.get(&scheme_type) {
+                    change_scheme_type(
+                        self.engine,
+                        &entry.schemes,
+                        &entry.base16,
+                        &entry.theme,
+                        self.state.default_scheme,
+                    )?;
+                } else {
+                    let (mut schemes, _, theme, mut base16) = generate_schemes_and_theme(
+                        &self.state.args,
+                        &self.state.config_file,
+                        &Some(scheme_type),
+                    )?;
 
-                apply_opacity_to_schemes(&mut base16, self.state.args.opacity);
-                apply_opacity_to_schemes(&mut schemes, self.state.args.opacity);
+                    apply_opacity_to_schemes(&mut base16, self.state.args.opacity);
+                    apply_opacity_to_schemes(&mut schemes, self.state.args.opacity);
 
-                change_scheme_type(
-                    self.engine,
-                    &schemes,
-                    &base16,
-                    &theme,
-                    self.state.default_scheme,
-                )?;
+                    change_scheme_type(
+                        self.engine,
+                        &schemes,
+                        &base16,
+                        &theme,
+                        self.state.default_scheme,
+                    )?;
+
+                    self.scheme_cache.insert(
+                        scheme_type,
+                        SchemeCacheEntry {
+                            schemes,
+                            base16,
+                            theme,
+                        },
+                    );
+                }
             }
 
             if let Some(hook) = &template.pre_hook {
