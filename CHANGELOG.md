@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.2.0](https://github.com/InioX/matugen/compare/v4.1.0...v4.2.0) - 2026-04-24
+
+### Added
+
+- add cache for per template scheme types ([#292](https://github.com/InioX/matugen/pull/292))
+
+### Fixed
+
+- change ordering for base16 accents from image (#286, #283)
+
 ## [4.1.0](https://github.com/InioX/matugen/compare/v4.0.0...v4.1.0) - 2026-03-22
 
 ### Added
