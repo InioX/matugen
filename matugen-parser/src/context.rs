@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use indexmap::IndexMap;
 
-use crate::parser::Value;
+use crate::value::Value;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]

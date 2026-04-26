@@ -3,13 +3,11 @@ use std::{cell::RefCell, collections::HashMap};
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::{error::Rich, prelude::*, span::SimpleSpan};
 
-use crate::parser::{
-    context::RuntimeContext, filtertype::FilterFn, Error, ErrorCollector, SpannedValue,
-};
+use crate::{Error, ErrorCollector, SpannedValue, context::RuntimeContext, filtertype::FilterFn};
 
 use super::context::Context;
 
-mod replace;
+pub mod replace;
 pub(crate) use replace::*;
 mod parser;
 

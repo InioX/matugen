@@ -4,10 +4,10 @@ use indexmap::IndexMap;
 
 use crate::{
     color::format::{format_alpha_hex, format_alpha_hex_stripped},
-    parser::{
-        engine::{BinaryOperator, Expression, SpannedBinaryOperator, SpannedExpr, Template},
+    {
         BinaryOperatorError, Error, FilterError, FilterReturnType, IfError, KeywordError,
         LoopError, ParseErrorKind, SpannedValue, Value,
+        engine::{BinaryOperator, Expression, SpannedBinaryOperator, SpannedExpr, Template},
     },
 };
 
@@ -248,7 +248,7 @@ impl Engine {
                             _ => {
                                 self.errors.add(Error::ParseError {
                                     kind: ParseErrorKind::Loop(
-                                        crate::parser::LoopError::LoopOverNonIterableValue,
+                                        crate::LoopError::LoopOverNonIterableValue,
                                     ),
                                     span: iter.span,
                                     name: name.to_string(),

@@ -1,6 +1,6 @@
 use colorsys::{Hsl, Rgb};
 
-use crate::parser::Value;
+use crate::Value;
 
 #[cfg(feature = "filter-docs")]
 #[derive(Debug, Clone)]
@@ -128,7 +128,7 @@ macro_rules! expect_args {
         ),*].len();
         if $args.len() < expected_len {
             return Err(
-                $crate::parser::FilterError::NotEnoughArguments,
+                $crate::FilterError::NotEnoughArguments,
             );
         }
 
@@ -138,11 +138,11 @@ macro_rules! expect_args {
                 {
                     let spanned = &$args[_i];
                     _i += 1;
-                    match <$ty as $crate::parser::helpers::ExpectFromValue>::expect_from(&spanned.value) {
+                    match <$ty as $crate::helpers::ExpectFromValue>::expect_from(&spanned.value) {
                         Ok(v) => v,
                         Err(actual) => {
                             return Err(
-                                $crate::parser::FilterError::InvalidArgumentType {
+                                $crate::FilterError::InvalidArgumentType {
                                     span: spanned.span,
                                     expected: stringify!($ty).to_string(),
                                     actual,

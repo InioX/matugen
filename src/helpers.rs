@@ -6,9 +6,7 @@ use crate::{
         base16::{generator::generate_base16_schemes, Backend},
         color::{get_source_color, Source},
         format::argb_from_rgb,
-        parse::parse_css_color,
     },
-    parser::{engine::EngineSyntax, Engine},
     util::{
         arguments::Format,
         color::{format_palettes, format_schemes},
@@ -24,6 +22,10 @@ use log::LevelFilter;
 use material_colors::{
     color::Rgb,
     theme::{Theme, ThemeBuilder},
+};
+use matugen_parser::{
+    color::parse::parse_css_color,
+    {engine::EngineSyntax, Engine},
 };
 use serde_json::Value;
 use std::{fs::read_to_string, io::Write, path::PathBuf};

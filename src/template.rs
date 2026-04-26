@@ -10,8 +10,8 @@ use crate::{
     color::color::get_closest_color,
     color::md3::scheme::{SchemeTypes, Schemes},
     helpers::{generate_schemes_and_theme, get_syntax, merge_json_source},
-    parser::Engine,
 };
+use matugen_parser::Engine;
 use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, path::Path, process::Stdio, str};

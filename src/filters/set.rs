@@ -1,9 +1,6 @@
 use colorsys::{ColorAlpha, Hsl, Rgb};
 
-use crate::{
-    expect_args,
-    parser::{Engine, FilterError, FilterReturnType, SpannedValue},
-};
+use matugen_parser::{expect_args, Engine, FilterError, FilterReturnType, SpannedValue};
 
 pub(crate) fn set_red(
     _keywords: &[&str],

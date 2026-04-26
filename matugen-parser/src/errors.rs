@@ -5,7 +5,7 @@ use chumsky::span::SimpleSpan;
 
 use thiserror::Error as ThisError;
 
-use crate::parser::Engine;
+use crate::Engine;
 
 #[derive(Debug, Default)]
 pub struct ErrorCollector {
@@ -109,7 +109,9 @@ pub enum BinaryOperatorError {
 pub enum LoopError {
     #[error("You can only loop over Arrays, Maps and Colors")]
     LoopOverNonIterableValue,
-    #[error("For loop over an Array supports only one variable. Key and value iteration (`<* for key, value in map *>`) is only valid for Maps.")]
+    #[error(
+        "For loop over an Array supports only one variable. Key and value iteration (`<* for key, value in map *>`) is only valid for Maps."
+    )]
     TooManyLoopVariablesArray,
     #[error("For loop supports only one or two variables")]
     TooManyLoopVariables,
@@ -148,7 +150,9 @@ pub enum FilterError {
         expected: &'static [&'static str],
         span: SimpleSpan,
     },
-    #[error("You should not use the set_alpha filter with a format that doesn't have an alpha channel. Consider using one of these formats instead: [{replacement}]")]
+    #[error(
+        "You should not use the set_alpha filter with a format that doesn't have an alpha channel. Consider using one of these formats instead: [{replacement}]"
+    )]
     SetAlphaOnNonAlphaFormat { replacement: &'static str },
 }
 

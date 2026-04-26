@@ -1,8 +1,8 @@
 use convert_case::{Case, Casing};
 
-use crate::{
+use matugen_parser::{
     expect_args,
-    parser::{engine::format_color, Engine, FilterError, FilterReturnType, SpannedValue},
+    {engine::replace::format_color, Engine, FilterError, FilterReturnType, SpannedValue},
 };
 
 pub(crate) fn replace(
@@ -11,7 +11,7 @@ pub(crate) fn replace(
     original: FilterReturnType,
     _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
-    let (find, replace) = expect_args!(args, String, String);
+    let (find, replace): (String, String) = expect_args!(args, String, String);
 
     match original {
         FilterReturnType::String(s) => Ok(FilterReturnType::String(s.replace(&find, &replace))),

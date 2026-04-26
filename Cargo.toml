@@ -11,6 +11,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[workspace]
+resolver = "3"
+members = ["matugen-parser"]
+
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winuser"] }
 
@@ -30,10 +34,8 @@ criterion = { version = "0.5", features = ["html_reports"] }
 
 [dependencies]
 # Engine
+matugen-parser = { path = "./matugen-parser" }
 indexmap = { version = "2.7.0", features = ["serde"] }
-ariadne = { version = "0.5.1" }
-chumsky = { version = "0.10.0" }
-thiserror = "2.0.12"
 
 # logging
 log = "0.4.17"

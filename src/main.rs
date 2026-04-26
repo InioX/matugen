@@ -38,13 +38,10 @@ pub mod cache;
 pub mod color;
 pub mod exec;
 pub mod filters;
-pub mod parser;
 pub mod template_util;
 
-use crate::{
-    color::md3::scheme::{Schemes, SchemesEnum},
-    parser::Engine,
-};
+use crate::color::md3::scheme::{Schemes, SchemesEnum};
+use matugen_parser::Engine;
 
 use material_colors::{color::Rgb, theme::Theme};
 
@@ -231,7 +228,7 @@ impl State {
     }
 
     fn add_engine_filters(&self, engine: &mut Engine) {
-        register_filters!((engine) {
+        matugen_parser::register_filters!((engine) {
             "Colors" => {
                 /// <p>Sets the red channel of a color</p>
                 ///

@@ -10,12 +10,10 @@ use comfy_table::{
 use material_colors::{palette::TonalPalette, theme::Palettes};
 use serde_json::{Map, Value};
 
-use crate::{
-    color::md3::scheme::SchemesEnum,
-    color::{format::format_hex_alpha, parse::parse_css_color},
-    parser::engine::format_color,
-    Schemes,
-};
+use crate::{color::md3::scheme::SchemesEnum, Schemes};
+use matugen_parser::{color::parse::parse_css_color, engine::replace::format_color};
+
+use matugen_parser::color::format::format_hex_alpha;
 
 #[cfg(feature = "dump-json")]
 use super::arguments::Format;

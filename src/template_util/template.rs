@@ -4,14 +4,12 @@ use color_eyre::{eyre::Result, Report};
 use colorsys::{ColorAlpha, Hsl};
 use material_colors::color::Rgb;
 
-use crate::{
-    color::format::{
-        format_hex, format_hex_alpha, format_hex_alpha_stripped, format_hex_stripped, format_hsl,
-        format_hsla, format_rgb, format_rgba, rgb_from_argb,
-    },
-    color::md3::scheme::{Schemes, SchemesEnum},
+use crate::color::format::rgb_from_argb;
+use crate::color::md3::scheme::{Schemes, SchemesEnum};
+use matugen_parser::color::format::{
+    format_hex, format_hex_alpha, format_hex_alpha_stripped, format_hex_stripped, format_hsl,
+    format_hsla, format_rgb, format_rgba,
 };
-
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct Color {
     hex: String,
