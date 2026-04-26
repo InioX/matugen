@@ -15,11 +15,11 @@ mod wallpaper;
 
 use crate::{
     cache::ImageCache,
+    color::md3::scheme::SchemeTypes,
     color::{base16::Backend, color::Source},
     helpers::{
         generate_schemes_and_theme, get_syntax, json_from_file, merge_json, merge_json_source,
     },
-    scheme::SchemeTypes,
     template::get_absolute_path,
     util::arguments::FilterType,
 };
@@ -39,12 +39,11 @@ pub mod color;
 pub mod exec;
 pub mod filters;
 pub mod parser;
-pub mod scheme;
 pub mod template_util;
 
 use crate::{
+    color::md3::scheme::{Schemes, SchemesEnum},
     parser::Engine,
-    scheme::{Schemes, SchemesEnum},
 };
 
 use material_colors::{color::Rgb, theme::Theme};

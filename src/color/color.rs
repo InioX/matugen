@@ -12,7 +12,7 @@ use material_colors::{
 
 use crate::{
     color::math::{get_color_distance_lab, get_color_distance_lab_from_str, lightness, value},
-    scheme::SchemeTypes,
+    color::md3::scheme::SchemeTypes,
 };
 use crate::{
     color::{format::rgb_from_argb, math::saturation},

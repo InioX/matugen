@@ -20,7 +20,7 @@ pub struct Cli {
         global = true,
         default_value = "scheme-tonal-spot"
     )]
-    pub r#type: Option<crate::scheme::SchemeTypes>,
+    pub r#type: Option<crate::color::md3::scheme::SchemeTypes>,
 
     /// Sets a custom config file
     #[arg(short, long, value_name = "FILE", global = true)]

@@ -9,7 +9,7 @@ use crate::{
         format_hex, format_hex_alpha, format_hex_alpha_stripped, format_hex_stripped, format_hsl,
         format_hsla, format_rgb, format_rgba, rgb_from_argb,
     },
-    scheme::{Schemes, SchemesEnum},
+    color::md3::scheme::{Schemes, SchemesEnum},
 };
 
 #[derive(serde::Serialize, serde::Deserialize, Debug)]

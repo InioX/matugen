@@ -11,9 +11,9 @@ use material_colors::{palette::TonalPalette, theme::Palettes};
 use serde_json::{Map, Value};
 
 use crate::{
+    color::md3::scheme::SchemesEnum,
     color::{format::format_hex_alpha, parse::parse_css_color},
     parser::engine::format_color,
-    scheme::SchemesEnum,
     Schemes,
 };
 

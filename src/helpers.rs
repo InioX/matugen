@@ -1,12 +1,14 @@
 use crate::{
+    color::md3::scheme::{
+        get_custom_color_schemes, get_schemes, SchemeTypes, Schemes, SchemesEnum,
+    },
     color::{
-        base16::{generate_base16_schemes, Backend},
+        base16::{generator::generate_base16_schemes, Backend},
         color::{get_source_color, Source},
         format::argb_from_rgb,
         parse::parse_css_color,
     },
     parser::{engine::EngineSyntax, Engine},
-    scheme::{get_custom_color_schemes, get_schemes, SchemeTypes, Schemes, SchemesEnum},
     util::{
         arguments::Format,
         color::{format_palettes, format_schemes},

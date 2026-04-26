@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     color::color::Source,
-    scheme::Schemes,
+    color::md3::scheme::Schemes,
     util::config::{get_proj_path, ProjectDirsTypes},
 };
 use color_eyre::Report;

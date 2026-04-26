@@ -8,9 +8,9 @@ use serde_json::json;
 
 use crate::{
     color::color::get_closest_color,
+    color::md3::scheme::{SchemeTypes, Schemes},
     helpers::{generate_schemes_and_theme, get_syntax, merge_json_source},
     parser::Engine,
-    scheme::{SchemeTypes, Schemes},
 };
 use serde::{Deserialize, Serialize};
 

@@ -9,13 +9,13 @@ use material_colors::{
 };
 
 use crate::{
+    color::md3::scheme::Schemes,
     color::{
-        backend::wal::WalBackend,
+        base16::backend::wal::WalBackend,
         color::{get_source_color_from_color, ColorFormat, Source},
         format::{argb_from_rgb, rgb_from_argb},
         math::{luminance, saturation},
     },
-    scheme::Schemes,
 };
 
 const GRAY_NAMES: [&str; 8] = [

@@ -1,4 +1,4 @@
-use crate::color::base16::PaletteBackend;
+use crate::color::base16::generator::PaletteBackend;
 use colorsys::Rgb;
 use image::{imageops::FilterType, RgbImage};
 use palette::IntoColor;
