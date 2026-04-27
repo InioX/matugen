@@ -1,4 +1,11 @@
-use color_eyre::{eyre::WrapErr, Report};
+use crate::color::{
+    base16::backend::wal::WalBackend,
+    color::{ColorFormat, Source, get_source_color_from_color},
+    format::{argb_from_rgb, rgb_from_argb},
+    math::{luminance, saturation},
+    md3::scheme::Schemes,
+};
+use color_eyre::{Report, eyre::WrapErr};
 use colorsys::{Hsl, Rgb};
 use image::{ImageReader, RgbImage};
 use indexmap::IndexMap;
@@ -6,16 +13,6 @@ use material_colors::{
     color::Rgb as MaterialRgb,
     hct::Hct,
     utils::math::{difference_degrees, rotate_direction, sanitize_degrees_double},
-};
-
-use crate::{
-    color::md3::scheme::Schemes,
-    color::{
-        base16::backend::wal::WalBackend,
-        color::{get_source_color_from_color, ColorFormat, Source},
-        format::{argb_from_rgb, rgb_from_argb},
-        math::{luminance, saturation},
-    },
 };
 
 const GRAY_NAMES: [&str; 8] = [
@@ -70,7 +67,7 @@ pub fn generate_base16_scheme_from_palette(
     }
 
     let mut accents: Vec<&Rgb> = sorted.iter().collect();
-    accents.sort_by(|a, b| saturation(b).partial_cmp(&saturation(a)).unwrap());
+    accents.sort_by(|a, b| saturation(a).partial_cmp(&saturation(b)).unwrap());
 
     for (i, &name) in ACCENT_NAMES.iter().enumerate() {
         scheme.insert(name.to_string(), accents[i % accents.len()].clone());

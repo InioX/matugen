@@ -17,7 +17,7 @@ use crate::color::{
 };
 
 #[allow(clippy::enum_variant_names)]
-#[derive(Clone, clap::ValueEnum, Debug, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, clap::ValueEnum, Debug, Copy, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum SchemeTypes {
     SchemeContent,
     SchemeExpressive,

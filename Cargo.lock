@@ -1898,7 +1898,7 @@ dependencies = [
 
 [[package]]
 name = "matugen"
-version = "4.0.0"
+version = "4.1.0"
 dependencies = [
  "clap",
  "color-eyre",
