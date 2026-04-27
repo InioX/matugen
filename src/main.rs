@@ -17,7 +17,8 @@ use crate::{
     cache::ImageCache,
     color::{base16::Backend, color::Source, format::argb_from_rgb, md3::scheme::SchemeTypes},
     helpers::{
-        generate_schemes_and_theme, get_syntax, json_from_file, merge_json, merge_json_source,
+        apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, json_from_file,
+        merge_json, merge_json_source,
     },
     template::get_absolute_path,
     util::arguments::FilterType,
@@ -103,8 +104,8 @@ impl State {
             generate_schemes_and_theme(&args, &config_file, &args.r#type)?
         };
 
-        // apply_opacity_to_schemes(&mut base16, args.opacity);
-        // apply_opacity_to_schemes(&mut schemes, args.opacity);
+        apply_opacity_to_schemes(&mut base16, args.opacity);
+        apply_opacity_to_schemes(&mut schemes, args.opacity);
 
         Ok(Self {
             args,

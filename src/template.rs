@@ -7,9 +7,13 @@ use material_colors::theme::Theme;
 use serde_json::json;
 
 use crate::{
-    color::color::get_closest_color,
-    color::md3::scheme::{SchemeTypes, Schemes},
-    helpers::{generate_schemes_and_theme, get_syntax, merge_json_source},
+    color::{
+        color::get_closest_color,
+        md3::scheme::{SchemeTypes, Schemes},
+    },
+    helpers::{
+        apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, merge_json_source,
+    },
 };
 use matugen_parser::Engine;
 use serde::{Deserialize, Serialize};
@@ -143,8 +147,8 @@ impl TemplateFile<'_> {
                     &Some(scheme_type),
                 )?;
 
-                // apply_opacity_to_schemes(&mut base16, self.state.args.opacity);
-                // apply_opacity_to_schemes(&mut schemes, self.state.args.opacity);
+                apply_opacity_to_schemes(&mut base16, self.state.args.opacity);
+                apply_opacity_to_schemes(&mut schemes, self.state.args.opacity);
 
                 change_scheme_type(
                     self.engine,

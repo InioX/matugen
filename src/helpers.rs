@@ -19,7 +19,7 @@ use color_eyre::{
     eyre::{Context, Result},
     Report,
 };
-use colorsys::Rgb;
+use colorsys::{ColorAlpha, Rgb};
 use log::LevelFilter;
 use material_colors::{
     color::Rgb as MaterialRgb,
@@ -32,19 +32,19 @@ use matugen_parser::{
 use serde_json::Value;
 use std::{fs::read_to_string, io::Write, path::PathBuf};
 
-// pub fn apply_opacity_to_schemes(schemes: &mut Option<Schemes>, opacity: Option<f64>) {
-//     if let Some(schemes) = schemes {
-//         let alpha_val = (opacity.unwrap_or(1.0) * 255.0).round() as u8;
+pub fn apply_opacity_to_schemes(schemes: &mut Option<Schemes>, opacity: Option<f64>) {
+    if let Some(schemes) = schemes {
+        let alpha_val = (opacity.unwrap_or(1.0) * 255.0).round();
 
-//         for color in schemes.dark.values_mut() {
-//             color.alpha = alpha_val;
-//         }
+        for color in schemes.dark.values_mut() {
+            color.set_alpha(alpha_val);
+        }
 
-//         for color in schemes.light.values_mut() {
-//             color.alpha = alpha_val;
-//         }
-//     }
-// }
+        for color in schemes.light.values_mut() {
+            color.set_alpha(alpha_val);
+        }
+    }
+}
 
 pub fn merge_json_source(
     mut json: Value,
