@@ -1,9 +1,8 @@
 #[cfg(feature = "dump-json")]
 use indexmap::IndexMap;
-use material_colors::color::Rgb;
 use owo_colors::Style;
 
-use colorsys::Rgb as ColorSysRgb;
+use colorsys::Rgb;
 use comfy_table::{
     modifiers::UTF8_ROUND_CORNERS, presets::UTF8_FULL_CONDENSED, Cell, CellAlignment, Table,
 };
@@ -30,29 +29,18 @@ pub fn show_color(schemes: Option<&Schemes>, source_color: Option<&Rgb>, base16:
     if let Some(schemes) = schemes {
         for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark)
         {
-            let color_light: ColorSysRgb = rgb_from_argb(*color_light);
-            let color_dark: ColorSysRgb = rgb_from_argb(*color_dark);
-
             generate_table_rows(&mut table, field, color_light, color_dark);
         }
     }
 
     if let Some(base16) = base16 {
         for ((field, color_light), (_, color_dark)) in std::iter::zip(&base16.light, &base16.dark) {
-            let color_light: ColorSysRgb = rgb_from_argb(*color_light);
-            let color_dark: ColorSysRgb = rgb_from_argb(*color_dark);
-
             generate_table_rows(&mut table, field, color_light, color_dark);
         }
     }
 
     if let Some(source_color) = source_color {
-        generate_table_rows(
-            &mut table,
-            "source_color",
-            rgb_from_argb(*source_color),
-            rgb_from_argb(*source_color),
-        );
+        generate_table_rows(&mut table, "source_color", source_color, source_color);
     }
 
     println!["{table}"];
@@ -116,8 +104,8 @@ pub fn format_schemes(
     for name in names {
         let dark_color = schemes.dark.get(name).unwrap();
         let light_color = schemes.light.get(name).unwrap();
-        let dark_hex = format_hex_alpha(&rgb_from_argb(*dark_color));
-        let light_hex = format_hex_alpha(&rgb_from_argb(*light_color));
+        let dark_hex = format_hex_alpha(dark_color);
+        let light_hex = format_hex_alpha(light_color);
         let default_hex = match default_scheme {
             SchemesEnum::Dark => dark_hex.clone(),
             SchemesEnum::Light => light_hex.clone(),
@@ -194,12 +182,7 @@ fn generate_table_format() -> Table {
     table
 }
 
-fn generate_table_rows(
-    table: &mut Table,
-    field: &str,
-    color_light: ColorSysRgb,
-    color_dark: ColorSysRgb,
-) {
+fn generate_table_rows(table: &mut Table, field: &str, color_light: &Rgb, color_dark: &Rgb) {
     table.add_row([
         // Color names
         Cell::new(field),
@@ -220,7 +203,7 @@ fn generate_table_rows(
     ]);
 }
 
-pub fn generate_style(color: &ColorSysRgb) -> Style {
+pub fn generate_style(color: &Rgb) -> Style {
     let luma = color.red() as u16 + color.blue() as u16 + color.green() as u16;
 
     let owo_color: owo_colors::Rgb =

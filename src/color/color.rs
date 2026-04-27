@@ -1,7 +1,7 @@
 use dialoguer::Select;
 use material_colors::{
     blend::harmonize,
-    color::{Lab, Rgb},
+    color::{Lab, Rgb as MaterialRgb},
     dynamic_color::{DynamicScheme, MaterialDynamicColors},
     hct::Cam16,
     image::{FilterType, ImageReader},
@@ -20,7 +20,7 @@ use crate::{
 };
 use crate::{util::arguments::SelectionPreference, FilterType as OwnFilterType};
 use color_eyre::{eyre::WrapErr, Report};
-use colorsys::{Hsl, Rgb as ColorSysRgb};
+use colorsys::{Hsl, Rgb};
 use owo_colors::OwoColorize;
 use std::{io::IsTerminal as _, str::FromStr};
 
@@ -96,12 +96,12 @@ impl OwnCustomColor {
     ) -> Result<material_colors::theme::CustomColor, material_colors::error::Error> {
         Ok(match self {
             OwnCustomColor::Color(color) => material_colors::theme::CustomColor {
-                value: Rgb::from_str(color)?,
+                value: MaterialRgb::from_str(color)?,
                 blend: true,
                 name,
             },
             OwnCustomColor::Options { color, blend } => material_colors::theme::CustomColor {
-                value: Rgb::from_str(color)?,
+                value: MaterialRgb::from_str(color)?,
                 blend: *blend,
                 name,
             },
@@ -112,38 +112,36 @@ impl OwnCustomColor {
 pub fn adjust_color_lightness_dark(color: Rgb, lightness_level_dark: &Option<f64>) -> Rgb {
     // If lightness values were plotted on a graph, the effect of this function is to rotate the line corresponding to the identity function about x = 255 and y = 255 by setting the value at x = 0 to -lightness_level*255 and then clamping the values to between 0 and 255.
     let pre_lightness_level =
-        ((color.red as f64) + (color.green as f64) + (color.blue as f64)) / 3.0;
+        ((color.red() as f64) + (color.green() as f64) + (color.blue() as f64)) / 3.0;
     let adj = (pre_lightness_level / 255.0 * (1.0 - lightness_level_dark.unwrap_or(0.0))
         + lightness_level_dark.unwrap_or(0.0))
         / pre_lightness_level
         * 255.0;
-    Rgb::new(
-        // color.alpha,
-        (color.red as f64 * adj).clamp(0.0, 255.0) as u8,
-        (color.green as f64 * adj).clamp(0.0, 255.0) as u8,
-        (color.blue as f64 * adj).clamp(0.0, 255.0) as u8,
-    )
+    Rgb::from((
+        (color.red() as f64 * adj).clamp(0.0, 255.0),
+        (color.green() as f64 * adj).clamp(0.0, 255.0),
+        (color.blue() as f64 * adj).clamp(0.0, 255.0),
+    ))
 }
 
 pub fn adjust_color_lightness_light(color: Rgb, lightness_level_light: &Option<f64>) -> Rgb {
     // If lightness values were plotted on a graph, the effect of this function is to rotate the line corresponding to the identity function about x = 0 and y = 0 by setting the value at x = 255 to 255+lightness_level*255 and then clamping the values to between 0 and 255.
     let pre_lightness_level =
-        ((color.red as f64) + (color.green as f64) + (color.blue as f64)) / 3.0;
+        ((color.red() as f64) + (color.green() as f64) + (color.blue() as f64)) / 3.0;
     let adj = pre_lightness_level / 255.0 * (1.0 + lightness_level_light.unwrap_or(0.0))
         / pre_lightness_level
         * 255.0;
-    Rgb::new(
-        // color.alpha,
-        (color.red as f64 * adj).clamp(0.0, 255.0) as u8,
-        (color.green as f64 * adj).clamp(0.0, 255.0) as u8,
-        (color.blue as f64 * adj).clamp(0.0, 255.0) as u8,
-    )
+    Rgb::from((
+        (color.red() as f64 * adj).clamp(0.0, 255.0),
+        (color.green() as f64 * adj).clamp(0.0, 255.0),
+        (color.blue() as f64 * adj).clamp(0.0, 255.0),
+    ))
 }
 
 pub fn get_source_color(
     source: &Source,
     resize_filter: &Option<OwnFilterType>,
-    fallback_color: Option<Rgb>,
+    fallback_color: Option<MaterialRgb>,
     prefer: &Option<SelectionPreference>,
     source_color_index: &Option<i64>,
 ) -> Result<Rgb, Report> {
@@ -184,13 +182,13 @@ pub fn get_source_color(
 pub fn get_source_color_from_image(
     path: &str,
     filter_type: FilterType,
-    fallback_color: Option<Rgb>,
+    fallback_color: Option<MaterialRgb>,
     prefer: &Option<SelectionPreference>,
     source_color_index: &Option<i64>,
 ) -> Result<Rgb, Report> {
     let mut original = ImageReader::open(path)?;
     let image = original.resize(112, 112, filter_type);
-    let pixels: Vec<Rgb> = image
+    let pixels: Vec<MaterialRgb> = image
         .as_pixels()
         .iter()
         .copied()
@@ -230,7 +228,7 @@ pub fn get_source_color_from_image(
                 ranked.len() - 1
             )));
         }
-        return Ok(ranked[*index as usize]);
+        return Ok(rgb_from_argb(ranked[*index as usize]));
     }
 
     let selection = match (prefer, std::io::stdin().is_terminal()) {
@@ -250,12 +248,12 @@ pub fn get_source_color_from_image(
     };
     debug!["Chose {selection}"];
 
-    Ok(ranked[selection])
+    Ok(rgb_from_argb(ranked[selection]))
 }
 
 pub fn select_source_color_from_ranks(
-    ranked: &[Rgb],
-    fallback: Option<Rgb>,
+    ranked: &[MaterialRgb],
+    fallback: Option<MaterialRgb>,
     preference: &SelectionPreference,
 ) -> Result<usize, Report> {
     let sel = match preference {
@@ -284,7 +282,8 @@ pub fn select_source_color_from_ranks(
             .iter()
             .enumerate()
             .min_by(|(_, a), (_, b)| {
-                let (val_a, val_b) = get_comparison_values(a, b, preference);
+                let (val_a, val_b) =
+                    get_comparison_values(&rgb_from_argb(**a), &rgb_from_argb(**b), preference);
                 val_a.total_cmp(&val_b)
             })
             .map(|(idx, _)| idx)
@@ -294,15 +293,12 @@ pub fn select_source_color_from_ranks(
 }
 
 fn get_comparison_values(a: &Rgb, b: &Rgb, pref: &SelectionPreference) -> (f32, f32) {
-    let rgb_a = rgb_from_argb(*a);
-    let rgb_b = rgb_from_argb(*b);
-
     match pref {
-        SelectionPreference::Darkness => (lightness(&rgb_a), lightness(&rgb_b)),
-        SelectionPreference::Lightness => (lightness(&rgb_b), lightness(&rgb_a)),
-        SelectionPreference::Saturation => (saturation(&rgb_b), saturation(&rgb_a)),
-        SelectionPreference::LessSaturation => (saturation(&rgb_a), saturation(&rgb_b)),
-        SelectionPreference::Value => (value(&rgb_a), value(&rgb_b)),
+        SelectionPreference::Darkness => (lightness(&a), lightness(&b)),
+        SelectionPreference::Lightness => (lightness(&b), lightness(&a)),
+        SelectionPreference::Saturation => (saturation(&b), saturation(&a)),
+        SelectionPreference::LessSaturation => (saturation(&a), saturation(&b)),
+        SelectionPreference::Value => (value(&a), value(&b)),
         _ => (0.0, 0.0),
     }
 }
@@ -321,31 +317,20 @@ pub fn get_source_color_from_color(color: &ColorFormat) -> Result<Rgb, Report> {
             Ok(Rgb::from_str(string).expect("Invalid hex color string provided"))
         }
         ColorFormat::Rgb { string } => {
-            let rgb = ColorSysRgb::from_str(string).expect("Invalid rgb color string provided");
-            Ok(Rgb {
-                red: rgb.red() as u8,
-                green: rgb.green() as u8,
-                blue: rgb.blue() as u8,
-                // alpha: 255,
-            })
+            Ok(Rgb::from_str(string).expect("Invalid rgb color string provided"))
         }
         ColorFormat::Hsl { string } => {
-            let rgb: ColorSysRgb = Hsl::from_str(string)
+            let rgb: Rgb = Hsl::from_str(string)
                 .expect("Invalid hsl color string provided")
                 .into();
-            Ok(Rgb {
-                red: rgb.red() as u8,
-                green: rgb.green() as u8,
-                blue: rgb.blue() as u8,
-                // alpha: 255,
-            })
+            Ok(rgb)
         }
     }
 }
 
 pub fn generate_dynamic_scheme(
     scheme_type: &Option<SchemeTypes>,
-    source_color: Rgb,
+    source_color: MaterialRgb,
     is_dark: bool,
     contrast_level: Option<f64>,
 ) -> DynamicScheme {
@@ -360,7 +345,7 @@ pub fn generate_dynamic_scheme(
 pub fn make_custom_color(
     color: CustomColor,
     scheme_type: &Option<SchemeTypes>,
-    source_color: Rgb,
+    source_color: MaterialRgb,
     contrast_level: Option<f64>,
 ) -> CustomColorGroup {
     let value = if color.blend {

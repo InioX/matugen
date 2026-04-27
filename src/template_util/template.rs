@@ -1,15 +1,11 @@
-use std::collections::HashMap;
-
-use color_eyre::{eyre::Result, Report};
-use colorsys::{ColorAlpha, Hsl};
-use material_colors::color::Rgb;
-
-use crate::color::format::rgb_from_argb;
 use crate::color::md3::scheme::{Schemes, SchemesEnum};
+use color_eyre::{eyre::Result, Report};
+use colorsys::{ColorAlpha, Hsl, Rgb};
 use matugen_parser::color::format::{
     format_hex, format_hex_alpha, format_hex_alpha_stripped, format_hex_stripped, format_hsl,
     format_hsla, format_rgb, format_rgba,
 };
+use std::collections::HashMap;
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct Color {
     hex: String,
@@ -45,13 +41,7 @@ pub fn generate_colors(
     for ((field, color_light), (_, color_dark)) in std::iter::zip(&schemes.light, &schemes.dark) {
         hashmap.insert(
             field.to_string(),
-            generate_single_color(
-                field,
-                source_color,
-                default_scheme,
-                *color_light,
-                *color_dark,
-            )?,
+            generate_single_color(field, source_color, default_scheme, color_light, color_dark)?,
         );
     }
     hashmap.insert(
@@ -60,8 +50,8 @@ pub fn generate_colors(
             "source_color",
             source_color,
             default_scheme,
-            *source_color,
-            *source_color,
+            source_color,
+            source_color,
         )?,
     );
     Ok(hashmap)
@@ -71,8 +61,8 @@ pub fn generate_single_color(
     field: &str,
     source_color: &Rgb,
     default_scheme: &SchemesEnum,
-    color_light: Rgb,
-    color_dark: Rgb,
+    color_light: &Rgb,
+    color_dark: &Rgb,
 ) -> Result<ColorVariants, Report> {
     let default_scheme_color = match default_scheme {
         SchemesEnum::Light => color_light,
@@ -81,9 +71,9 @@ pub fn generate_single_color(
 
     if field == "source_color" {
         return Ok(ColorVariants {
-            default: generate_color_strings(*source_color),
-            light: generate_color_strings(*source_color),
-            dark: generate_color_strings(*source_color),
+            default: generate_color_strings(source_color),
+            light: generate_color_strings(source_color),
+            dark: generate_color_strings(source_color),
         });
     }
 
@@ -94,9 +84,8 @@ pub fn generate_single_color(
     })
 }
 
-fn generate_color_strings(color: Rgb) -> Color {
-    let base_color = rgb_from_argb(color);
-    let hsl_color = Hsl::from(&base_color);
+fn generate_color_strings(base_color: &Rgb) -> Color {
+    let hsl_color = Hsl::from(base_color);
     Color {
         hex: format_hex(&base_color),
         hex_stripped: format_hex_stripped(&base_color),

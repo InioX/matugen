@@ -15,8 +15,7 @@ mod wallpaper;
 
 use crate::{
     cache::ImageCache,
-    color::md3::scheme::SchemeTypes,
-    color::{base16::Backend, color::Source},
+    color::{base16::Backend, color::Source, format::argb_from_rgb, md3::scheme::SchemeTypes},
     helpers::{
         generate_schemes_and_theme, get_syntax, json_from_file, merge_json, merge_json_source,
     },
@@ -43,8 +42,8 @@ pub mod template_util;
 use crate::color::md3::scheme::{Schemes, SchemesEnum};
 use matugen_parser::Engine;
 
-use material_colors::{color::Rgb, theme::Theme};
-
+use colorsys::Rgb;
+use material_colors::theme::Theme;
 pub struct State {
     pub args: Cli,
     pub config_file: ConfigFile,
@@ -80,9 +79,9 @@ impl State {
             match image_cache.load() {
                 Ok((schemes, base16)) => {
                     // Source color will be the same in both light and dark mode
-                    let source_color = *schemes.dark.clone().get("source_color").unwrap();
+                    let source_color: Rgb = schemes.dark.get("source_color").unwrap().clone();
 
-                    let theme = ThemeBuilder::with_source(source_color).build();
+                    let theme = ThemeBuilder::with_source(argb_from_rgb(&source_color)).build();
 
                     loaded_cache = true;
 

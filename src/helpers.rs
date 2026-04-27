@@ -1,3 +1,4 @@
+use crate::util::arguments::Cli;
 use crate::{
     color::md3::scheme::{
         get_custom_color_schemes, get_schemes, SchemeTypes, Schemes, SchemesEnum,
@@ -18,9 +19,10 @@ use color_eyre::{
     eyre::{Context, Result},
     Report,
 };
+use colorsys::Rgb;
 use log::LevelFilter;
 use material_colors::{
-    color::Rgb,
+    color::Rgb as MaterialRgb,
     theme::{Theme, ThemeBuilder},
 };
 use matugen_parser::{
@@ -29,8 +31,6 @@ use matugen_parser::{
 };
 use serde_json::Value;
 use std::{fs::read_to_string, io::Write, path::PathBuf};
-
-use crate::util::arguments::Cli;
 
 // pub fn apply_opacity_to_schemes(schemes: &mut Option<Schemes>, opacity: Option<f64>) {
 //     if let Some(schemes) = schemes {
@@ -97,7 +97,7 @@ pub fn generate_schemes_and_theme(
         &config_file.config.prefer
     };
 
-    let parsed_fallback_color: Option<Rgb> = match fallback {
+    let parsed_fallback_color: Option<MaterialRgb> = match fallback {
         Some(s) => {
             let c = parse_css_color(&s)
                 .wrap_err("Failed to parse the fallback_color string as a css color")?;
@@ -122,13 +122,14 @@ pub fn generate_schemes_and_theme(
 
     let contrast = args.contrast.or(config_file.config.contrast);
 
-    let (schemes, theme) = match source_color {
+    let (schemes, theme) = match &source_color {
         Some(color) => {
-            let theme = ThemeBuilder::with_source(color).build();
-            let (scheme_dark, scheme_light) = get_schemes(color, scheme_type, &contrast);
+            let theme = ThemeBuilder::with_source(argb_from_rgb(&color)).build();
+            let (scheme_dark, scheme_light) =
+                get_schemes(argb_from_rgb(&color), scheme_type, &contrast);
 
             let mut schemes = get_custom_color_schemes(
-                color,
+                argb_from_rgb(&color),
                 scheme_dark,
                 scheme_light,
                 &config_file.config.custom_colors,
@@ -138,8 +139,12 @@ pub fn generate_schemes_and_theme(
                 &args.lightness_light,
             );
 
-            schemes.dark.insert("source_color".to_owned(), color);
-            schemes.light.insert("source_color".to_owned(), color);
+            schemes
+                .dark
+                .insert("source_color".to_owned(), color.clone());
+            schemes
+                .light
+                .insert("source_color".to_owned(), color.clone());
             (Some(schemes), Some(theme))
         }
         None => (None, None),

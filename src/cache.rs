@@ -11,9 +11,9 @@ use crate::{
     util::config::{get_proj_path, ProjectDirsTypes},
 };
 use color_eyre::Report;
+use colorsys::Rgb;
 use image::ImageReader;
 use indexmap::IndexMap;
-use material_colors::color::Rgb;
 use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
@@ -98,23 +98,18 @@ impl<'de> Deserialize<'de> for ArgbHelper {
 
 impl From<ArgbHelper> for Rgb {
     fn from(value: ArgbHelper) -> Self {
-        Rgb {
-            // alpha: value.alpha,
-            red: value.red,
-            green: value.green,
-            blue: value.blue,
-        }
+        Rgb::from((value.red, value.green, value.blue))
     }
 }
 
-impl From<Rgb> for ArgbHelper {
-    fn from(value: Rgb) -> Self {
+impl From<&Rgb> for ArgbHelper {
+    fn from(value: &Rgb) -> Self {
         ArgbHelper {
             // alpha: value.alpha,
             alpha: 255,
-            red: value.red,
-            green: value.green,
-            blue: value.blue,
+            red: value.red() as u8,
+            green: value.green() as u8,
+            blue: value.blue() as u8,
         }
     }
 }
@@ -129,7 +124,7 @@ fn convert_helper_scheme(scheme: &IndexMap<String, ArgbHelper>) -> IndexMap<Stri
 pub fn convert_argb_scheme(scheme: &IndexMap<String, Rgb>) -> IndexMap<String, ArgbHelper> {
     scheme
         .iter()
-        .map(|(k, v)| (k.clone(), (*v).into()))
+        .map(|(k, v)| (k.clone(), (v).into()))
         .collect()
 }
 

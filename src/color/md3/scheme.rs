@@ -1,13 +1,19 @@
 use core::fmt;
 use std::collections::HashMap;
 
+use colorsys::Rgb;
 use indexmap::IndexMap;
-use material_colors::{dynamic_color::Variant as MaterialColorsVariant, scheme::Scheme};
+use material_colors::{
+    color::Rgb as MaterialRgb, dynamic_color::Variant as MaterialColorsVariant, scheme::Scheme,
+};
 use serde::{Deserialize, Serialize};
 
-use crate::color::color::{
-    adjust_color_lightness_dark, adjust_color_lightness_light, generate_dynamic_scheme,
-    make_custom_color, OwnCustomColor,
+use crate::color::{
+    color::{
+        adjust_color_lightness_dark, adjust_color_lightness_light, generate_dynamic_scheme,
+        make_custom_color, OwnCustomColor,
+    },
+    format::rgb_from_argb,
 };
 
 #[allow(clippy::enum_variant_names)]
@@ -46,8 +52,8 @@ impl SchemeTypes {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Schemes {
-    pub light: IndexMap<std::string::String, material_colors::color::Rgb>,
-    pub dark: IndexMap<std::string::String, material_colors::color::Rgb>,
+    pub light: IndexMap<std::string::String, Rgb>,
+    pub dark: IndexMap<std::string::String, Rgb>,
 }
 
 impl Schemes {
@@ -144,24 +150,28 @@ pub fn get_custom_color_schemes(
     let custom_colors_light = custom_colors.flat_map(|c| from_color!(c, light));
 
     let schemes: Schemes = Schemes {
-        dark: IndexMap::from_iter(
-            scheme_dark
-                .into_iter()
-                .chain(custom_colors_dark)
-                .map(|(name, color)| (name, adjust_color_lightness_dark(color, lightness_dark))),
-        ),
-        light: IndexMap::from_iter(
-            scheme_light
-                .into_iter()
-                .chain(custom_colors_light)
-                .map(|(name, color)| (name, adjust_color_lightness_light(color, lightness_light))),
-        ),
+        dark: IndexMap::from_iter(scheme_dark.into_iter().chain(custom_colors_dark).map(
+            |(name, color)| {
+                (
+                    name,
+                    adjust_color_lightness_dark(rgb_from_argb(color), lightness_dark),
+                )
+            },
+        )),
+        light: IndexMap::from_iter(scheme_light.into_iter().chain(custom_colors_light).map(
+            |(name, color)| {
+                (
+                    name,
+                    adjust_color_lightness_light(rgb_from_argb(color), lightness_light),
+                )
+            },
+        )),
     };
     schemes
 }
 
 pub fn get_schemes(
-    source_color: material_colors::color::Rgb,
+    source_color: MaterialRgb,
     scheme_type: &Option<SchemeTypes>,
     contrast: &Option<f64>,
 ) -> (Scheme, Scheme) {
