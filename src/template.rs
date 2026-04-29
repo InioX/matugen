@@ -163,7 +163,7 @@ impl TemplateFile<'_> {
                     let (mut schemes, _, theme, mut base16) = generate_schemes_and_theme(
                         &self.state.args,
                         &self.state.config_file,
-                        &Some(scheme_type),
+                        scheme_type,
                     )?;
 
                     apply_opacity_to_schemes(&mut base16, self.state.args.opacity);

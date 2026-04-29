@@ -7,8 +7,8 @@ use std::{
 
 use crate::{
     color::color::Source,
-    scheme::Schemes,
-    util::config::{get_proj_path, ProjectDirsTypes},
+    scheme::{SchemeTypes, Schemes},
+    util::config::{ProjectDirsTypes, get_proj_path},
 };
 use color_eyre::Report;
 use image::ImageReader;
@@ -134,12 +134,13 @@ pub fn convert_argb_scheme(scheme: &IndexMap<String, Argb>) -> IndexMap<String, 
 
 pub struct ImageCache {
     pub hash: Option<String>,
+    pub stype: SchemeTypes,
     source: Option<PathBuf>,
     cache_folder: PathBuf,
 }
 
 impl ImageCache {
-    pub fn new(source: &Source) -> Self {
+    pub fn new(source: &Source, stype: SchemeTypes) -> Self {
         let pathbuf = match source {
             Source::Image { path } => Some(PathBuf::from(path)),
             _ => None,
@@ -151,6 +152,7 @@ impl ImageCache {
 
         Self {
             hash: get_cache(source),
+            stype,
             source: pathbuf,
             cache_folder,
         }
@@ -209,20 +211,18 @@ impl ImageCache {
 
     fn get_name(&self) -> PathBuf {
         let name = format!(
-            "{}.{}.json",
+            "{}.{}.{:?}.json",
             self.source
                 .as_ref()
                 .unwrap()
                 .file_name()
                 .unwrap()
                 .to_string_lossy(),
-            self.hash.as_ref().unwrap()
+            &self.hash.as_ref().unwrap(),
+            &self.stype
         );
 
-        let mut file = PathBuf::new();
-        file.push(name);
-
-        file
+        PathBuf::from(name)
     }
 
     pub fn exists(&self) -> bool {

@@ -79,7 +79,7 @@ pub fn merge_json_source(
 pub fn generate_schemes_and_theme(
     args: &Cli,
     config_file: &ConfigFile,
-    scheme_type: &Option<SchemeTypes>,
+    scheme_type: SchemeTypes,
 ) -> Result<
     (
         Option<Schemes>,
@@ -136,7 +136,7 @@ pub fn generate_schemes_and_theme(
                 scheme_dark,
                 scheme_light,
                 &config_file.config.custom_colors,
-                &args.r#type,
+                args.r#type,
                 &contrast,
                 &args.lightness_dark,
                 &args.lightness_light,
