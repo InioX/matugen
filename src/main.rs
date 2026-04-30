@@ -68,8 +68,10 @@ impl State {
         #[cfg(feature = "jxl-image")]
         jxl_oxide::integration::register_image_decoding_hook();
 
-        let (config_file, config_path) =
+        let (mut config_file, config_path) =
             ConfigFile::read(&args).wrap_err("Failed to read config file.")?;
+
+        config_file.parse_cli_overrides(&args);
 
         let image_cache = ImageCache::new(&args.source);
 
