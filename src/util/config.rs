@@ -107,4 +107,13 @@ impl ConfigFile {
     fn read_from_fallback_path() -> Result<ConfigFile, Report> {
         Ok(toml::from_str(DEFAULT_CONFIG)?)
     }
+
+    pub fn parse_cli_overrides(&mut self, cli: &Cli) {
+        if cli.fallback_color.is_some() {
+            self.config.fallback_color = cli.fallback_color.clone();
+        }
+        if cli.prefer.is_some() {
+            self.config.prefer = cli.prefer.clone();
+        }
+    }
 }
