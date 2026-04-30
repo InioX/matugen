@@ -89,19 +89,7 @@ pub fn generate_schemes_and_theme(
     ),
     Report,
 > {
-    let fallback = if args.fallback_color.is_some() {
-        &args.fallback_color
-    } else {
-        &config_file.config.fallback_color
-    };
-
-    let prefer = if args.prefer.is_some() {
-        &args.prefer
-    } else {
-        &config_file.config.prefer
-    };
-
-    let parsed_fallback_color: Option<Argb> = match fallback {
+    let parsed_fallback_color: Option<Argb> = match &config_file.config.fallback_color {
         Some(s) => {
             let c = parse_css_color(&s)
                 .wrap_err("Failed to parse the fallback_color string as a css color")?;
@@ -117,7 +105,7 @@ pub fn generate_schemes_and_theme(
                 &args.source,
                 &args.resize_filter,
                 parsed_fallback_color,
-                prefer,
+                &config_file.config.prefer,
                 &args.source_color_index,
             ))
             .wrap_err("Failed to get source color.")?,
