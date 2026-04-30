@@ -11,7 +11,9 @@ use crate::color::color::{
 };
 
 #[allow(clippy::enum_variant_names)]
-#[derive(Clone, clap::ValueEnum, Debug, Copy, Eq, PartialEq, Serialize, Deserialize, Hash, Default)]
+#[derive(
+    Clone, clap::ValueEnum, Debug, Copy, Eq, PartialEq, Serialize, Deserialize, Hash, Default,
+)]
 pub enum SchemeTypes {
     #[default]
     SchemeContent,
@@ -188,7 +190,13 @@ mod tests {
     fn schemes_eq() {
         let source_color = material_colors::color::Argb::new(255, 255, 0, 0);
         assert_eq!(
-            Scheme::from(generate_dynamic_scheme(SchemeTypes::default(), source_color, true, None,)).primary,
+            Scheme::from(generate_dynamic_scheme(
+                SchemeTypes::default(),
+                source_color,
+                true,
+                None,
+            ))
+            .primary,
             Argb {
                 alpha: 255,
                 red: 255,
