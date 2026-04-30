@@ -8,7 +8,7 @@ use std::{
 use crate::{
     color::color::Source,
     scheme::{SchemeTypes, Schemes},
-    util::config::{ProjectDirsTypes, get_proj_path},
+    util::config::{get_proj_path, ProjectDirsTypes},
 };
 use color_eyre::Report;
 use image::ImageReader;
