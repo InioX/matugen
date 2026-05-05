@@ -112,7 +112,7 @@ impl Context {
     }
 
     pub fn delete_key(&mut self, key: &str) {
-        self.data.remove(key);
+        self.data.swap_remove(key);
     }
 
     pub fn remove_path<'a, I>(&mut self, path: I) -> bool
