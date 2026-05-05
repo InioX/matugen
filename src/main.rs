@@ -68,10 +68,12 @@ impl State {
         #[cfg(feature = "jxl-image")]
         jxl_oxide::integration::register_image_decoding_hook();
 
-        let (config_file, config_path) =
+        let (mut config_file, config_path) =
             ConfigFile::read(&args).wrap_err("Failed to read config file.")?;
 
-        let image_cache = ImageCache::new(&args.source);
+        config_file.parse_cli_overrides(&args);
+
+        let image_cache = ImageCache::new(&args.source, args.r#type);
 
         let mut loaded_cache = false;
 
@@ -99,14 +101,14 @@ impl State {
                             "<d>The cache in <yellow><b>{}</><d> doesn't exist.</>",
                             image_cache.get_path().display()
                         );
-                        generate_schemes_and_theme(&args, &config_file, &args.r#type)?
+                        generate_schemes_and_theme(&args, &config_file, args.r#type)?
                     } else {
                         return Err(e.wrap_err("Couldn't load the cache file").suggestion("You may need to regenerate your cache if coming from v3.1.0 and lower."));
                     }
                 }
             }
         } else {
-            generate_schemes_and_theme(&args, &config_file, &args.r#type)?
+            generate_schemes_and_theme(&args, &config_file, args.r#type)?
         };
 
         apply_opacity_to_schemes(&mut base16, args.opacity);
@@ -664,7 +666,7 @@ fn main() -> Result<(), Report> {
         source: crate::Source::Color(crate::color::color::ColorFormat::Hex {
             string: String::from("#ffffff"),
         }),
-        r#type: Some(SchemeTypes::SchemeContent),
+        r#type: SchemeTypes::SchemeContent,
         config: None,
         prefix: None,
         contrast: Some(0.0),

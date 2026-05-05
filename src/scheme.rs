@@ -11,8 +11,11 @@ use crate::color::color::{
 };
 
 #[allow(clippy::enum_variant_names)]
-#[derive(Clone, clap::ValueEnum, Debug, Copy, Eq, PartialEq, Serialize, Deserialize, Hash)]
+#[derive(
+    Clone, clap::ValueEnum, Debug, Copy, Eq, PartialEq, Serialize, Deserialize, Hash, Default,
+)]
 pub enum SchemeTypes {
+    #[default]
     SchemeContent,
     SchemeExpressive,
     SchemeFidelity,
@@ -95,7 +98,7 @@ pub fn get_custom_color_schemes(
     scheme_dark: Scheme,
     scheme_light: Scheme,
     custom_colors: &Option<HashMap<String, OwnCustomColor, std::hash::RandomState>>,
-    scheme_type: &Option<SchemeTypes>,
+    scheme_type: SchemeTypes,
     contrast: &Option<f64>,
     lightness_dark: &Option<f64>,
     lightness_light: &Option<f64>,
@@ -160,7 +163,7 @@ pub fn get_custom_color_schemes(
 
 pub fn get_schemes(
     source_color: material_colors::color::Argb,
-    scheme_type: &Option<SchemeTypes>,
+    scheme_type: SchemeTypes,
     contrast: &Option<f64>,
 ) -> (Scheme, Scheme) {
     let scheme_dark = Scheme::from(generate_dynamic_scheme(
@@ -187,7 +190,13 @@ mod tests {
     fn schemes_eq() {
         let source_color = material_colors::color::Argb::new(255, 255, 0, 0);
         assert_eq!(
-            Scheme::from(generate_dynamic_scheme(&None, source_color, true, None,)).primary,
+            Scheme::from(generate_dynamic_scheme(
+                SchemeTypes::default(),
+                source_color,
+                true,
+                None,
+            ))
+            .primary,
             Argb {
                 alpha: 255,
                 red: 255,
