@@ -344,12 +344,11 @@ pub fn get_source_color_from_color(color: &ColorFormat) -> Result<Argb, Report> 
 }
 
 pub fn generate_dynamic_scheme(
-    scheme_type: &Option<SchemeTypes>,
+    scheme_type: SchemeTypes,
     source_color: Argb,
     is_dark: bool,
     contrast_level: Option<f64>,
 ) -> DynamicScheme {
-    let scheme_type: SchemeTypes = scheme_type.unwrap_or(SchemeTypes::SchemeContent);
     if let Some(var) = scheme_type.as_material_colors_variant() {
         DynamicScheme::by_variant(source_color, &var, is_dark, contrast_level)
     } else {
@@ -359,7 +358,7 @@ pub fn generate_dynamic_scheme(
 
 pub fn make_custom_color(
     color: CustomColor,
-    scheme_type: &Option<SchemeTypes>,
+    scheme_type: SchemeTypes,
     source_color: Argb,
     contrast_level: Option<f64>,
 ) -> CustomColorGroup {
