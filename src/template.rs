@@ -1,8 +1,8 @@
 use color_eyre::{
-    eyre::{ContextCompat, Result, WrapErr},
     Help, Report,
+    eyre::{ContextCompat, Result, WrapErr},
 };
-use execute::{shell, Execute};
+use execute::{Execute, shell};
 use material_colors::theme::Theme;
 use serde_json::json;
 
@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, str};
 
 use std::{
-    fs::{create_dir_all, read_to_string, OpenOptions},
+    fs::{OpenOptions, create_dir_all, read_to_string},
     io::Write,
     path::PathBuf,
 };
@@ -105,7 +105,11 @@ impl TemplateFile<'_> {
                 get_absolute_paths(&self.state.config_path, input_path, &template.output_path)?;
 
             if !input_path_absolute.exists() {
-                warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesn't exist, skipping...</>", name, input_path_absolute.display());
+                warn!(
+                    "<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesn't exist, skipping...</>",
+                    name,
+                    input_path_absolute.display()
+                );
                 continue;
             }
 
@@ -165,7 +169,7 @@ impl TemplateFile<'_> {
                     let (mut schemes, _, theme, mut base16) = generate_schemes_and_theme(
                         &self.state.args,
                         &self.state.config_file,
-                        &Some(scheme_type),
+                        scheme_type,
                     )?;
 
                     apply_opacity_to_schemes(&mut base16, self.state.args.opacity);
@@ -272,7 +276,7 @@ impl TemplateFile<'_> {
                     return Err(Report::msg(format!(
                         "Output path is not an absolute path: {}",
                         e
-                    )))
+                    )));
                 }
             };
 

@@ -10,6 +10,7 @@ use material_colors::{
     theme::{ColorGroup, CustomColor, CustomColorGroup},
 };
 
+use crate::{FilterType as OwnFilterType, util::arguments::SelectionPreference};
 use crate::{
     color::math::{get_color_distance_lab, get_color_distance_lab_from_str, lightness, value},
     color::md3::scheme::SchemeTypes,
@@ -18,8 +19,7 @@ use crate::{
     color::{format::rgb_from_argb, math::saturation},
     util::color::generate_style,
 };
-use crate::{util::arguments::SelectionPreference, FilterType as OwnFilterType};
-use color_eyre::{eyre::WrapErr, Report};
+use color_eyre::{Report, eyre::WrapErr};
 use colorsys::{Hsl, Rgb};
 use owo_colors::OwoColorize;
 use std::{io::IsTerminal as _, str::FromStr};
@@ -329,12 +329,11 @@ pub fn get_source_color_from_color(color: &ColorFormat) -> Result<Rgb, Report> {
 }
 
 pub fn generate_dynamic_scheme(
-    scheme_type: &Option<SchemeTypes>,
+    scheme_type: SchemeTypes,
     source_color: MaterialRgb,
     is_dark: bool,
     contrast_level: Option<f64>,
 ) -> DynamicScheme {
-    let scheme_type: SchemeTypes = scheme_type.unwrap_or(SchemeTypes::SchemeContent);
     if let Some(var) = scheme_type.as_material_colors_variant() {
         DynamicScheme::by_variant(&[source_color.into()], &var, is_dark, contrast_level)
     } else {
@@ -344,7 +343,7 @@ pub fn generate_dynamic_scheme(
 
 pub fn make_custom_color(
     color: CustomColor,
-    scheme_type: &Option<SchemeTypes>,
+    scheme_type: SchemeTypes,
     source_color: MaterialRgb,
     contrast_level: Option<f64>,
 ) -> CustomColorGroup {

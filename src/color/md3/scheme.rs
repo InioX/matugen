@@ -10,15 +10,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::color::{
     color::{
-        adjust_color_lightness_dark, adjust_color_lightness_light, generate_dynamic_scheme,
-        make_custom_color, OwnCustomColor,
+        OwnCustomColor, adjust_color_lightness_dark, adjust_color_lightness_light,
+        generate_dynamic_scheme, make_custom_color,
     },
     format::rgb_from_argb,
 };
 
 #[allow(clippy::enum_variant_names)]
-#[derive(Clone, clap::ValueEnum, Debug, Copy, Eq, PartialEq, Serialize, Deserialize, Hash)]
+#[derive(
+    Clone, clap::ValueEnum, Debug, Copy, Eq, PartialEq, Serialize, Deserialize, Hash, Default,
+)]
 pub enum SchemeTypes {
+    #[default]
     SchemeContent,
     SchemeExpressive,
     SchemeFidelity,
@@ -103,7 +106,7 @@ pub fn get_custom_color_schemes(
     scheme_dark: Scheme,
     scheme_light: Scheme,
     custom_colors: &Option<HashMap<String, OwnCustomColor, std::hash::RandomState>>,
-    scheme_type: &Option<SchemeTypes>,
+    scheme_type: SchemeTypes,
     contrast: &Option<f64>,
     lightness_dark: &Option<f64>,
     lightness_light: &Option<f64>,
@@ -172,7 +175,7 @@ pub fn get_custom_color_schemes(
 
 pub fn get_schemes(
     source_color: MaterialRgb,
-    scheme_type: &Option<SchemeTypes>,
+    scheme_type: SchemeTypes,
     contrast: &Option<f64>,
 ) -> (Scheme, Scheme) {
     let scheme_dark = Scheme::from(generate_dynamic_scheme(
@@ -188,4 +191,30 @@ pub fn get_schemes(
         *contrast,
     ));
     (scheme_dark, scheme_light)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use material_colors::color::Argb;
+
+    #[test]
+    fn schemes_eq() {
+        let source_color = material_colors::color::Argb::new(255, 255, 0, 0);
+        assert_eq!(
+            Scheme::from(generate_dynamic_scheme(
+                SchemeTypes::default(),
+                source_color,
+                true,
+                None,
+            ))
+            .primary,
+            Argb {
+                alpha: 255,
+                red: 255,
+                green: 180,
+                blue: 168,
+            }
+        );
+    }
 }

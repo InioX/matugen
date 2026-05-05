@@ -2,7 +2,7 @@ use clap::{ArgAction, Parser};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, ops::RangeBounds, path::PathBuf};
 
-use crate::{color::base16::Backend, SchemesEnum};
+use crate::{SchemesEnum, color::base16::Backend};
 
 #[derive(Parser, Clone)]
 #[command(version, long_about = None)]
@@ -20,8 +20,7 @@ pub struct Cli {
         global = true,
         default_value = "scheme-tonal-spot"
     )]
-    pub r#type: Option<crate::color::md3::scheme::SchemeTypes>,
-
+    pub r#type: crate::SchemeTypes,
     /// Sets a custom config file
     #[arg(short, long, value_name = "FILE", global = true)]
     pub config: Option<PathBuf>,

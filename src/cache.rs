@@ -1,22 +1,23 @@
 use std::{
     fmt,
-    fs::{create_dir_all, read_to_string, File},
+    fs::{File, create_dir_all, read_to_string},
     io::{BufWriter, Write},
     path::PathBuf,
 };
 
 use crate::{
+    SchemeTypes,
     color::color::Source,
     color::md3::scheme::Schemes,
-    util::config::{get_proj_path, ProjectDirsTypes},
+    util::config::{ProjectDirsTypes, get_proj_path},
 };
 use color_eyre::Report;
 use colorsys::Rgb;
 use image::ImageReader;
 use indexmap::IndexMap;
 use serde::{
-    de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
+    de::{self, Visitor},
 };
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -130,12 +131,13 @@ pub fn convert_argb_scheme(scheme: &IndexMap<String, Rgb>) -> IndexMap<String, A
 
 pub struct ImageCache {
     pub hash: Option<String>,
+    pub stype: SchemeTypes,
     source: Option<PathBuf>,
     cache_folder: PathBuf,
 }
 
 impl ImageCache {
-    pub fn new(source: &Source) -> Self {
+    pub fn new(source: &Source, stype: SchemeTypes) -> Self {
         let pathbuf = match source {
             Source::Image { path } => Some(PathBuf::from(path)),
             _ => None,
@@ -147,6 +149,7 @@ impl ImageCache {
 
         Self {
             hash: get_cache(source),
+            stype,
             source: pathbuf,
             cache_folder,
         }
@@ -205,20 +208,18 @@ impl ImageCache {
 
     fn get_name(&self) -> PathBuf {
         let name = format!(
-            "{}.{}.json",
+            "{}.{}.{:?}.json",
             self.source
                 .as_ref()
                 .unwrap()
                 .file_name()
                 .unwrap()
                 .to_string_lossy(),
-            self.hash.as_ref().unwrap()
+            &self.hash.as_ref().unwrap(),
+            &self.stype
         );
 
-        let mut file = PathBuf::new();
-        file.push(name);
-
-        file
+        PathBuf::from(name)
     }
 
     pub fn exists(&self) -> bool {
