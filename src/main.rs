@@ -15,10 +15,10 @@ mod wallpaper;
 
 use crate::{
     cache::ImageCache,
-    color::{base16::Backend, color::Source},
+    color::{base16::Backend, color::{Source, get_filter, get_scored_colors_from_image, format_ranked}},
     helpers::{
         apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, json_from_file,
-        merge_json, merge_json_source,
+        merge_json, merge_json_source, parse_fallback_color,
     },
     scheme::SchemeTypes,
     template::get_absolute_path,
@@ -82,6 +82,29 @@ impl State {
         let default_scheme = args
             .mode
             .ok_or_else(|| Report::msg("Something went wrong while parsing the mode"))?;
+
+        if let Source::ImageColors { path } = &args.source {
+            let filter = get_filter(&args.resize_filter);
+            let fallback_color = parse_fallback_color(&config_file)?;
+            let ranked = get_scored_colors_from_image(&path, filter, fallback_color)?;
+
+            for (i, color) in ranked.iter().enumerate() {
+                println!("{}: {}", i, color.to_hex_with_pound());
+            }
+
+            return Ok(Self {
+                args,
+                config_file,
+                config_path,
+                source_color: None,
+                theme: None,
+                schemes: None,
+                default_scheme,
+                image_hash: image_cache,
+                loaded_cache,
+                base16: None,
+            });
+        }
 
         let (mut schemes, source_color, theme, mut base16) = if caching_enabled {
             match image_cache.load() {
@@ -213,7 +236,7 @@ impl State {
 
     pub fn get_render_data(&self) -> Result<serde_json::Value, Report> {
         let image = match &self.args.source {
-            Source::Image { path } => Some(normalize_path_to_forward_slash(
+            Source::Image { path } | Source::ImageColors { path } => Some(normalize_path_to_forward_slash(
                 std::fs::canonicalize(path)?
                     .to_str()
                     .ok_or_else(|| Report::msg("Could not canonicalize the image path"))?,
@@ -699,6 +722,11 @@ fn main() -> Result<(), Report> {
     setup_logging(&args)?;
 
     let state = State::new(args.clone())?;
+
+    if let Source::ImageColors { path: _ } = &args.source {
+        return Ok(());
+    }
+
     state.run_in_term()?;
 
     Ok(())
