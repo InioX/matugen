@@ -163,7 +163,6 @@ pub fn generate_base16_schemes(source: &Source, backend: Backend) -> Result<Sche
                 path
             ))?
         }
-        Source::ImageColors { path: _ } => unreachable!(),
         Source::Color(color) => generate_base16_schemes_from_color(color).wrap_err(format!(
             "Could not generate base16 scheme from color: {}",
             color.get_string()

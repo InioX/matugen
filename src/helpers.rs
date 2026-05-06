@@ -236,7 +236,6 @@ pub fn set_wallpaper(
 ) -> Result<(), Report> {
     let path = match &source {
         Source::Image { path } => path,
-        Source::ImageColors { path: _ } => unreachable!(),
         Source::Color { .. } => return Ok(()),
         #[cfg(feature = "web-image")]
         Source::WebImage { .. } => return Ok(()),
