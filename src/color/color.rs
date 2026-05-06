@@ -48,9 +48,6 @@ pub enum Source {
     /// The image to use for generating a color scheme
     Image { path: String },
 
-    /// The image to use for generating colors
-    ImageColors { path: String },
-
     #[cfg(feature = "web-image")]
     /// The image to fetch from web and use for generating a color scheme
     WebImage { url: String },
@@ -175,7 +172,7 @@ pub fn get_source_color(
     let filter = get_filter(resize_filter);
 
     let source_color: Argb = match source {
-        Source::Image { path } | Source::ImageColors { path } => {
+        Source::Image { path } => {
             info!("Opening image in <d><u>{}</>", path);
             color::get_source_color_from_image(
                 path,
