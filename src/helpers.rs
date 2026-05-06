@@ -89,15 +89,7 @@ pub fn generate_schemes_and_theme(
     ),
     Report,
 > {
-    let parsed_fallback_color: Option<Argb> = match &config_file.config.fallback_color {
-        Some(s) => {
-            let c = parse_css_color(&s)
-                .wrap_err("Failed to parse the fallback_color string as a css color")?;
-            Some(argb_from_rgb(&c))
-        }
-        None => None,
-    };
-
+    let parsed_fallback_color = parse_fallback_color(config_file)?;
     let source_color = match &args.source {
         Source::Json { path: _ } => None,
         _ => Some(
@@ -244,6 +236,7 @@ pub fn set_wallpaper(
 ) -> Result<(), Report> {
     let path = match &source {
         Source::Image { path } => path,
+        Source::ImageColors { path: _ } => unreachable!(),
         Source::Color { .. } => return Ok(()),
         #[cfg(feature = "web-image")]
         Source::WebImage { .. } => return Ok(()),
@@ -279,5 +272,16 @@ pub fn merge_json(a: &mut Value, b: Value) {
         (a_slot, b_val) => {
             *a_slot = b_val;
         }
+    }
+}
+
+pub fn parse_fallback_color(config_file: &ConfigFile) -> Result<Option<Argb>, Report> {
+    match &config_file.config.fallback_color {
+        Some(s) => {
+            let c = parse_css_color(&s)
+                .wrap_err("Failed to parse the fallback_color string as a css color")?;
+            Ok(Some(argb_from_rgb(&c)))
+        }
+        None => Ok(None),
     }
 }
