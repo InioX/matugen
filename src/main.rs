@@ -89,8 +89,8 @@ impl State {
                 let fallback_color = parse_fallback_color(&config_file)?;
                 let ranked = get_scored_colors_from_image(&path, filter, fallback_color)?;
 
-                for (i, color) in ranked.iter().enumerate() {
-                    println!("{}: {}", i, color.to_hex_with_pound());
+                for color in ranked {
+                    println!("{}", color.to_hex_with_pound());
                 }
 
                 return Ok(Self {
