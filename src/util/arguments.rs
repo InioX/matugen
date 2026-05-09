@@ -138,6 +138,10 @@ pub struct Cli {
     // This will set the opacity for all colors inside templates.
     #[arg(long, global = true , value_parser = |s: &str| validate_float_range(s, 0.0..=1.0))]
     pub opacity: Option<f64>,
+
+    /// List source color candidates as JSON and exit.
+    #[arg(long, global = true, action=ArgAction::SetTrue, default_value = "false")]
+    pub list_candidates: Option<bool>,
 }
 
 fn validate_float_range<R>(s: &str, range: R) -> Result<f64, String>

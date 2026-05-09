@@ -692,6 +692,7 @@ fn main() -> Result<(), Report> {
         lightness_light: Some(0.0),
         source_color_index: None,
         opacity: Some(1.0),
+        list_candidates: Some(false),
     };
 
     let args = Cli::parse();

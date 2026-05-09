@@ -146,6 +146,7 @@ pub fn get_source_color(
     fallback_color: Option<Argb>,
     prefer: &Option<SelectionPreference>,
     source_color_index: &Option<i64>,
+    list_candidates: bool,
 ) -> Result<Argb, Report> {
     use crate::color::color;
 
@@ -163,6 +164,7 @@ pub fn get_source_color(
                 fallback_color,
                 &prefer,
                 source_color_index,
+                list_candidates,
             )
             .wrap_err(format!("Could not get source color from image: {}", path))?
         }
@@ -187,6 +189,7 @@ pub fn get_source_color_from_image(
     fallback_color: Option<Argb>,
     prefer: &Option<SelectionPreference>,
     source_color_index: &Option<i64>,
+    list_candidates: bool,
 ) -> Result<Argb, Report> {
     let mut original = ImageReader::open(path)?;
     let image = original.resize(112, 112, filter_type);
@@ -203,6 +206,12 @@ pub fn get_source_color_from_image(
         .retain(|&argb, _| Cam16::from(argb).chroma >= 5.0);
 
     let ranked = Score::score(&result.color_to_count, None, fallback_color, None);
+
+    if list_candidates {
+        let json: Vec<String> = ranked.iter().map(|c| c.to_hex_with_pound()).collect();
+        println!("{}", serde_json::to_string(&json).unwrap());
+        std::process::exit(0);
+    }
 
     let ranked_formatted: Vec<String> = ranked
         .clone()

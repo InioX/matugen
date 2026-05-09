@@ -107,6 +107,7 @@ pub fn generate_schemes_and_theme(
                 parsed_fallback_color,
                 &config_file.config.prefer,
                 &args.source_color_index,
+                args.list_candidates.unwrap_or(false),
             ))
             .wrap_err("Failed to get source color.")?,
         ),
