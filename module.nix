@@ -37,7 +37,6 @@ matugen: {
   # don't use ~, use $HOME
   sanitizedTemplates =
     builtins.mapAttrs (_: v: {
-      mode = capitalize cfg.variant;
       input_path = builtins.toString v.input_path;
       output_path = let
           paths = map (p: builtins.replaceStrings ["$HOME"] ["~"] p) v.output_path;
