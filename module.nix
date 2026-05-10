@@ -79,12 +79,12 @@ matugen: {
     then "image ${cfg.wallpaper}"
     else "color ${sourceColorTypeMatcher cfg.source_color} \"${cfg.source_color}\"";
 
-  themePackage = builtins.trace command (pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {
-    templatePaths = builtins.attrValues (builtins.mapAttrs (_: v: v.input_path) cfg.templates);
-  } ''
+  themePackage = builtins.trace command (pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {} ''
     mkdir -p $out
     cd $out
     export HOME=$(pwd)
+
+    : ${lib.concatStringsSep " " (map (v: "${v.input_path}") (builtins.attrValues cfg.templates))} # Force Nix to track our templates
 
     ${cfg.package}/bin/matugen \
       ${command} \
