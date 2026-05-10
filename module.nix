@@ -35,11 +35,15 @@ matugen: {
     lib.concatStrings [(lib.toUpper firstChar) restOfString];
 
   # don't use ~, use $HOME
-  sanitizedTemplates = builtins.mapAttrs (_: v: {
-      mode = capitalize cfg.variant;
-      input_path = toString v.input_path;
-      output_path = map (p: builtins.replaceStrings ["$HOME"] ["~"] p) v.output_path;
-    }) cfg.templates;  
+  sanitizedTemplates =
+    builtins.mapAttrs (_: v: {
+      input_path = builtins.toString v.input_path;
+      output_path = let
+          paths = map (p: builtins.replaceStrings ["$HOME"] ["~"] p) v.output_path;
+        in if builtins.length paths == 1 then builtins.head paths else paths;
+    })
+    cfg.templates;
+
   matugenConfig = configFormat.generate "matugen-config.toml" {
     config =
       {
@@ -50,7 +54,7 @@ matugen: {
   };
 
   # get matugen package
-  pkg = matugen.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  pkg = matugen.packages.${pkgs.system}.default;
 
   # takes in a source color string and returns the subcommand needed to generate
   # a color scheme using that color type.
@@ -76,7 +80,7 @@ matugen: {
     else "color ${sourceColorTypeMatcher cfg.source_color} \"${cfg.source_color}\"";
 
   themePackage = builtins.trace command (pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {
-    buildInputs = builtins.attrValues (builtins.mapAttrs (_: v: v.input_path) cfg.templates);
+    templatePaths = builtins.attrValues (builtins.mapAttrs (_: v: v.input_path) cfg.templates);
   } ''
     mkdir -p $out
     cd $out
