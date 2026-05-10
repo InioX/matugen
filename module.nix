@@ -38,11 +38,8 @@ matugen: {
   sanitizedTemplates = builtins.mapAttrs (_: v: {
       mode = capitalize cfg.variant;
       input_path = toString v.input_path;
-      output_path = let
-        sanitize = p: builtins.replaceStrings ["$HOME"] ["~"] p;
-      in if builtins.isList v.output_path then map sanitize v.output_path else sanitize v.output_path;
-    }) cfg.templates;
-  
+      output_path = map (p: builtins.replaceStrings ["$HOME"] ["~"] p) v.output_path;
+    }) cfg.templates;  
   matugenConfig = configFormat.generate "matugen-config.toml" {
     config =
       {
@@ -53,7 +50,7 @@ matugen: {
   };
 
   # get matugen package
-  pkg = matugen.packages.${pkgs.system}.default;
+  pkg = matugen.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # takes in a source color string and returns the subcommand needed to generate
   # a color scheme using that color type.
@@ -78,7 +75,9 @@ matugen: {
     then "image ${cfg.wallpaper}"
     else "color ${sourceColorTypeMatcher cfg.source_color} \"${cfg.source_color}\"";
 
-  themePackage = builtins.trace command (pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {} ''
+  themePackage = builtins.trace command (pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {
+    buildInputs = builtins.attrValues (builtins.mapAttrs (_: v: v.input_path) cfg.templates);
+  } ''
     mkdir -p $out
     cd $out
     export HOME=$(pwd)
@@ -137,7 +136,7 @@ in {
               type = either str (listOf str);
               description = "Path where the generated file will be written to";
               example = "~/.config/sytle.css";
-              # apply = val: if lib.isList val then val else [val];
+              apply = val: if lib.isList val then val else [val];
             };
             pre_hook = lib.mkOption {
               type = str;
