@@ -80,7 +80,7 @@ matugen: {
     else "color ${sourceColorTypeMatcher cfg.source_color} \"${cfg.source_color}\"";
 
   themePackage = builtins.trace command (pkgs.runCommandLocal "matugen-themes-${cfg.variant}" {
-    templatePaths = builtins.toString builtins.attrValues (builtins.mapAttrs (_: v: v.input_path) cfg.templates);
+    templatePaths = builtins.toString (builtins.attrValues (builtins.mapAttrs (_: v: v.input_path) cfg.templates));
   } ''
     mkdir -p $out
     cd $out
