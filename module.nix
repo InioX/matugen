@@ -41,7 +41,7 @@ matugen: {
       output_path = let
         sanitize = p: builtins.replaceStrings ["$HOME"] ["~"] p;
       in if builtins.isList v.output_path then map sanitize v.output_path else sanitize v.output_path;
-    });
+    }) cfg.templates;
   
   matugenConfig = configFormat.generate "matugen-config.toml" {
     config =
