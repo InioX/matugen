@@ -37,10 +37,9 @@ matugen: {
   # don't use ~, use $HOME
   sanitizedTemplates =
     builtins.mapAttrs (_: v: {
+      mode = capitalize cfg.variant;
       input_path = v.input_path;
-      output_path = let
-          paths = map (p: builtins.replaceStrings ["$HOME"] ["~"] p) v.output_path;
-        in if builtins.length paths == 1 then builtins.head paths else paths;
+      output_path = map (p: builtins.replaceStrings ["$HOME"] ["~"] p) v.output_path;
     })
     cfg.templates;
 
@@ -83,8 +82,6 @@ matugen: {
     mkdir -p $out
     cd $out
     export HOME=$(pwd)
-
-    : ${lib.concatStringsSep " " (map (v: "${v.input_path}") (builtins.attrValues cfg.templates))} # Force Nix to track our templates
 
     ${cfg.package}/bin/matugen \
       ${command} \
