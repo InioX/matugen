@@ -35,15 +35,14 @@ matugen: {
     lib.concatStrings [(lib.toUpper firstChar) restOfString];
 
   # don't use ~, use $HOME
-  sanitizedTemplates =
-    builtins.mapAttrs (_: v: {
-      input_path = builtins.toString v.input_path;
+  sanitizedTemplates = builtins.mapAttrs (_: v: {
+      mode = capitalize cfg.variant;
+      input_path = toString v.input_path;
       output_path = let
-          paths = map (p: builtins.replaceStrings ["$HOME"] ["~"] p) v.output_path;
-        in if builtins.length paths == 1 then builtins.head paths else paths;
-    })
-    cfg.templates;
-
+        sanitize = p: builtins.replaceStrings ["$HOME"] ["~"] p;
+      in if builtins.isList v.output_path then map sanitize v.output_path else sanitize v.output_path;
+    });
+  
   matugenConfig = configFormat.generate "matugen-config.toml" {
     config =
       {
