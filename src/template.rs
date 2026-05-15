@@ -24,6 +24,7 @@ use std::{
     path::PathBuf,
 };
 
+use directories::BaseDirs;
 use resolve_path::PathResolveExt;
 
 use crate::{SchemesEnum, State};
@@ -379,6 +380,7 @@ pub fn format_hook(
         }
     };
 
+    let res = expand_tilde(&res);
     let mut command = shell(&res);
 
     // FIXME: figure out why this doesnt work even though its in the docs
@@ -409,6 +411,19 @@ pub fn format_hook(
     }
 
     Ok(())
+}
+
+fn expand_tilde(input: &str) -> String {
+    let Some(base_dirs) = BaseDirs::new() else {
+        return input.to_string();
+    };
+    let home = base_dirs.home_dir().to_string_lossy().to_string();
+    input
+        .replace("~/", &format!("{}{}", home, std::path::MAIN_SEPARATOR))
+        .replace(
+            &format!("~{}", std::path::MAIN_SEPARATOR),
+            &format!("{}{}", home, std::path::MAIN_SEPARATOR),
+        )
 }
 
 #[allow(clippy::manual_strip)]
