@@ -140,6 +140,26 @@ pub fn adjust_color_lightness_light(color: Argb, lightness_level_light: &Option<
     )
 }
 
+pub fn format_ranked(ranked: &[Argb]) -> Vec<String> {
+    ranked
+        .iter()
+        .map(|c| {
+            format!(
+                "{} {}",
+                c.to_hex_with_pound(),
+                "  ".style(generate_style(&rgb_from_argb(*c)))
+            )
+        })
+        .collect()
+}
+
+pub fn get_filter(resize_filter: &Option<OwnFilterType>) -> FilterType {
+    match resize_filter {
+        Some(v) => FilterType::from(v),
+        None => FilterType::from(&OwnFilterType::Triangle),
+    }
+}
+
 pub fn get_source_color(
     source: &Source,
     resize_filter: &Option<OwnFilterType>,
@@ -149,10 +169,7 @@ pub fn get_source_color(
 ) -> Result<Argb, Report> {
     use crate::color::color;
 
-    let filter: FilterType = match resize_filter {
-        Some(v) => FilterType::from(v),
-        None => FilterType::from(&OwnFilterType::Triangle),
-    };
+    let filter = get_filter(resize_filter);
 
     let source_color: Argb = match source {
         Source::Image { path } => {
@@ -188,33 +205,8 @@ pub fn get_source_color_from_image(
     prefer: &Option<SelectionPreference>,
     source_color_index: &Option<i64>,
 ) -> Result<Argb, Report> {
-    let mut original = ImageReader::open(path)?;
-    let image = original.resize(112, 112, filter_type);
-    let pixels: Vec<Argb> = image
-        .as_pixels()
-        .iter()
-        .copied()
-        .filter(|argb| argb.alpha == 255)
-        .collect();
-    let mut result = QuantizerCelebi::quantize(&pixels, 128);
-
-    result
-        .color_to_count
-        .retain(|&argb, _| Cam16::from(argb).chroma >= 5.0);
-
-    let ranked = Score::score(&result.color_to_count, None, fallback_color, None);
-
-    let ranked_formatted: Vec<String> = ranked
-        .clone()
-        .iter()
-        .map(|c| {
-            format!(
-                "{} {}",
-                c.to_hex_with_pound(),
-                "  ".style(generate_style(&rgb_from_argb(*c)))
-            )
-        })
-        .collect();
+    let ranked = get_scored_colors_from_image(path, filter_type, fallback_color)?;
+    let ranked_formatted = format_ranked(&ranked);
 
     debug!("Ranked colors:");
     for (i, color) in ranked_formatted.iter().enumerate() {
@@ -251,6 +243,24 @@ pub fn get_source_color_from_image(
     debug!["Chose {selection}"];
 
     Ok(ranked[selection])
+}
+
+pub fn get_scored_colors_from_image(path: &str, filter_type: FilterType, fallback_color: Option<Argb>) -> Result<Vec<Argb>, Report> {
+    let mut original = ImageReader::open(path)?;
+    let image = original.resize(112, 112, filter_type);
+    let pixels: Vec<Argb> = image
+        .as_pixels()
+        .iter()
+        .copied()
+        .filter(|argb| argb.alpha == 255)
+        .collect();
+    let mut result = QuantizerCelebi::quantize(&pixels, 128);
+
+    result
+        .color_to_count
+        .retain(|&argb, _| Cam16::from(argb).chroma >= 5.0);
+
+    Ok(Score::score(&result.color_to_count, None, fallback_color, None))
 }
 
 pub fn select_source_color_from_ranks(
