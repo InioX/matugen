@@ -6,6 +6,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.2.0](https://github.com/InioX/matugen/compare/v4.1.0...v4.2.0) - 2026-05-15
+
+### Added
+
+- add cache for per template scheme types ([#292](https://github.com/InioX/matugen/pull/292))
+
+### Fixed
+
+- change ordering for base16 accents from image (#286, #283)
+
+### Other
+
+- Merge pull request #290 from haikalllp/fix/tildeUsageOnHooks
+- remove indices from show_source_colors output
+- make listing source colors an arg for image instead of a different command
+- added new image-colors command to list possible source colors from image
+- use `swap_remove` to remove warning
+- cargo fmt
+- cli_overides cont.
+- SchemeType-specific cache ([#295](https://github.com/InioX/matugen/pull/295))
+- move cli overrides to a dedicated function
+
+### Removed
+
+- removed unnecessary import
+
 ## [4.1.0](https://github.com/InioX/matugen/compare/v4.0.0...v4.1.0) - 2026-03-22
 
 ### Added
