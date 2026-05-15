@@ -15,10 +15,10 @@ mod wallpaper;
 
 use crate::{
     cache::ImageCache,
-    color::{base16::Backend, color::Source},
+    color::{base16::Backend, color::{Source, get_filter, get_scored_colors_from_image}},
     helpers::{
         apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, json_from_file,
-        merge_json, merge_json_source,
+        merge_json, merge_json_source, parse_fallback_color,
     },
     scheme::SchemeTypes,
     template::get_absolute_path,
@@ -82,6 +82,31 @@ impl State {
         let default_scheme = args
             .mode
             .ok_or_else(|| Report::msg("Something went wrong while parsing the mode"))?;
+
+        if let Source::Image { path } = &args.source {
+            if args.show_source_colors.is_some_and(|x| x) {
+                let filter = get_filter(&args.resize_filter);
+                let fallback_color = parse_fallback_color(&config_file)?;
+                let ranked = get_scored_colors_from_image(&path, filter, fallback_color)?;
+
+                for color in ranked {
+                    println!("{}", color.to_hex_with_pound());
+                }
+
+                return Ok(Self {
+                    args,
+                    config_file,
+                    config_path,
+                    source_color: None,
+                    theme: None,
+                    schemes: None,
+                    default_scheme,
+                    image_hash: image_cache,
+                    loaded_cache,
+                    base16: None,
+                });
+            }
+        }
 
         let (mut schemes, source_color, theme, mut base16) = if caching_enabled {
             match image_cache.load() {
@@ -691,6 +716,7 @@ fn main() -> Result<(), Report> {
         lightness_dark: Some(0.0),
         lightness_light: Some(0.0),
         source_color_index: None,
+        show_source_colors: None,
         opacity: Some(1.0),
     };
 
@@ -699,6 +725,11 @@ fn main() -> Result<(), Report> {
     setup_logging(&args)?;
 
     let state = State::new(args.clone())?;
+
+    if args.show_source_colors.is_some_and(|x| x) {
+        return Ok(());
+    }
+
     state.run_in_term()?;
 
     Ok(())
