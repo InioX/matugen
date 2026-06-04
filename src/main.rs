@@ -73,7 +73,13 @@ impl State {
 
         config_file.parse_cli_overrides(&args);
 
-        let image_cache = ImageCache::new(&args.source, args.r#type);
+        let image_cache = ImageCache::new(
+            &args.source,
+            args.r#type,
+            args.contrast.or(config_file.config.contrast),
+            args.lightness_dark,
+            args.lightness_light,
+        );
 
         let mut loaded_cache = false;
 
