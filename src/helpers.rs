@@ -90,6 +90,9 @@ pub fn generate_schemes_and_theme(
     Report,
 > {
     let parsed_fallback_color = parse_fallback_color(config_file)?;
+    let source_color_index = args
+        .source_color_index
+        .or(config_file.config.source_color_index);
     let source_color = match &args.source {
         Source::Json { path: _ } => None,
         _ => Some(
@@ -98,7 +101,7 @@ pub fn generate_schemes_and_theme(
                 &args.resize_filter,
                 parsed_fallback_color,
                 &config_file.config.prefer,
-                &args.source_color_index,
+                &source_color_index,
             ))
             .wrap_err("Failed to get source color.")?,
         ),

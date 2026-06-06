@@ -37,10 +37,15 @@ block_postfix = "*>"
 import_json_files = ["./custom3.json"]
 
 # Defaults to the contrast from CLI if unspecified.
-# Value from -1 to 1. 
+# Value from -1 to 1.
 # -1 represents minimum contrast, 0 represents standard (i.e. the design as spec'd),
 # and 1 represents maximum contrast.
 contrast = 1.0
+
+# Will set the source color index just like the `--source-color-index` CLI flag (0 - 4).
+# 0 = most dominant, 1 = 2nd most dominant, etc.
+# IF the CLI flag is specified, it will override this value.
+source_color_index = 1
 
 [config.wallpaper]
 # Whether to set the wallpaper or not
