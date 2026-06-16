@@ -45,6 +45,8 @@ pub struct Template {
     pub block_postfix: Option<String>,
     pub index: Option<i32>,
     pub r#type: Option<SchemeTypes>,
+    #[serde(default)]
+    pub enabled: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -91,6 +93,11 @@ impl TemplateFile<'_> {
         let mut paths_hashmap = HashMap::new();
 
         for (_i, (name, template)) in self.state.config_file.templates.iter().enumerate() {
+            if !template.enabled.unwrap_or(true) {
+                debug!("Skipping disabled template: {}", name);
+                continue;
+            }
+
             let input_path = if let Some(input_path_mode) = &template.input_path_modes {
                 match self.state.default_scheme {
                     SchemesEnum::Light => &input_path_mode.light,
@@ -151,6 +158,10 @@ impl TemplateFile<'_> {
         templates.sort_by_key(|(_, Template { index, .. })| index.unwrap_or(0));
 
         for (name, template) in templates {
+            if !template.enabled.unwrap_or(true) {
+                continue;
+            }
+
             if let Some(scheme_type) = template.r#type {
                 if let Some(entry) = self.scheme_cache.get(&scheme_type) {
                     change_scheme_type(
