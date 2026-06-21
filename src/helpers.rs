@@ -85,15 +85,10 @@ pub fn generate_schemes_and_theme(
     config_file: &ConfigFile,
     scheme_type: SchemeTypes,
 ) -> Result<(Option<Schemes>, Option<Rgb>, Option<Theme>, Option<Schemes>), Report> {
-    let parsed_fallback_color: Option<MaterialRgb> = match &config_file.config.fallback_color {
-        Some(s) => {
-            let c = parse_css_color(&s)
-                .wrap_err("Failed to parse the fallback_color string as a css color")?;
-            Some(argb_from_rgb(&c))
-        }
-        None => None,
-    };
-
+    let parsed_fallback_color = parse_fallback_color(config_file)?;
+    let source_color_index = args
+        .source_color_index
+        .or(config_file.config.source_color_index);
     let source_color = match &args.source {
         Source::Json { path: _ } => None,
         _ => Some(
@@ -102,7 +97,7 @@ pub fn generate_schemes_and_theme(
                 &args.resize_filter,
                 parsed_fallback_color,
                 &config_file.config.prefer,
-                &args.source_color_index,
+                &source_color_index,
             ))
             .wrap_err("Failed to get source color.")?,
         ),
@@ -280,5 +275,16 @@ pub fn merge_json(a: &mut Value, b: Value) {
         (a_slot, b_val) => {
             *a_slot = b_val;
         }
+    }
+}
+
+pub fn parse_fallback_color(config_file: &ConfigFile) -> Result<Option<MaterialRgb>, Report> {
+    match &config_file.config.fallback_color {
+        Some(s) => {
+            let c = parse_css_color(&s)
+                .wrap_err("Failed to parse the fallback_color string as a css color")?;
+            Ok(Some(argb_from_rgb(&c)))
+        }
+        None => Ok(None),
     }
 }

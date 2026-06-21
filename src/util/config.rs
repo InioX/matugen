@@ -28,6 +28,7 @@ pub struct Config {
     pub fallback_color: Option<String>,
     pub prefer: Option<SelectionPreference>,
     pub contrast: Option<f64>,
+    pub source_color_index: Option<i64>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

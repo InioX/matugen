@@ -23,4 +23,4 @@ RUST_BACKTRACE=1 cargo run --release --features="dump-json, jxl-image" -- \
   # --show-colors \
   # --json hex \
   # --old-json-output \
-  # --show-colors \ 
+  # --show-colors \

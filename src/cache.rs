@@ -132,12 +132,21 @@ pub fn convert_argb_scheme(scheme: &IndexMap<String, Rgb>) -> IndexMap<String, A
 pub struct ImageCache {
     pub hash: Option<String>,
     pub stype: SchemeTypes,
+    contrast: Option<f64>,
+    lightness_dark: Option<f64>,
+    lightness_light: Option<f64>,
     source: Option<PathBuf>,
     cache_folder: PathBuf,
 }
 
 impl ImageCache {
-    pub fn new(source: &Source, stype: SchemeTypes) -> Self {
+    pub fn new(
+        source: &Source,
+        stype: SchemeTypes,
+        contrast: Option<f64>,
+        lightness_dark: Option<f64>,
+        lightness_light: Option<f64>,
+    ) -> Self {
         let pathbuf = match source {
             Source::Image { path } => Some(PathBuf::from(path)),
             _ => None,
@@ -150,6 +159,9 @@ impl ImageCache {
         Self {
             hash: get_cache(source),
             stype,
+            contrast,
+            lightness_dark,
+            lightness_light,
             source: pathbuf,
             cache_folder,
         }
@@ -208,7 +220,7 @@ impl ImageCache {
 
     fn get_name(&self) -> PathBuf {
         let name = format!(
-            "{}.{}.{:?}.json",
+            "{}.{}.{:?}.{:?}.{:?}.{:?}.json",
             self.source
                 .as_ref()
                 .unwrap()
@@ -216,7 +228,10 @@ impl ImageCache {
                 .unwrap()
                 .to_string_lossy(),
             &self.hash.as_ref().unwrap(),
-            &self.stype
+            &self.stype,
+            &self.contrast,
+            &self.lightness_dark,
+            &self.lightness_light
         );
 
         PathBuf::from(name)
@@ -246,7 +261,7 @@ fn get_cache(source: &Source) -> Option<String> {
 }
 
 fn hash_image_from_path(path: &str) -> Result<String, Report> {
-    let img = ImageReader::open(path)?.decode()?;
+    let img = ImageReader::open(path)?.with_guessed_format()?.decode()?;
     let bytes = img.into_bytes();
 
     let mut hasher = Sha256::new();

@@ -3,10 +3,10 @@
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate paris_log;
-use std::path::PathBuf;
-
+use crate::color::color::{get_filter, get_scored_colors_from_image};
 use material_colors::theme::ThemeBuilder;
 use serde_json::Value;
+use std::path::PathBuf;
 
 mod helpers;
 pub mod template;
@@ -18,7 +18,7 @@ use crate::{
     color::{base16::Backend, color::Source, format::argb_from_rgb, md3::scheme::SchemeTypes},
     helpers::{
         apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, json_from_file,
-        merge_json, merge_json_source,
+        merge_json, merge_json_source, parse_fallback_color,
     },
     template::get_absolute_path,
     util::arguments::FilterType,
@@ -32,7 +32,7 @@ use crate::{
 };
 
 use clap::Parser;
-use color_eyre::{eyre::Context, Report, Section};
+use color_eyre::{Report, Section, eyre::Context};
 
 pub mod cache;
 pub mod color;
@@ -68,7 +68,13 @@ impl State {
 
         config_file.parse_cli_overrides(&args);
 
-        let image_cache = ImageCache::new(&args.source, args.r#type);
+        let image_cache = ImageCache::new(
+            &args.source,
+            args.r#type,
+            args.contrast.or(config_file.config.contrast),
+            args.lightness_dark,
+            args.lightness_light,
+        );
 
         let mut loaded_cache = false;
 
@@ -77,6 +83,31 @@ impl State {
         let default_scheme = args
             .mode
             .ok_or_else(|| Report::msg("Something went wrong while parsing the mode"))?;
+
+        if let Source::Image { path } = &args.source {
+            if args.show_source_colors.is_some_and(|x| x) {
+                let filter = get_filter(&args.resize_filter);
+                let fallback_color = parse_fallback_color(&config_file)?;
+                let ranked = get_scored_colors_from_image(&path, filter, fallback_color)?;
+
+                for color in ranked {
+                    println!("{}", color.to_hex_with_pound());
+                }
+
+                return Ok(Self {
+                    args,
+                    config_file,
+                    config_path,
+                    source_color: None,
+                    theme: None,
+                    schemes: None,
+                    default_scheme,
+                    image_hash: image_cache,
+                    loaded_cache,
+                    base16: None,
+                });
+            }
+        }
 
         let (mut schemes, source_color, theme, mut base16) = if caching_enabled {
             match image_cache.load() {
@@ -686,6 +717,7 @@ fn main() -> Result<(), Report> {
         lightness_dark: Some(0.0),
         lightness_light: Some(0.0),
         source_color_index: None,
+        show_source_colors: None,
         opacity: Some(1.0),
     };
 
@@ -694,6 +726,11 @@ fn main() -> Result<(), Report> {
     setup_logging(&args)?;
 
     let state = State::new(args.clone())?;
+
+    if args.show_source_colors.is_some_and(|x| x) {
+        return Ok(());
+    }
+
     state.run_in_term()?;
 
     Ok(())

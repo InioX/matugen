@@ -133,6 +133,10 @@ pub struct Cli {
     #[arg(long, global = true, value_parser = clap::builder::RangedI64ValueParser::<i64>::new().range(0..4))]
     pub source_color_index: Option<i64>,
 
+    /// Will print the possible source colors for an image instead of setting a theme
+    #[arg(long, global = true, action=ArgAction::SetTrue)]
+    pub show_source_colors: Option<bool>,
+
     // Value from 0.0 to 1.0 (inclusive)
     // This will set the opacity for all colors inside templates.
     #[arg(long, global = true , value_parser = |s: &str| validate_float_range(s, 0.0..=1.0))]
