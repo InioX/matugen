@@ -245,7 +245,11 @@ pub fn get_source_color_from_image(
     Ok(ranked[selection])
 }
 
-pub fn get_scored_colors_from_image(path: &str, filter_type: FilterType, fallback_color: Option<Argb>) -> Result<Vec<Argb>, Report> {
+pub fn get_scored_colors_from_image(
+    path: &str,
+    filter_type: FilterType,
+    fallback_color: Option<Argb>,
+) -> Result<Vec<Argb>, Report> {
     let mut original = ImageReader::open(path)?;
     let image = original.resize(112, 112, filter_type);
     let pixels: Vec<Argb> = image
@@ -260,7 +264,12 @@ pub fn get_scored_colors_from_image(path: &str, filter_type: FilterType, fallbac
         .color_to_count
         .retain(|&argb, _| Cam16::from(argb).chroma >= 5.0);
 
-    Ok(Score::score(&result.color_to_count, None, fallback_color, None))
+    Ok(Score::score(
+        &result.color_to_count,
+        None,
+        fallback_color,
+        None,
+    ))
 }
 
 pub fn select_source_color_from_ranks(
