@@ -16,7 +16,10 @@ mod wallpaper;
 
 use crate::{
     cache::ImageCache,
-    color::{base16::Backend, color::{Source, get_filter, get_scored_colors_from_image}},
+    color::{
+        base16::Backend,
+        color::{get_filter, get_scored_colors_from_image, Source},
+    },
     helpers::{
         apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, json_from_file,
         merge_json, merge_json_source, parse_fallback_color,
