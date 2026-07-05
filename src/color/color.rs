@@ -2,7 +2,7 @@ use dialoguer::Select;
 use material_colors::{
     blend::harmonize,
     color::{Argb, Lab},
-    dynamic_color::{DynamicScheme, MaterialDynamicColors},
+    dynamic_color::{DynamicScheme, MaterialDynamicColors, Variant as MaterialColorsVariant},
     hct::Cam16,
     image::{FilterType, ImageReader},
     quantize::{Quantizer, QuantizerCelebi},
@@ -359,11 +359,10 @@ pub fn generate_dynamic_scheme(
     is_dark: bool,
     contrast_level: Option<f64>,
 ) -> DynamicScheme {
-    if let Some(var) = scheme_type.as_material_colors_variant() {
-        DynamicScheme::by_variant(source_color, &var, is_dark, contrast_level)
-    } else {
-        unreachable!()
-    }
+    let var = scheme_type
+        .as_material_colors_variant()
+        .unwrap_or(MaterialColorsVariant::TonalSpot);
+    DynamicScheme::by_variant(source_color, &var, is_dark, contrast_level)
 }
 
 pub fn make_custom_color(

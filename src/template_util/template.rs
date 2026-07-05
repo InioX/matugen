@@ -79,6 +79,7 @@ pub fn generate_single_color(
     let default_scheme_color = match default_scheme {
         SchemesEnum::Light => color_light,
         SchemesEnum::Dark => color_dark,
+        SchemesEnum::Smart => unreachable!("default_scheme is resolved before storage"),
     };
 
     if field == "source_color" {

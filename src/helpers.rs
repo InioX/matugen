@@ -119,7 +119,7 @@ pub fn generate_schemes_and_theme(
                 scheme_dark,
                 scheme_light,
                 &config_file.config.custom_colors,
-                args.r#type,
+                scheme_type,
                 &contrast,
                 &args.lightness_dark,
                 &args.lightness_light,
