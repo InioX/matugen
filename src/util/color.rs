@@ -127,6 +127,7 @@ pub fn format_schemes(
         let default_hex = match default_scheme {
             SchemesEnum::Dark => dark_hex.clone(),
             SchemesEnum::Light => light_hex.clone(),
+            SchemesEnum::Smart => unreachable!("default_scheme is resolved before storage"),
         };
 
         let mut schemes = Map::new();

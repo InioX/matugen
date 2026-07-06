@@ -2,7 +2,7 @@ use dialoguer::Select;
 use material_colors::{
     blend::harmonize,
     color::{Argb, Lab},
-    dynamic_color::{DynamicScheme, MaterialDynamicColors},
+    dynamic_color::{DynamicScheme, MaterialDynamicColors, Variant as MaterialColorsVariant},
     hct::Cam16,
     image::{FilterType, ImageReader},
     quantize::{Quantizer, QuantizerCelebi},
@@ -245,7 +245,11 @@ pub fn get_source_color_from_image(
     Ok(ranked[selection])
 }
 
-pub fn get_scored_colors_from_image(path: &str, filter_type: FilterType, fallback_color: Option<Argb>) -> Result<Vec<Argb>, Report> {
+pub fn get_scored_colors_from_image(
+    path: &str,
+    filter_type: FilterType,
+    fallback_color: Option<Argb>,
+) -> Result<Vec<Argb>, Report> {
     let mut original = ImageReader::open(path)?;
     let image = original.resize(112, 112, filter_type);
     let pixels: Vec<Argb> = image
@@ -260,7 +264,12 @@ pub fn get_scored_colors_from_image(path: &str, filter_type: FilterType, fallbac
         .color_to_count
         .retain(|&argb, _| Cam16::from(argb).chroma >= 5.0);
 
-    Ok(Score::score(&result.color_to_count, None, fallback_color, None))
+    Ok(Score::score(
+        &result.color_to_count,
+        None,
+        fallback_color,
+        None,
+    ))
 }
 
 pub fn select_source_color_from_ranks(
@@ -359,11 +368,10 @@ pub fn generate_dynamic_scheme(
     is_dark: bool,
     contrast_level: Option<f64>,
 ) -> DynamicScheme {
-    if let Some(var) = scheme_type.as_material_colors_variant() {
-        DynamicScheme::by_variant(source_color, &var, is_dark, contrast_level)
-    } else {
-        unreachable!()
-    }
+    let var = scheme_type
+        .as_material_colors_variant()
+        .unwrap_or(MaterialColorsVariant::TonalSpot);
+    DynamicScheme::by_variant(source_color, &var, is_dark, contrast_level)
 }
 
 pub fn make_custom_color(
