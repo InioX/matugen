@@ -25,6 +25,7 @@ pub enum SchemeTypes {
     SchemeRainbow,
     SchemeTonalSpot,
     SchemeVibrant,
+    SchemeSmart,
 }
 
 impl SchemeTypes {
@@ -40,6 +41,7 @@ impl SchemeTypes {
             SchemeTypes::SchemeRainbow => Some(MaterialColorsVariant::Rainbow),
             SchemeTypes::SchemeTonalSpot => Some(MaterialColorsVariant::TonalSpot),
             SchemeTypes::SchemeVibrant => Some(MaterialColorsVariant::Vibrant),
+            SchemeTypes::SchemeSmart => None,
             _ => None,
         }
     }
@@ -80,6 +82,7 @@ impl Schemes {
 pub enum SchemesEnum {
     Light,
     Dark,
+    Smart,
 }
 
 impl fmt::Display for SchemesEnum {
@@ -87,6 +90,7 @@ impl fmt::Display for SchemesEnum {
         let str = match self {
             SchemesEnum::Light => "light",
             SchemesEnum::Dark => "dark",
+            SchemesEnum::Smart => "smart",
         };
 
         write!(f, "{str}")
