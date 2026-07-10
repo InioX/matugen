@@ -88,7 +88,7 @@ pub(crate) fn lighten(
             Ok(FilterReturnType::Rgb(color))
         }
         FilterReturnType::Hsl(mut color) => {
-            color.lighten(amt);
+            color.grayscale_simple();
             Ok(FilterReturnType::Hsl(color))
         }
         FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
