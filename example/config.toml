@@ -74,7 +74,8 @@ output_path = "./a/colors-generated.whatever-extension"
 index = 1
 
 # Defaults to the type from CLI if unspecified.
-# One of `SchemeContent`, `SchemeExpressive`, `SchemeFidelity`, `SchemeFruitSalad`, `SchemeMonochrome`, `SchemeNeutral`, `SchemeRainbow`, `SchemeTonalSpot`, `SchemeVibrant`
+# One of `SchemeContent`, `SchemeExpressive`, `SchemeFidelity`, `SchemeFruitSalad`, `SchemeMonochrome`,
+# `SchemeNeutral`, `SchemeRainbow`, `SchemeTonalSpot`, `SchemeVibrant`, `SchemeSmart`
 type = "SchemeExpressive"
 
 # For testing of the `--continue-on-error` flag
