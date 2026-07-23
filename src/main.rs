@@ -42,7 +42,6 @@ use color_eyre::{eyre::Context, Report, Section};
 
 pub mod cache;
 pub mod color;
-pub mod exec;
 pub mod filters;
 pub mod parser;
 pub mod scheme;

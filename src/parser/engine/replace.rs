@@ -560,8 +560,15 @@ impl Engine {
                 }
             }
             _ => {
-                dbg!(&expr);
-                panic!("");
+                let error = Error::ParseError {
+                    kind: ParseErrorKind::Loop(
+                        crate::parser::LoopError::LoopOverNonIterableValue,
+                    ),
+                    span: expr.span,
+                    name: name.to_string(),
+                };
+                self.errors.add(error);
+                Value::Null
             }
         }
     }
