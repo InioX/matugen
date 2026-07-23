@@ -61,7 +61,7 @@ let
   };
 
   # get matugen package
-  pkg = matugen.packages.${pkgs.system}.default;
+  pkg = matugen.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # takes in a source color string and returns the subcommand needed to generate
   # a color scheme using that color type.
