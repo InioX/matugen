@@ -115,31 +115,6 @@ impl Context {
         self.data.swap_remove(key);
     }
 
-    pub fn remove_path<'a, I>(&mut self, path: I) -> bool
-    where
-        I: IntoIterator<Item = &'a str>,
-    {
-        let mut iter = path.into_iter();
-        let Some(first) = iter.next() else {
-            return false;
-        };
-
-        let mut current = &mut self.data;
-        let mut last_key = first;
-
-        for key in iter {
-            match current.get_mut(last_key) {
-                Some(Value::Map(map)) => {
-                    current = map;
-                    last_key = key;
-                }
-                _ => return false,
-            }
-        }
-
-        current.swap_remove(last_key).is_some()
-    }
-
     pub fn data(&self) -> &IndexMap<String, Value> {
         &self.data
     }

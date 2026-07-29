@@ -123,7 +123,7 @@ pub fn generate_schemes_and_theme(
                 &contrast,
                 &args.lightness_dark,
                 &args.lightness_light,
-            );
+            )?;
 
             schemes.dark.insert("source_color".to_owned(), color);
             schemes.light.insert("source_color".to_owned(), color);

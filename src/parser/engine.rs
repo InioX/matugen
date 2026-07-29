@@ -185,10 +185,6 @@ impl Engine {
     pub fn add_filter(&mut self, name: &'static str, function: FilterFn) -> Option<FilterFn> {
         self.filters.insert(name, function)
     }
-    pub fn remove_filter(&mut self, name: &'static str) -> Option<FilterFn> {
-        self.filters.remove(name)
-    }
-
     pub fn add_template(&mut self, name: String, source: String) {
         self.sources.push(source);
         let source_id = self.sources.len() - 1;
