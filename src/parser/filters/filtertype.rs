@@ -120,7 +120,7 @@ impl From<Value> for FilterReturnType {
             Value::Bool(boolean) => Self::Bool(boolean),
             Value::Map(_hash_map) => panic!("Cant convert map to FilterReturnType"),
             Value::Array(_array) => panic!("Cant convert Array to String"),
-            Value::Null => todo!(),
+            Value::Null => FilterReturnType::String(String::new()),
             Value::LazyColor { color, scheme: _ } => FilterReturnType::from(Value::Color(color)),
         }
     }
@@ -134,10 +134,10 @@ impl From<&Value> for FilterReturnType {
             Value::Float(v) => v.into(),
             Value::Color(v) => v.into(),
             Value::HslColor(v) => v.into(),
-            Value::Bool(v) => v.into(),
+            Value::Bool(v) => Self::Bool(*v),
             Value::Map(_hash_map) => panic!("Cant convert map to FilterReturnType"),
             Value::Array(_array) => panic!("Cant convert Array to String"),
-            Value::Null => todo!(),
+            Value::Null => FilterReturnType::String(String::new()),
             Value::LazyColor { color, scheme: _ } => color.into(),
         }
     }

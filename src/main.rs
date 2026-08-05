@@ -376,20 +376,6 @@ impl State {
                 /// </md-card>
                 "set_green" => crate::filters::set_green,
 
-                /// <p>Sets the blue channel of a color</p>
-                ///
-                /// <p><strong>Arguments:</strong></p>
-                ///
-                /// <ul>
-                ///     <li><code>Int</code> - the blue channel value (0-255)</li>
-                /// </ul>
-
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#000000" | to_color | set_blue: 255 }}</code></pre>
-                /// </md-card>
-                "set_blue" => crate::filters::set_blue,
-
                 /// <p>Sets the alpha channel of a color</p>
                 ///
                 /// <p><strong>Arguments:</strong></p>
