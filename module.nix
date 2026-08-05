@@ -151,7 +151,7 @@ in
               type = either str (listOf str);
               description = "Path where the generated file will be written to";
               example = "~/.config/sytle.css";
-              apply = val: if lib.isList val then val else [ val ];
+              apply = lib.id;
             };
             pre_hook = lib.mkOption {
               type = str;
