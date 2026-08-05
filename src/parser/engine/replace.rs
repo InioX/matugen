@@ -561,9 +561,7 @@ impl Engine {
             }
             _ => {
                 let error = Error::ParseError {
-                    kind: ParseErrorKind::Loop(
-                        crate::parser::LoopError::LoopOverNonIterableValue,
-                    ),
+                    kind: ParseErrorKind::Loop(crate::parser::LoopError::LoopOverNonIterableValue),
                     span: expr.span,
                     name: name.to_string(),
                 };

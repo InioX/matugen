@@ -88,7 +88,24 @@
 
 - **Palette Customization**
   - Adjust contrast, lightness and choose the scheme type (light, dark, or custom variants)
-  - Fine-tune the generated palette to match your preference or application theme
+   - Fine-tune the generated palette to match your preference or application theme
+
+## Quick Start
+
+Generate a color palette from an image:
+```shell
+matugen image path/to/wallpaper.jpg
+```
+
+Generate from a hex color:
+```shell
+matugen color hex "#ff0000"
+```
+
+View all options:
+```shell
+matugen --help
+```
 
 ### Other projects
 - [Mitsugen](https://github.com/DimitrisMilonopoulos/mitsugen) - For gnome-shell, based on the [old](https://github.com/InioX/matugen/tree/python) version of Matugen
@@ -171,7 +188,7 @@ sudo pacman -S matugen
      NixOS
      <a href="https://repology.org/project/matugen/versions">
   <img src="https://repology.org/badge/version-for-repo/nix_unstable/matugen.svg?header=" alt="nixpkgs" align="right">
-     </a><a href="j"><img alt="NixOS Version" src="https://img.shields.io/badge/git-brightgreen" align="right"></a>
+     </a>
 </h4>
 
 <details><summary>Click to expand</summary>
@@ -181,7 +198,7 @@ Add matugen to your flake inputs:
 ```nix
 inputs = {
   matugen = {
-    url = "github:/InioX/Matugen";
+     url = "github:InioX/Matugen";
     # If you need a specific version:
     ref = "refs/tags/matugen-v0.10.0";
   };

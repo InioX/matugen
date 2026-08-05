@@ -16,10 +16,7 @@ mod wallpaper;
 
 use crate::{
     cache::ImageCache,
-    color::{
-        base16::Backend,
-        color::{get_filter, get_scored_colors_from_image, Source},
-    },
+    color::color::{get_filter, get_scored_colors_from_image, Source},
     helpers::{
         apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, json_from_file,
         merge_json, merge_json_source, parse_fallback_color,
@@ -45,8 +42,6 @@ pub mod color;
 pub mod filters;
 pub mod parser;
 pub mod scheme;
-pub mod template_util;
-
 use crate::{parser::Engine, scheme::Schemes};
 
 use material_colors::{color::Argb, theme::Theme};
@@ -184,7 +179,9 @@ impl State {
             match image_cache.load() {
                 Ok((schemes, base16)) => {
                     // Source color will be the same in both light and dark mode
-                    let source_color = *schemes.dark.clone().get("source_color").unwrap();
+                    let source_color = *schemes.dark.get("source_color").ok_or_else(|| {
+                        Report::msg("Missing 'source_color' key in cached scheme")
+                    })?;
 
                     let theme = ThemeBuilder::with_source(source_color).build();
 
@@ -244,7 +241,7 @@ impl State {
         self.add_engine_filters(&mut engine);
 
         let mut json = match &self.args.source {
-            Source::Json { path } => json_from_file(&PathBuf::from(path)).unwrap(),
+            Source::Json { path } => json_from_file(&PathBuf::from(path))?,
             _ => merge_json_source(
                 json,
                 &self.schemes,
@@ -256,7 +253,7 @@ impl State {
 
         if let Some(paths) = &self.args.import_json {
             for path in paths {
-                let json2 = json_from_file(&PathBuf::from(path)).unwrap();
+                let json2 = json_from_file(&PathBuf::from(path))?;
                 merge_json(&mut json, json2);
             }
         }
@@ -264,7 +261,7 @@ impl State {
         if let Some(strings) = &self.args.import_json_string {
             for string in strings {
                 let json2 =
-                    serde_json::from_str(&string).expect("Failed to parse JSON from string.");
+                    serde_json::from_str(string).wrap_err("Failed to parse JSON from string.")?;
                 merge_json(&mut json, json2);
             }
         }
@@ -274,9 +271,9 @@ impl State {
             &self.config_path,
         ) {
             for path in paths {
-                let absolute = get_absolute_path(config_path, path).unwrap();
+                let absolute = get_absolute_path(config_path, path)?;
 
-                let json2 = json_from_file(&absolute).unwrap();
+                let json2 = json_from_file(&absolute)?;
 
                 merge_json(&mut json, json2);
             }
@@ -287,7 +284,7 @@ impl State {
             && !self.loaded_cache
         {
             self.save_cache(&mut json.clone())
-                .expect("Failed saving cache");
+                .wrap_err("Failed saving cache")?;
         }
 
         engine.add_context(json.clone());
@@ -726,7 +723,6 @@ impl State {
             return Ok(());
         }
 
-        // self.run_other_generator();
         template.generate()?;
 
         if let Some(_wallpaper_cfg) = &self.config_file.config.wallpaper {
@@ -757,43 +753,8 @@ fn normalize_path_to_forward_slash(path: &str) -> String {
     result.replace('\\', "/")
 }
 
-#[allow(unreachable_code)]
 fn main() -> Result<(), Report> {
     color_eyre::install()?;
-
-    #[allow(unused_variables)]
-    let default_args = Cli {
-        source: crate::Source::Color(crate::color::color::ColorFormat::Hex {
-            string: String::from("#ffffff"),
-        }),
-        r#type: SchemeTypes::SchemeContent,
-        config: None,
-        prefix: None,
-        contrast: Some(0.0),
-        verbose: Some(true),
-        quiet: None,
-        debug: Some(true),
-        mode: Some(SchemesEnum::Dark),
-        dry_run: None,
-        show_colors: None,
-        json: None,
-        import_json: None,
-        import_json_string: None,
-        include_image_in_json: Some(true),
-        resize_filter: Some(FilterType::Triangle),
-        continue_on_error: Some(false),
-        fallback_color: None,
-        prefer: None,
-        old_json_output: Some(false),
-        base16_backend: Some(Backend::Wal),
-        #[cfg(feature = "filter-docs")]
-        filter_docs_html: Some(false),
-        lightness_dark: Some(0.0),
-        lightness_light: Some(0.0),
-        source_color_index: None,
-        show_source_colors: None,
-        opacity: Some(1.0),
-    };
 
     let args = Cli::parse();
 

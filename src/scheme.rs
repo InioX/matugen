@@ -1,6 +1,7 @@
 use core::fmt;
 use std::collections::HashMap;
 
+use color_eyre::Report;
 use indexmap::IndexMap;
 use material_colors::{dynamic_color::Variant as MaterialColorsVariant, scheme::Scheme};
 use serde::{Deserialize, Serialize};
@@ -54,9 +55,6 @@ pub struct Schemes {
 }
 
 impl Schemes {
-    pub fn get_all_md3_schemes(&self) -> [&str; 2] {
-        ["light", "dark"]
-    }
     pub fn get_all_names(&self) -> Vec<&String> {
         let mut vec = vec![];
         for (name, _key) in &self.dark {
@@ -106,7 +104,7 @@ pub fn get_custom_color_schemes(
     contrast: &Option<f64>,
     lightness_dark: &Option<f64>,
     lightness_light: &Option<f64>,
-) -> Schemes {
+) -> Result<Schemes, Report> {
     macro_rules! from_color {
         ($color: expr, $variant: ident) => {
             [
@@ -130,23 +128,28 @@ pub fn get_custom_color_schemes(
     }
 
     let empty = HashMap::new();
-    let custom_colors = custom_colors
+    let custom_colors: Vec<_> = custom_colors
         .as_ref()
         .unwrap_or(&empty)
         .iter()
-        .map(|(name, color)| {
-            make_custom_color(
-                color.to_custom_color(name.to_string()).unwrap_or_else(|_| {
-                    panic!("Failed to parse custom color: {}, {:?}", name, color)
-                }),
-                scheme_type,
-                source_color,
-                *contrast,
-            )
-        });
+        .filter_map(
+            |(name, color)| match color.to_custom_color(name.to_string()) {
+                Ok(custom_color) => Some(make_custom_color(
+                    custom_color,
+                    scheme_type,
+                    source_color,
+                    *contrast,
+                )),
+                Err(e) => {
+                    error!("Failed to parse custom color: {}, {:?}: {}", name, color, e);
+                    None
+                }
+            },
+        )
+        .collect();
 
-    let custom_colors_dark = custom_colors.clone().flat_map(|c| from_color!(c, dark));
-    let custom_colors_light = custom_colors.flat_map(|c| from_color!(c, light));
+    let custom_colors_dark = custom_colors.iter().flat_map(|c| from_color!(c, dark));
+    let custom_colors_light = custom_colors.iter().flat_map(|c| from_color!(c, light));
 
     let schemes: Schemes = Schemes {
         dark: IndexMap::from_iter(
@@ -162,7 +165,7 @@ pub fn get_custom_color_schemes(
                 .map(|(name, color)| (name, adjust_color_lightness_light(color, lightness_light))),
         ),
     };
-    schemes
+    Ok(schemes)
 }
 
 pub fn get_schemes(
