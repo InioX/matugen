@@ -165,17 +165,15 @@ impl TemplateFile<'_> {
             };
         }
 
-        // Iterate over sorted templates when running command hooks
         let mut templates: Vec<(&String, &Template)> =
             self.state.config_file.templates.iter().collect();
+        templates.retain(|(_, template)| template.enabled.unwrap_or(true));
         // Templates with an unspecified `index` default to 0
-        templates.sort_by_key(|(_, Template { index, .. })| index.unwrap_or(0));
+        templates.sort_by_key(|(_, template)| template.index.unwrap_or(0));
 
-        for (name, template) in templates {
-            if !template.enabled.unwrap_or(true) {
-                continue;
-            }
+        let templates_length = templates.len();
 
+        for (i, (name, template)) in templates.into_iter().enumerate() {
             let scheme_type = template.r#type.map(|t| match t {
                 SchemeTypes::SchemeSmart => self.state.smart_variant,
                 other => other,
@@ -244,7 +242,7 @@ impl TemplateFile<'_> {
                     output_path_absolute.display()
                 );
 
-                self.export_template(name, output_path_absolute)?;
+                self.export_template(name, output_path_absolute, templates_length, i)?;
             }
 
             if let Some(hook) = &template.post_hook {
@@ -275,7 +273,13 @@ impl TemplateFile<'_> {
         Ok(())
     }
 
-    fn export_template(&self, name: &String, output_path_absolute: &PathBuf) -> Result<(), Report> {
+    fn export_template(
+        &self,
+        name: &String,
+        output_path_absolute: &PathBuf,
+        length: usize,
+        index: usize,
+    ) -> Result<(), Report> {
         let data = match self.engine.render(name) {
             Ok(v) => v,
             Err(errors) => {
@@ -351,7 +355,9 @@ impl TemplateFile<'_> {
         output_file.write_all(data.as_bytes())?;
 
         success!(
-            "Exported the {} template to {}",
+            "[{}/{}] Exported the {} template to {}",
+            index + 1,
+            length,
             name.if_supports_color(Stdout, |s| s.style(SUCCESS_HL_STYLE)),
             output_path_absolute
                 .display()
