@@ -1,3 +1,4 @@
+use crate::util::arguments::Cli;
 use crate::{
     color::{
         base16::{generate_base16_schemes, Backend},
@@ -14,6 +15,8 @@ use crate::{
     },
     wallpaper::{self, Wallpaper},
 };
+#[allow(unused_imports)]
+use crate::{ERROR_HL_STYLE, SUCCESS_HL_STYLE};
 use color_eyre::{
     eyre::{Context, Result},
     Report,
@@ -23,10 +26,9 @@ use material_colors::{
     color::Argb,
     theme::{Theme, ThemeBuilder},
 };
+use owo_colors::{OwoColorize, Stream::Stdout};
 use serde_json::Value;
-use std::{fs::read_to_string, io::Write, path::PathBuf};
-
-use crate::util::arguments::Cli;
+use std::{fs::read_to_string, path::PathBuf};
 
 pub fn apply_opacity_to_schemes(schemes: &mut Option<Schemes>, opacity: Option<f64>) {
     if let Some(schemes) = schemes {
@@ -170,8 +172,9 @@ pub fn check_version() {
 
     if let Some(version) = informer.check_version().ok().flatten() {
         warn!(
-            "New version is available: <b><red>{}</> -> <b><green>{}</>",
-            current_version, version
+            "New version is available: {} -> {}",
+            current_version.if_supports_color(Stdout, |s| s.style(ERROR_HL_STYLE)),
+            version.if_supports_color(Stdout, |s| s.style(SUCCESS_HL_STYLE)),
         );
     }
 }
@@ -203,8 +206,9 @@ pub fn get_syntax(
 pub fn json_from_file(path: &PathBuf) -> Result<serde_json::Value, Report> {
     if !path.exists() {
         error!(
-            "<d>The path <red><b>{}</><d> doesnt exist.</>",
+            "The path {} doesnt exist.",
             path.display()
+                .if_supports_color(Stdout, |s| s.style(ERROR_HL_STYLE))
         );
     }
     let json_string = read_to_string(path)?;
@@ -215,19 +219,16 @@ pub fn json_from_file(path: &PathBuf) -> Result<serde_json::Value, Report> {
 pub fn setup_logging(args: &Cli) -> Result<(), Report> {
     let log_level = get_log_level(args);
 
-    let mut logger = pretty_env_logger::env_logger::builder();
+    let is_debug = log_level == log::LevelFilter::Debug;
 
-    logger.filter_level(log_level);
-
-    if log_level != LevelFilter::Debug {
-        logger.format_module_path(false);
-        logger.format(|buf, record| writeln!(buf, "{}", record.args()));
-    } else {
-        // logger.format_timestamp(Some(pretty_env_logger::env_logger::fmt::TimestampPrecision::Nanos));
-        logger.format_timestamp_micros();
-    }
-
-    logger.try_init()?;
+    plume_log::PlumeBuilder::new()
+        .with_level(log_level)
+        .with_icons(plume_log::LoggerIcons::EMOJI)
+        .with_file_names(is_debug)
+        .with_level_names(is_debug)
+        .with_line(true)
+        .init()
+        .expect("Failed to initialize logger");
 
     Ok(())
 }

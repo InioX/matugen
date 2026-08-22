@@ -10,6 +10,7 @@ use material_colors::{
     theme::{ColorGroup, CustomColor, CustomColorGroup},
 };
 
+use crate::UNDERLINE_STYLE;
 use crate::{
     color::math::{get_color_distance_lab, get_color_distance_lab_from_str, lightness, value},
     scheme::SchemeTypes,
@@ -21,7 +22,7 @@ use crate::{
 use crate::{util::arguments::SelectionPreference, FilterType as OwnFilterType};
 use color_eyre::{eyre::WrapErr, Report};
 use colorsys::{Hsl, Rgb};
-use owo_colors::OwoColorize;
+use owo_colors::{OwoColorize, Stream::Stdout};
 use std::{io::IsTerminal as _, str::FromStr};
 
 use material_colors::image::AsPixels;
@@ -173,7 +174,10 @@ pub fn get_source_color(
 
     let source_color: Argb = match source {
         Source::Image { path } => {
-            info!("Opening image in <d><u>{}</>", path);
+            info!(
+                "Opening image in {}",
+                path.if_supports_color(Stdout, |s| s.style(UNDERLINE_STYLE))
+            );
             color::get_source_color_from_image(
                 path,
                 filter,
@@ -185,7 +189,10 @@ pub fn get_source_color(
         }
         #[cfg(feature = "web-image")]
         Source::WebImage { url } => {
-            info!("Fetching image from <d><u>{}</>", url);
+            info!(
+                "Fetching image from {}",
+                url.if_supports_color(Stdout, |s| s.style(UNDERLINE_STYLE))
+            );
             color::get_source_color_from_web_image(url, filter)
                 .expect("Could not get source color from web image")
         }
