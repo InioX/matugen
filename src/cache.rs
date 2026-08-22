@@ -10,10 +10,12 @@ use crate::{
     scheme::{SchemeTypes, Schemes},
     util::config::{get_proj_path, ProjectDirsTypes},
 };
+use crate::{ERROR_HL_STYLE, SUCCESS_HL_STYLE, UNDERLINE_STYLE};
 use color_eyre::Report;
 use image::ImageReader;
 use indexmap::IndexMap;
 use material_colors::color::Argb;
+use owo_colors::{OwoColorize, Stream::Stdout};
 use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
@@ -180,7 +182,12 @@ impl ImageCache {
         let file = match File::create(&path) {
             Ok(v) => v,
             Err(e) => {
-                error!("Could not create the path <b><red>{}</>.", &path.display());
+                error!(
+                    "Could not create the path {}.",
+                    &path
+                        .display()
+                        .if_supports_color(Stdout, |s| s.style(ERROR_HL_STYLE)),
+                );
                 return Err(e.into());
             }
         };
@@ -191,9 +198,14 @@ impl ImageCache {
         writer.write_all(json.as_bytes())?;
 
         success!(
-            "Saved cache of <b><green>{}</> to <d><u>{}</>",
-            self.source.as_ref().unwrap().display(),
+            "Saved cache of {} to {}",
+            self.source
+                .as_ref()
+                .unwrap()
+                .display()
+                .if_supports_color(Stdout, |s| s.style(SUCCESS_HL_STYLE)),
             path.display()
+                .if_supports_color(Stdout, |s| s.style(UNDERLINE_STYLE)),
         );
 
         Ok(())
@@ -216,7 +228,11 @@ impl ImageCache {
             light: convert_helper_scheme(&json.base16.light),
         };
 
-        success!("Loaded cache from <d><u>{}</>", path.display());
+        success!(
+            "Loaded cache from {}",
+            path.display()
+                .if_supports_color(Stdout, |s| s.style(UNDERLINE_STYLE))
+        );
 
         Ok((schemes_enum, base16_schemes))
     }

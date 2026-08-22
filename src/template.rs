@@ -4,6 +4,7 @@ use color_eyre::{
 };
 use execute::{shell, Execute};
 use material_colors::theme::Theme;
+use owo_colors::{OwoColorize, Stream::Stdout};
 use serde_json::json;
 
 use crate::{
@@ -13,6 +14,7 @@ use crate::{
     },
     parser::Engine,
     scheme::{SchemeTypes, Schemes},
+    ERROR_HL_STYLE, INFO_HL_STYLE, SUCCESS_HL_STYLE, UNDERLINE_STYLE, WARN_HL_STYLE,
 };
 use serde::{Deserialize, Serialize};
 
@@ -86,8 +88,13 @@ impl TemplateFile<'_> {
 
     pub fn generate(&mut self) -> Result<(), Report> {
         info!(
-            "Loaded <b><cyan>{}</> templates.",
-            &self.state.config_file.templates.len()
+            "Loaded {} templates.",
+            &self
+                .state
+                .config_file
+                .templates
+                .len()
+                .if_supports_color(Stdout, |s| s.style(INFO_HL_STYLE))
         );
 
         let mut paths_hashmap = HashMap::new();
@@ -112,7 +119,13 @@ impl TemplateFile<'_> {
                 get_absolute_paths(&self.state.config_path, input_path, &template.output_path)?;
 
             if !input_path_absolute.exists() {
-                warn!("<d>The <yellow><b>{}</><d> template in <u>{}</><d> doesn't exist, skipping...</>", name, input_path_absolute.display());
+                warn!(
+                    "The {} template in {} doesn't exist, skipping...</>",
+                    name.if_supports_color(Stdout, |s| s.style(WARN_HL_STYLE)),
+                    input_path_absolute
+                        .display()
+                        .if_supports_color(Stdout, |s| s.style(UNDERLINE_STYLE))
+                );
                 continue;
             }
 
@@ -206,7 +219,10 @@ impl TemplateFile<'_> {
             }
 
             if let Some(hook) = &template.pre_hook {
-                info!("Running pre_hook for the <b><cyan>{}</> template.", &name);
+                info!(
+                    "Running pre_hook for the {} template.",
+                    &name.if_supports_color(Stdout, |s| s.style(INFO_HL_STYLE)),
+                );
                 format_hook(
                     self.engine,
                     &hook,
@@ -232,7 +248,10 @@ impl TemplateFile<'_> {
             }
 
             if let Some(hook) = &template.post_hook {
-                info!("Running post_hook for the <b><cyan>{}</> template.", &name);
+                info!(
+                    "Running post_hook for the {} template.",
+                    &name.if_supports_color(Stdout, |s| s.style(INFO_HL_STYLE)),
+                );
                 format_hook(
                     self.engine,
                     &hook,
@@ -313,8 +332,11 @@ impl TemplateFile<'_> {
 
             if meta.permissions().readonly() {
                 error!(
-                    "The <b><red>{}</> file is <b><red>Read-Only</>, not writing to it.",
-                    &output_path_absolute.display()
+                    "The {} file is {}, not writing to it.",
+                    output_path_absolute
+                        .display()
+                        .if_supports_color(Stdout, |s| s.style(ERROR_HL_STYLE)),
+                    "Read-only".if_supports_color(Stdout, |s| s.style(ERROR_HL_STYLE)),
                 );
                 return Ok(());
             }
@@ -329,9 +351,11 @@ impl TemplateFile<'_> {
         output_file.write_all(data.as_bytes())?;
 
         success!(
-            "Exported the <b><green>{}</> template to <d><u>{}</>",
-            name,
-            output_path_absolute.display()
+            "Exported the {} template to {}",
+            name.if_supports_color(Stdout, |s| s.style(SUCCESS_HL_STYLE)),
+            output_path_absolute
+                .display()
+                .if_supports_color(Stdout, |s| s.style(UNDERLINE_STYLE)),
         );
 
         Ok(())
@@ -415,13 +439,15 @@ pub fn format_hook(
 
     if !&output.stdout.is_empty() {
         success!(
-            "<green><b>Stdout:</>\n{}",
+            "{}:\n{}",
+            "Stdout".if_supports_color(Stdout, |s| s.style(SUCCESS_HL_STYLE)),
             String::from_utf8(output.stdout).unwrap()
         );
     }
     if !&output.stderr.is_empty() {
         error!(
-            "<red><b>Stderr:</>\n{}",
+            "{}:\n{}",
+            "Stderr".if_supports_color(Stdout, |s| s.style(ERROR_HL_STYLE)),
             String::from_utf8(output.stderr).unwrap()
         );
     }
@@ -472,8 +498,10 @@ fn create_missing_folders(output_path_absolute: &Path) -> Result<(), Report> {
         .wrap_err("Could not get the parent of the output path.")?;
     if !parent_folder.exists() {
         error!(
-            "The <b><yellow>{}</> folder doesnt exist, trying to create...",
-            &parent_folder.display()
+            "The {} folder doesnt exist, trying to create...",
+            &parent_folder
+                .display()
+                .if_supports_color(Stdout, |s| s.style(WARN_HL_STYLE)),
         );
         debug!("{}", parent_folder.display());
         create_dir_all(parent_folder)?;

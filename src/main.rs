@@ -1,11 +1,14 @@
 #![allow(clippy::too_many_arguments)]
 
-extern crate pretty_env_logger;
 #[macro_use]
-extern crate paris_log;
+extern crate log;
+#[macro_use]
+extern crate plume_log;
+
 use std::path::PathBuf;
 
 use material_colors::theme::ThemeBuilder;
+use owo_colors::{OwoColorize, Stream::Stdout, Style};
 use serde_json::Value;
 
 mod helpers;
@@ -45,6 +48,12 @@ pub mod scheme;
 use crate::{parser::Engine, scheme::Schemes};
 
 use material_colors::{color::Argb, theme::Theme};
+
+const WARN_HL_STYLE: Style = Style::new().yellow().bold();
+const INFO_HL_STYLE: Style = Style::new().cyan().bold();
+const ERROR_HL_STYLE: Style = Style::new().red().bold();
+const SUCCESS_HL_STYLE: Style = Style::new().green().bold();
+const UNDERLINE_STYLE: Style = Style::new().bright_black().underline();
 
 pub struct State {
     pub args: Cli,
@@ -90,8 +99,9 @@ impl State {
         let smart_opts: Option<SmartOpts> = if smart_requested {
             if !args.source.is_image() {
                 warn!(
-                    "Smart scheme needs an image source, got <yellow>{:?}</>. Falling back to defaults.",
+                    "Smart scheme needs an image source, got {:?}. Falling back to defaults.",
                     args.source
+                        .if_supports_color(Stdout, |s| s.style(WARN_HL_STYLE)),
                 );
                 None
             } else {
@@ -103,8 +113,8 @@ impl State {
                     Ok(opts) => Some(opts),
                     Err(e) => {
                         warn!(
-                            "Smart scheme detection failed: <yellow>{}</>. Falling back to defaults.",
-                            e
+                            "Smart scheme detection failed: {}. Falling back to defaults.",
+                            e.if_supports_color(Stdout, |s| s.style(WARN_HL_STYLE)),
                         );
                         None
                     }
@@ -144,8 +154,9 @@ impl State {
         );
 
         info!(
-            "Scheme: mode=<b><cyan>{}</>, variant=<b><cyan>{:?}</>",
-            default_scheme, resolved_type
+            "Scheme: mode={}, variant={:?}",
+            default_scheme.if_supports_color(Stdout, |s| s.style(INFO_HL_STYLE)),
+            resolved_type.if_supports_color(Stdout, |s| s.style(INFO_HL_STYLE)),
         );
 
         if let Source::Image { path } = &args.source {
@@ -192,8 +203,11 @@ impl State {
                 Err(e) => {
                     if !image_cache.exists() {
                         warn!(
-                            "<d>The cache in <yellow><b>{}</><d> doesn't exist.</>",
-                            image_cache.get_path().display()
+                            "The cache in {} doesn't exist.",
+                            image_cache
+                                .get_path()
+                                .display()
+                                .if_supports_color(Stdout, |s| s.style(WARN_HL_STYLE)),
                         );
                         generate_schemes_and_theme(&args, &config_file, resolved_type)?
                     } else {

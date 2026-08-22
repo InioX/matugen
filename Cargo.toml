@@ -37,10 +37,7 @@ thiserror = "2.0.12"
 
 # logging
 log = "0.4.17"
-paris-log = { version = "1.0.2", features = [
-  "icons",
-] } # TODO replace with using paris directly?
-pretty_env_logger = "0.5.0"
+plume-log = "0.3.0"
 
 # terminal output
 comfy-table = { version = "7.2.2" }                          # TODO feature-gate? This should definitely be a default feature tho.

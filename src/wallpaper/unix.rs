@@ -2,7 +2,9 @@
 use crate::parser::Engine;
 use crate::template::format_hook;
 use crate::wallpaper::Wallpaper;
+use crate::{ERROR_HL_STYLE, INFO_HL_STYLE};
 use color_eyre::Report;
+use owo_colors::{OwoColorize, Stream::Stdout};
 use std::process::{Command, Stdio};
 
 #[cfg(any(target_os = "linux", target_os = "netbsd"))]
@@ -32,12 +34,16 @@ pub fn set(
         cmd.arg(path);
 
         match cmd.spawn() {
-            Ok(_) => info!("Successfully set the wallpaper with <blue>{command}</>"),
+            Ok(_) => info!(
+                "Successfully set the wallpaper with {}",
+                command.if_supports_color(Stdout, |s| s.style(INFO_HL_STYLE)),
+            ),
             Err(e) => {
                 if let std::io::ErrorKind::NotFound = e.kind() {
                     error!(
-                    "Failed to set wallpaper, the program <red>{command}</> was not found in PATH!"
-                )
+                        "Failed to set wallpaper, the program {} was not found in PATH!",
+                        command.if_supports_color(Stdout, |s| s.style(ERROR_HL_STYLE)),
+                    )
                 } else {
                     error!("Some error(s) occurred while setting wallpaper!");
                 }
