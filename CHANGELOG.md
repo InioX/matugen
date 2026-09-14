@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.3.0](https://github.com/InioX/matugen/compare/v4.2.0...v4.3.0) - 2026-09-14
+
+### Added
+
+- add template index to logs
+- switch to plume-log for logging
+
+### Other
+
+- Merge pull request #320 from Cybersnake223/fix/panics-and-bugs
+
 ## [4.2.0](https://github.com/InioX/matugen/compare/v4.1.0...v4.2.0) - 2026-08-05
 
 ### Added
