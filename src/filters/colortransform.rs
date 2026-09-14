@@ -65,7 +65,7 @@ pub(crate) fn grayscale(
             Ok(FilterReturnType::Rgb(color))
         }
         FilterReturnType::Hsl(mut color) => {
-            color.invert();
+            color.grayscale_simple();
             Ok(FilterReturnType::Hsl(color))
         }
         FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),

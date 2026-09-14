@@ -406,7 +406,9 @@ pub fn format_hook(
                 for err in errors {
                     err.emit(&engine)?;
                 }
-                std::process::exit(1);
+                return Err(color_eyre::eyre::eyre!(
+                    "Failed to compile compare_to template"
+                ));
             }
         };
         let closest_color = get_closest_color(compare, &res)?;
@@ -422,7 +424,7 @@ pub fn format_hook(
             for err in errors {
                 err.emit(&engine)?;
             }
-            std::process::exit(1);
+            return Err(color_eyre::eyre::eyre!("Failed to compile hook template"));
         }
     };
 

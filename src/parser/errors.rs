@@ -150,6 +150,8 @@ pub enum FilterError {
     },
     #[error("You should not use the set_alpha filter with a format that doesn't have an alpha channel. Consider using one of these formats instead: [{replacement}]")]
     SetAlphaOnNonAlphaFormat { replacement: &'static str },
+    #[error("Cannot convert Null value in filter")]
+    NullValue,
 }
 
 impl Error {
@@ -212,6 +214,7 @@ impl FilterError {
             FilterError::UnexpectedStringValue { .. } => "UnexpectedStringValue",
             FilterError::InvalidFormatString { .. } => "InvalidFormatString",
             FilterError::SetAlphaOnNonAlphaFormat { .. } => "SetAlphaOnNonAlphaFormat",
+            FilterError::NullValue => "NullValue",
         }
     }
 }
