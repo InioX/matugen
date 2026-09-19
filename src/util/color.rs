@@ -12,10 +12,11 @@ use serde_json::{Map, Value};
 
 use crate::{
     color::{format::format_hex_alpha, parse::parse_css_color},
-    parser::engine::format_color,
     scheme::SchemesEnum,
     Schemes,
 };
+
+use matugen_parser::engine::replace::format_color;
 
 #[cfg(feature = "dump-json")]
 use super::arguments::Format;

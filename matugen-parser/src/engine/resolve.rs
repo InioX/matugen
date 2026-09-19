@@ -3,11 +3,9 @@ use chumsky::span::SimpleSpan;
 use super::Engine;
 
 use crate::{
+    Error, ParseErrorKind, Value,
     color::parse::parse_css_color,
-    parser::{
-        engine::{format_color, FORMATS},
-        Error, ParseErrorKind, Value,
-    },
+    engine::{FORMATS, format_color},
 };
 
 impl Engine {
@@ -25,7 +23,7 @@ impl Engine {
                 return Err(Error::ResolveError {
                     span,
                     name: name.to_string(),
-                })
+                });
             }
         };
         if format_value {
@@ -33,12 +31,12 @@ impl Engine {
                 Some(v) => v,
                 None => {
                     return Err(Error::ParseError {
-                        kind: ParseErrorKind::Keyword(crate::parser::KeywordError::InvalidFormat {
+                        kind: ParseErrorKind::Keyword(crate::KeywordError::InvalidFormat {
                             formats: FORMATS,
                         }),
                         span,
                         name: name.to_string(),
-                    })
+                    });
                 }
             };
 

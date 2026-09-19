@@ -1,9 +1,9 @@
-#[cfg(any(target_os = "linux", target_os = "netbsd"))]
-use crate::parser::Engine;
 use crate::template::format_hook;
 use crate::wallpaper::Wallpaper;
 use crate::{ERROR_HL_STYLE, INFO_HL_STYLE};
 use color_eyre::Report;
+#[cfg(any(target_os = "linux", target_os = "netbsd"))]
+use matugen_parser::Engine;
 use owo_colors::{OwoColorize, Stream::Stdout};
 use std::process::{Command, Stdio};
 
