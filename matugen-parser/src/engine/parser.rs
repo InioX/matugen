@@ -1,8 +1,8 @@
 use chumsky::{error::Rich, prelude::*, span::SimpleSpan};
 
-use crate::parser::{
-    engine::{BinaryOperator, EngineSyntax, Expression, SpannedBinaryOperator, SpannedExpr},
+use crate::{
     Engine, SpannedValue, Value,
+    engine::{BinaryOperator, EngineSyntax, Expression, SpannedBinaryOperator, SpannedExpr},
 };
 
 impl Engine {
