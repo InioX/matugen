@@ -1,6 +1,6 @@
 use colorsys::{Hsl, Rgb};
 
-use crate::parser::{Engine, FilterError, SpannedValue, Value};
+use crate::{Engine, FilterError, SpannedValue, Value};
 
 #[derive(Debug)]
 pub enum FilterReturnType {

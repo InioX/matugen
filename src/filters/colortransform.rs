@@ -2,16 +2,14 @@ use color_eyre::eyre::Context;
 use colorsys::{ColorTransform, Hsl, Rgb, SaturationInSpace};
 use material_colors::blend::{harmonize as md3_harmonize, hct_hue};
 
-use crate::{
-    color::{
-        format::{argb_from_hsl, argb_from_rgb, hsl_from_argb, rgb_from_argb},
-        parse::parse_css_color,
-    },
-    expect_args,
-    parser::{
-        engine::{format_color, FORMATS},
-        Engine, FilterError, FilterReturnType, SpannedValue,
-    },
+use crate::color::{
+    format::{argb_from_hsl, argb_from_rgb, hsl_from_argb, rgb_from_argb},
+    parse::parse_css_color,
+};
+
+use matugen_parser::{
+    engine::replace::{format_color, FORMATS},
+    expect_args, Engine, FilterError, FilterReturnType, SpannedValue,
 };
 
 fn adjust_rgb_lightness(color: &mut Rgb, amount: f64, threshold: f64) {

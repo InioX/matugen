@@ -6,7 +6,6 @@ use crate::{
         format::argb_from_rgb,
         parse::parse_css_color,
     },
-    parser::{engine::EngineSyntax, Engine},
     scheme::{get_custom_color_schemes, get_schemes, SchemeTypes, Schemes, SchemesEnum},
     util::{
         arguments::Format,
@@ -15,6 +14,9 @@ use crate::{
     },
     wallpaper::{self, Wallpaper},
 };
+
+use matugen_parser::{engine::EngineSyntax, Engine};
+
 #[allow(unused_imports)]
 use crate::{ERROR_HL_STYLE, SUCCESS_HL_STYLE};
 use color_eyre::{
