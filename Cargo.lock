@@ -1694,7 +1694,7 @@ dependencies = [
 
 [[package]]
 name = "matugen"
-version = "4.2.0"
+version = "4.3.0"
 dependencies = [
  "clap",
  "color-eyre",
@@ -1728,7 +1728,7 @@ dependencies = [
 
 [[package]]
 name = "matugen-parser"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ariadne",
  "chumsky",
