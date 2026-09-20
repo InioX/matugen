@@ -12,10 +12,10 @@ use crate::{
     helpers::{
         apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, merge_json_source,
     },
-    parser::Engine,
     scheme::{SchemeTypes, Schemes},
     ERROR_HL_STYLE, INFO_HL_STYLE, SUCCESS_HL_STYLE, UNDERLINE_STYLE, WARN_HL_STYLE,
 };
+use matugen_parser::Engine;
 use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, path::Path, str};

@@ -43,9 +43,9 @@ use color_eyre::{eyre::Context, Report, Section};
 pub mod cache;
 pub mod color;
 pub mod filters;
-pub mod parser;
 pub mod scheme;
-use crate::{parser::Engine, scheme::Schemes};
+use crate::scheme::Schemes;
+use matugen_parser::Engine;
 
 use material_colors::{color::Argb, theme::Theme};
 
@@ -346,7 +346,7 @@ impl State {
     }
 
     fn add_engine_filters(&self, engine: &mut Engine) {
-        register_filters!((engine) {
+        matugen_parser::register_filters!((engine) {
             "Colors" => {
                 /// <p>Sets the red channel of a color</p>
                 ///

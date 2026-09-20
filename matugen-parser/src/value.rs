@@ -7,7 +7,7 @@ use chumsky::span::SimpleSpan;
 use colorsys::{Hsl, Rgb};
 use indexmap::IndexMap;
 
-use crate::parser::{engine::format_color_all, FilterReturnType};
+use crate::{FilterReturnType, engine::format_color_all};
 
 #[derive(Debug, Clone)]
 pub enum Value {

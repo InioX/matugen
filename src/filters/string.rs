@@ -1,8 +1,7 @@
 use convert_case::{Case, Casing};
 
-use crate::{
-    expect_args,
-    parser::{engine::format_color, Engine, FilterError, FilterReturnType, SpannedValue},
+use matugen_parser::{
+    engine::replace::format_color, expect_args, Engine, FilterError, FilterReturnType, SpannedValue,
 };
 
 fn last_keyword<'a>(keywords: &'a [&'a str]) -> Result<&'a str, FilterError> {

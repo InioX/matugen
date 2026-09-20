@@ -497,9 +497,12 @@ checksum = "d3fd119d74b830634cea2a0f58bbd0d54540518a14397557951e79340abc28c0"
 
 [[package]]
 name = "colorsys"
-version = "0.6.7"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54261aba646433cb567ec89844be4c4825ca92a4f8afba52fc4dd88436e31bbd"
+checksum = "65036b2f761dc2d20b4634890f73bdbad811d5edb677f84fd652ae9256051fcb"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "comfy-table"
@@ -1693,8 +1696,6 @@ dependencies = [
 name = "matugen"
 version = "4.2.0"
 dependencies = [
- "ariadne",
- "chumsky",
  "clap",
  "color-eyre",
  "colorsys",
@@ -1711,6 +1712,7 @@ dependencies = [
  "jxl-oxide",
  "log",
  "material-colors",
+ "matugen-parser",
  "owo-colors",
  "palette",
  "plume-log",
@@ -1719,10 +1721,24 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "thiserror 2.0.12",
  "toml",
  "update-informer",
  "winapi",
+]
+
+[[package]]
+name = "matugen-parser"
+version = "0.1.0"
+dependencies = [
+ "ariadne",
+ "chumsky",
+ "color-eyre",
+ "colorsys",
+ "csscolorparser",
+ "indexmap",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
