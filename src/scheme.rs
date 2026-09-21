@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 use color_eyre::Report;
 use indexmap::IndexMap;
+use material_colors::color::Argb;
 use material_colors::{dynamic_color::Variant as MaterialColorsVariant, scheme::Scheme};
 use serde::{Deserialize, Serialize};
 
@@ -168,6 +169,26 @@ pub fn get_custom_color_schemes(
     Ok(schemes)
 }
 
+pub fn resolve_achromatic_scheme(source_color: Argb, scheme_type: SchemeTypes) -> SchemeTypes {
+    let Argb {
+        red, green, blue, ..
+    } = source_color;
+
+    if red == green && green == blue && !matches!(scheme_type, SchemeTypes::SchemeMonochrome) {
+        // Pure grays (black, white and everything between) carry no hue in
+        // HCT, so every chromatic scheme variant picks an essentially
+        // arbitrary accent hue for them: #000000 comes out magenta under
+        // scheme-tonal-spot and #FFFFFF comes out cyan, because the hue the
+        // solver lands on for chroma 0 is undefined. Monochrome is the only
+        // variant that stays honest about a hueless source, so use it for
+        // this run and leave the configured scheme untouched otherwise.
+        warn!("source color is achromatic (r == g == b), using scheme-monochrome for this run");
+        return SchemeTypes::SchemeMonochrome;
+    }
+
+    scheme_type
+}
+
 pub fn get_schemes(
     source_color: material_colors::color::Argb,
     scheme_type: SchemeTypes,
@@ -209,6 +230,79 @@ mod tests {
                 red: 255,
                 green: 180,
                 blue: 168,
+            }
+        );
+    }
+
+    #[test]
+    fn achromatic_sources_fall_back_to_monochrome() {
+        let grays = [
+            Argb::new(255, 0, 0, 0),
+            Argb::new(255, 255, 255, 255),
+            Argb::new(255, 128, 128, 128),
+            Argb::new(255, 1, 1, 1),
+        ];
+        let chromatic_variants = [
+            SchemeTypes::SchemeContent,
+            SchemeTypes::SchemeExpressive,
+            SchemeTypes::SchemeFidelity,
+            SchemeTypes::SchemeFruitSalad,
+            SchemeTypes::SchemeNeutral,
+            SchemeTypes::SchemeRainbow,
+            SchemeTypes::SchemeTonalSpot,
+            SchemeTypes::SchemeVibrant,
+            SchemeTypes::SchemeSmart,
+        ];
+
+        for gray in grays {
+            for variant in chromatic_variants {
+                assert_eq!(
+                    resolve_achromatic_scheme(gray, variant),
+                    SchemeTypes::SchemeMonochrome,
+                    "expected achromatic source to resolve to monochrome for {variant:?}",
+                );
+            }
+            // Already monochrome: no change needed, but the result must hold.
+            assert_eq!(
+                resolve_achromatic_scheme(gray, SchemeTypes::SchemeMonochrome),
+                SchemeTypes::SchemeMonochrome,
+            );
+        }
+    }
+
+    #[test]
+    fn chromatic_sources_keep_their_scheme() {
+        let purple = Argb::new(255, 0x5B, 0x4A, 0x78);
+        for variant in [
+            SchemeTypes::SchemeTonalSpot,
+            SchemeTypes::SchemeVibrant,
+            SchemeTypes::SchemeMonochrome,
+        ] {
+            assert_eq!(
+                resolve_achromatic_scheme(purple, variant),
+                variant,
+                "expected chromatic source to keep the configured scheme",
+            );
+        }
+    }
+
+    #[test]
+    fn monochrome_fallback_black_yields_neutral_primary() {
+        // Regression guard for the reported behavior: a #000000 source under
+        // scheme-tonal-spot used to produce a magenta primary (#ffb1c8 in
+        // dark mode). With the achromatic fallback the same source must
+        // produce the neutral monochrome scheme instead.
+        let black = Argb::new(255, 0, 0, 0);
+        let resolved = resolve_achromatic_scheme(black, SchemeTypes::SchemeTonalSpot);
+
+        let scheme = Scheme::from(generate_dynamic_scheme(resolved, black, true, None));
+        assert_eq!(
+            scheme.primary,
+            Argb {
+                alpha: 255,
+                red: 255,
+                green: 255,
+                blue: 255,
             }
         );
     }
