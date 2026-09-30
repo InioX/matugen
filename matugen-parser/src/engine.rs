@@ -109,6 +109,7 @@ pub struct SpannedExpr {
     span: SimpleSpan,
 }
 
+#[derive(Clone)]
 pub struct Engine {
     filters: HashMap<&'static str, FilterFn>,
     syntax: EngineSyntax,
@@ -119,12 +120,14 @@ pub struct Engine {
     errors: ErrorCollector,
 }
 
+#[derive(Clone)]
 pub struct Template {
     pub name: String,
     pub source_id: usize,
     pub ast: Vec<Box<SpannedExpr>>,
 }
 
+#[derive(Clone)]
 pub struct EngineSyntax {
     pub keyword_left: String,
     pub keyword_right: String,

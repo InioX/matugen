@@ -18,7 +18,12 @@ use crate::{
 use matugen_parser::Engine;
 use serde::{Deserialize, Serialize};
 
-use std::{collections::HashMap, path::Path, str};
+use std::{
+    collections::HashMap,
+    path::Path,
+    str,
+    sync::Mutex,
+};
 
 use std::{
     fs::{create_dir_all, read_to_string, OpenOptions},
@@ -27,6 +32,7 @@ use std::{
 };
 
 use directories::BaseDirs;
+use rayon::prelude::*;
 use resolve_path::PathResolveExt;
 
 use crate::{SchemesEnum, State};
@@ -173,21 +179,13 @@ impl TemplateFile<'_> {
 
         let templates_length = templates.len();
 
-        for (i, (name, template)) in templates.into_iter().enumerate() {
+        for (_, template) in &templates {
             let scheme_type = template.r#type.map(|t| match t {
                 SchemeTypes::SchemeSmart => self.state.smart_variant,
                 other => other,
             });
             if let Some(scheme_type) = scheme_type {
-                if let Some(entry) = self.scheme_cache.get(&scheme_type) {
-                    change_scheme_type(
-                        self.engine,
-                        &entry.schemes,
-                        &entry.base16,
-                        &entry.theme,
-                        self.state.default_scheme,
-                    )?;
-                } else {
+                if !self.scheme_cache.contains_key(&scheme_type) {
                     let (mut schemes, _, theme, mut base16) = generate_schemes_and_theme(
                         &self.state.args,
                         &self.state.config_file,
@@ -196,14 +194,6 @@ impl TemplateFile<'_> {
 
                     apply_opacity_to_schemes(&mut base16, self.state.args.opacity);
                     apply_opacity_to_schemes(&mut schemes, self.state.args.opacity);
-
-                    change_scheme_type(
-                        self.engine,
-                        &schemes,
-                        &base16,
-                        &theme,
-                        self.state.default_scheme,
-                    )?;
 
                     self.scheme_cache.insert(
                         scheme_type,
@@ -215,157 +205,275 @@ impl TemplateFile<'_> {
                     );
                 }
             }
+        }
 
-            if let Some(hook) = &template.pre_hook {
-                info!(
-                    "Running pre_hook for the {} template.",
-                    &name.if_supports_color(Stdout, |s| s.style(INFO_HL_STYLE)),
-                );
-                format_hook(
-                    self.engine,
-                    &hook,
-                    &template.colors_to_compare,
-                    &template.compare_to,
-                )
-                .wrap_err(format!("Failed to format the following hook:\n{}", hook))?;
+        let parallel_generation = self
+            .state
+            .config_file
+            .config
+            .parallel_generation
+            .unwrap_or(true);
+
+        let mut groups: Vec<Vec<(usize, &String, &Template)>> = Vec::new();
+        for (i, (name, template)) in templates.into_iter().enumerate() {
+            let index = template.index.unwrap_or(0);
+            let starts_new_group = match groups.last() {
+                Some(group) => group
+                    .last()
+                    .map(|(_, _, t): &(usize, &String, &Template)| t.index.unwrap_or(0) != index)
+                    .unwrap_or(true),
+                None => true,
+            };
+
+            if starts_new_group {
+                groups.push(Vec::new());
+            }
+            groups.last_mut().unwrap().push((i, name, template));
+        }
+
+        for group in groups {
+            if !parallel_generation || group.len() == 1 {
+                for (i, name, template) in group {
+                    self.process_template(&paths_hashmap, name, template, templates_length, i)?;
+                }
+                continue;
             }
 
-            if template.output_path.is_some() {
-                let (input_path_absolute, output_path_absolute) = paths_hashmap
-                    .get(name)
-                    .wrap_err("Failed to get the input and output paths from hashmap")?;
+            let engines: Vec<Engine> = group.iter().map(|_| self.engine.clone()).collect();
 
-                debug!(
-                    "Trying to write the {} template from {} to {}",
-                    name,
-                    input_path_absolute.display(),
-                    output_path_absolute.display()
-                );
+            let results: Vec<Result<(), Report>> = group
+                .into_iter()
+                .zip(engines)
+                .collect::<Vec<_>>()
+                .into_par_iter()
+                .map(|((i, name, template), mut engine)| {
+                    process_template_with_engine(
+                        &mut engine,
+                        self.state,
+                        &self.scheme_cache,
+                        &paths_hashmap,
+                        name,
+                        template,
+                        templates_length,
+                        i,
+                    )
+                })
+                .collect();
 
-                self.export_template(name, output_path_absolute, templates_length, i)?;
-            }
-
-            if let Some(hook) = &template.post_hook {
-                info!(
-                    "Running post_hook for the {} template.",
-                    &name.if_supports_color(Stdout, |s| s.style(INFO_HL_STYLE)),
-                );
-                format_hook(
-                    self.engine,
-                    &hook,
-                    &template.colors_to_compare,
-                    &template.compare_to,
-                )
-                .wrap_err(format!("Failed to format the following hook:\n{}", hook))?;
-            }
-
-            if let Some(_) = template.r#type {
-                change_scheme_type(
-                    self.engine,
-                    &self.state.schemes,
-                    &self.state.base16,
-                    &self.state.theme,
-                    self.state.default_scheme,
-                )?;
+            for result in results {
+                result?;
             }
         }
 
         Ok(())
     }
 
-    fn export_template(
-        &self,
+    fn process_template(
+        &mut self,
+        paths_hashmap: &HashMap<String, (PathBuf, PathBuf)>,
         name: &String,
-        output_path_absolute: &PathBuf,
+        template: &Template,
         length: usize,
         index: usize,
     ) -> Result<(), Report> {
-        let data = match self.engine.render(name) {
-            Ok(v) => v,
-            Err(errors) => {
+        process_template_with_engine(
+            &mut *self.engine,
+            self.state,
+            &self.scheme_cache,
+            paths_hashmap,
+            name,
+            template,
+            length,
+            index,
+        )
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn process_template_with_engine(
+    engine: &mut Engine,
+    state: &State,
+    scheme_cache: &HashMap<SchemeTypes, SchemeCacheEntry>,
+    paths_hashmap: &HashMap<String, (PathBuf, PathBuf)>,
+    name: &String,
+    template: &Template,
+    length: usize,
+    index: usize,
+) -> Result<(), Report> {
+    let scheme_type = template.r#type.map(|t| match t {
+        SchemeTypes::SchemeSmart => state.smart_variant,
+        other => other,
+    });
+    if let Some(scheme_type) = scheme_type {
+        let entry = scheme_cache
+            .get(&scheme_type)
+            .wrap_err("Scheme cache entry missing for a referenced scheme type")?;
+        change_scheme_type(
+            engine,
+            &entry.schemes,
+            &entry.base16,
+            &entry.theme,
+            state.default_scheme,
+        )?;
+    }
+
+    if let Some(hook) = &template.pre_hook {
+        info!(
+            "Running pre_hook for the {} template.",
+            &name.if_supports_color(Stdout, |s| s.style(INFO_HL_STYLE)),
+        );
+        format_hook(
+            engine,
+            hook,
+            &template.colors_to_compare,
+            &template.compare_to,
+        )
+        .wrap_err(format!("Failed to format the following hook:\n{}", hook))?;
+    }
+
+    if template.output_path.is_some() {
+        let (input_path_absolute, output_path_absolute) = paths_hashmap
+            .get(name)
+            .wrap_err("Failed to get the input and output paths from hashmap")?;
+
+        debug!(
+            "Trying to write the {} template from {} to {}",
+            name,
+            input_path_absolute.display(),
+            output_path_absolute.display()
+        );
+
+        render_and_write_template(engine, state, name, output_path_absolute, length, index)?;
+    }
+
+    if let Some(hook) = &template.post_hook {
+        info!(
+            "Running post_hook for the {} template.",
+            &name.if_supports_color(Stdout, |s| s.style(INFO_HL_STYLE)),
+        );
+        format_hook(
+            engine,
+            hook,
+            &template.colors_to_compare,
+            &template.compare_to,
+        )
+        .wrap_err(format!("Failed to format the following hook:\n{}", hook))?;
+    }
+
+    if template.r#type.is_some() {
+        change_scheme_type(
+            engine,
+            &state.schemes,
+            &state.base16,
+            &state.theme,
+            state.default_scheme,
+        )?;
+    }
+
+    Ok(())
+}
+
+static ERROR_PRINT_LOCK: Mutex<()> = Mutex::new(());
+
+fn render_and_write_template(
+    engine: &Engine,
+    state: &State,
+    name: &str,
+    output_path_absolute: &PathBuf,
+    length: usize,
+    index: usize,
+) -> Result<(), Report> {
+    let data = match engine.render(name) {
+        Ok(v) => v,
+        Err(errors) => {
+            {
+                let _guard = ERROR_PRINT_LOCK.lock().unwrap();
                 for err in errors {
-                    err.emit(&self.engine)?;
+                    err.emit(engine)?;
                 }
+            }
 
-                if self.state.args.continue_on_error.unwrap_or(false) {
-                    return Ok(());
-                }
+            if state.args.continue_on_error.unwrap_or(false) {
+                return Ok(());
+            }
 
-                std::process::exit(1);
+            return Err(Report::msg(format!(
+                "Failed to render the {} template",
+                name
+            )));
+        }
+    };
+
+    let out = if state.args.prefix.is_some() && !cfg!(windows) {
+        let mut prefix_path = PathBuf::from(
+            state
+                .args
+                .prefix
+                .as_ref()
+                .ok_or_else(|| Report::msg("Couldn't get the prefix path"))?,
+        );
+
+        let output_path = match output_path_absolute.strip_prefix("/") {
+            Ok(v) => v,
+            Err(e) => {
+                return Err(Report::msg(format!(
+                    "Output path is not an absolute path: {}",
+                    e
+                )))
             }
         };
 
-        let out = if self.state.args.prefix.is_some() && !cfg!(windows) {
-            let mut prefix_path = PathBuf::from(
-                self.state
-                    .args
-                    .prefix
-                    .as_ref()
-                    .ok_or_else(|| Report::msg("Couldn't get the prefix path"))?,
-            );
+        prefix_path.push(output_path);
 
-            let output_path = match output_path_absolute.strip_prefix("/") {
-                Ok(v) => v,
-                Err(e) => {
-                    return Err(Report::msg(format!(
-                        "Output path is not an absolute path: {}",
-                        e
-                    )))
-                }
-            };
+        prefix_path
+    } else {
+        output_path_absolute.to_path_buf()
+    };
 
-            prefix_path.push(output_path);
+    create_missing_folders(&out).wrap_err(format!(
+        "Failed to create the missing folders for {}",
+        &out.display()
+    ))?;
 
-            prefix_path
-        } else {
-            output_path_absolute.to_path_buf()
-        };
+    debug!("out: {:?}", out);
 
-        create_missing_folders(&out).wrap_err(format!(
-            "Failed to create the missing folders for {}",
+    if out.exists() {
+        let meta = std::fs::metadata(&out).wrap_err(format!(
+            "Failed to get file metadata for {}",
             &out.display()
         ))?;
 
-        debug!("out: {:?}", out);
-
-        if out.exists() {
-            let meta = std::fs::metadata(&out).wrap_err(format!(
-                "Failed to get file metadata for {}",
-                &out.display()
-            ))?;
-
-            if meta.permissions().readonly() {
-                error!(
-                    "The {} file is {}, not writing to it.",
-                    output_path_absolute
-                        .display()
-                        .if_supports_color(Stdout, |s| s.style(ERROR_HL_STYLE)),
-                    "Read-only".if_supports_color(Stdout, |s| s.style(ERROR_HL_STYLE)),
-                );
-                return Ok(());
-            }
+        if meta.permissions().readonly() {
+            error!(
+                "The {} file is {}, not writing to it.",
+                output_path_absolute
+                    .display()
+                    .if_supports_color(Stdout, |s| s.style(ERROR_HL_STYLE)),
+                "Read-only".if_supports_color(Stdout, |s| s.style(ERROR_HL_STYLE)),
+            );
+            return Ok(());
         }
-
-        let mut output_file = OpenOptions::new()
-            .create(true)
-            .truncate(true)
-            .write(true)
-            .open(out)?;
-
-        output_file.write_all(data.as_bytes())?;
-
-        success!(
-            "[{}/{}] Exported the {} template to {}",
-            index + 1,
-            length,
-            name.if_supports_color(Stdout, |s| s.style(SUCCESS_HL_STYLE)),
-            output_path_absolute
-                .display()
-                .if_supports_color(Stdout, |s| s.style(UNDERLINE_STYLE)),
-        );
-
-        Ok(())
     }
+
+    let mut output_file = OpenOptions::new()
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open(out)?;
+
+    output_file.write_all(data.as_bytes())?;
+
+    success!(
+        "[{}/{}] Exported the {} template to {}",
+        index + 1,
+        length,
+        name.if_supports_color(Stdout, |s| s.style(SUCCESS_HL_STYLE)),
+        output_path_absolute
+            .display()
+            .if_supports_color(Stdout, |s| s.style(UNDERLINE_STYLE)),
+    );
+
+    Ok(())
 }
 
 fn change_scheme_type(
@@ -402,6 +510,7 @@ pub fn format_hook(
         let res = match engine.compile(to.to_string()) {
             Ok(v) => v,
             Err(errors) => {
+                let _guard = ERROR_PRINT_LOCK.lock().unwrap();
                 eprintln!("Error when formatting hook:\n{}", &hook);
                 for err in errors {
                     err.emit(&engine)?;
@@ -420,6 +529,7 @@ pub fn format_hook(
     let res = match engine.compile((&hook).to_string()) {
         Ok(v) => v,
         Err(errors) => {
+            let _guard = ERROR_PRINT_LOCK.lock().unwrap();
             eprintln!("Error when formatting hook:\n{}", &hook);
             for err in errors {
                 err.emit(&engine)?;

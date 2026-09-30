@@ -7,7 +7,7 @@ use thiserror::Error as ThisError;
 
 use crate::Engine;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct ErrorCollector {
     errors: RefCell<Vec<Error>>,
     seen_spans: RefCell<HashSet<SimpleSpan>>,
@@ -55,7 +55,7 @@ impl ErrorCollector {
     }
 }
 
-#[derive(ThisError, Debug)]
+#[derive(ThisError, Debug, Clone)]
 pub enum Error {
     #[error("Could not find template: {template}")]
     TemplateNotFound { template: String, name: String },
@@ -71,7 +71,7 @@ pub enum Error {
     IncludeError { span: SimpleSpan, name: String },
 }
 
-#[derive(Debug, ThisError)]
+#[derive(Debug, ThisError, Clone)]
 pub enum ParseErrorKind {
     #[error(transparent)]
     Filter(#[from] FilterError),
@@ -89,13 +89,13 @@ pub enum ParseErrorKind {
     If(#[from] IfError),
 }
 
-#[derive(Debug, ThisError)]
+#[derive(Debug, ThisError, Clone)]
 pub enum IfError {
     #[error("You can only use if conditions with Booleans")]
     InvalidIfCondition,
 }
 
-#[derive(Debug, ThisError)]
+#[derive(Debug, ThisError, Clone)]
 pub enum BinaryOperatorError {
     #[error("Cannot apply '{op}' operator between {lhs} and {rhs}")]
     InvalidBinaryOperatorType {
@@ -105,7 +105,7 @@ pub enum BinaryOperatorError {
     },
 }
 
-#[derive(Debug, ThisError)]
+#[derive(Debug, ThisError, Clone)]
 pub enum LoopError {
     #[error("You can only loop over Arrays, Maps and Colors")]
     LoopOverNonIterableValue,
@@ -117,7 +117,7 @@ pub enum LoopError {
     TooManyLoopVariables,
 }
 
-#[derive(Debug, ThisError)]
+#[derive(Debug, ThisError, Clone)]
 pub enum KeywordError {
     #[error("The format provided is not valid. Available formats are: {formats:?}")]
     InvalidFormat { formats: &'static [&'static str] },
@@ -127,7 +127,7 @@ pub enum KeywordError {
     InvalidColorDefinition,
 }
 
-#[derive(Debug, ThisError)]
+#[derive(Debug, ThisError, Clone)]
 pub enum FilterError {
     #[error("Not enough arguments provided for filter")]
     NotEnoughArguments,
