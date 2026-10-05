@@ -29,6 +29,7 @@ pub struct Config {
     pub prefer: Option<SelectionPreference>,
     pub contrast: Option<f64>,
     pub source_color_index: Option<i64>,
+    pub parallel_generation: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
