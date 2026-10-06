@@ -341,7 +341,7 @@ impl State {
         };
 
         Ok(serde_json::json!({
-            "image": image, "mode": format!("{}", self.default_scheme), "is_dark_mode": is_dark_mode,
+            "image": image, "mode": format!("{}", self.default_scheme), "is_dark_mode": is_dark_mode, "scheme": self.resolved_type
         }))
     }
 

@@ -48,6 +48,12 @@ impl SchemeTypes {
     }
 }
 
+impl fmt::Display for SchemeTypes {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Schemes {
     pub light: IndexMap<std::string::String, material_colors::color::Argb>,
