@@ -150,7 +150,7 @@ in
             output_path = lib.mkOption {
               type = either str (listOf str);
               description = "Path where the generated file will be written to";
-              example = "~/.config/sytle.css";
+              example = "~/.config/style.css";
               apply = lib.id;
             };
             pre_hook = lib.mkOption {
