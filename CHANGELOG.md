@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.3.0](https://github.com/InioX/matugen/compare/matugen-v4.2.0...matugen-v4.3.0) - 2026-10-08
+
+### Added
+
+- add `scheme` variable ([#329](https://github.com/InioX/matugen/pull/329))
+- add template index to logs
+- switch to plume-log for logging
+
+### Fixed
+
+- *(nix)* correct style.css typo in module example
+- panics, grayscale bug, duplicate filter, and process::exit in library code
+
+### Other
+
+- added asynchronous theme generation
+- move matugen-parser into its own crate
+- Merge pull request #320 from Cybersnake223/fix/panics-and-bugs
+- wrap long error message line
+
 ## [4.2.0](https://github.com/InioX/matugen/compare/v4.1.0...v4.2.0) - 2026-08-05
 
 ### Added
