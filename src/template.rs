@@ -18,12 +18,7 @@ use crate::{
 use matugen_parser::Engine;
 use serde::{Deserialize, Serialize};
 
-use std::{
-    collections::HashMap,
-    path::Path,
-    str,
-    sync::Mutex,
-};
+use std::{collections::HashMap, path::Path, str, sync::Mutex};
 
 use std::{
     fs::{create_dir_all, read_to_string, OpenOptions},
