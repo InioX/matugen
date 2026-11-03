@@ -113,6 +113,14 @@ pub fn generate_schemes_and_theme(
 
     let contrast = args.contrast.or(config_file.config.contrast);
 
+    // Achromatic sources (pure black/white/gray) have no HCT hue, so chromatic
+    // scheme variants would invent an arbitrary accent hue for them. Swap to
+    // monochrome for this run when that's the case.
+    let scheme_type = match source_color {
+        Some(color) => crate::scheme::resolve_achromatic_scheme(color, scheme_type),
+        None => scheme_type,
+    };
+
     let (schemes, theme) = match source_color {
         Some(color) => {
             let theme = ThemeBuilder::with_source(color).build();
