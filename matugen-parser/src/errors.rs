@@ -141,6 +141,8 @@ pub enum FilterError {
     ColorFilterOnString,
     #[error("Cannot use color filters on a boolean value")]
     ColorFilterOnBool,
+    #[error("Could not parse '{value}' as a color: {reason}")]
+    InvalidColorString { value: String, reason: String },
     #[error("Could not find the filter: {filter}")]
     FilterNotFound { filter: String },
     #[error("Invalid String, expected one of: [{expected}]")]
@@ -214,6 +216,7 @@ impl FilterError {
             FilterError::InvalidArgumentType { .. } => "InvalidArgumentType",
             FilterError::ColorFilterOnString => "ColorFilterOnString",
             FilterError::ColorFilterOnBool => "ColorFilterOnBool",
+            FilterError::InvalidColorString { .. } => "InvalidColorString",
             FilterError::FilterNotFound { .. } => "FilterNotFound",
             FilterError::UnexpectedStringValue { .. } => "UnexpectedStringValue",
             FilterError::InvalidFormatString { .. } => "InvalidFormatString",
