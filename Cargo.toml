@@ -22,7 +22,7 @@ winapi = { version = "0.3", features = ["winuser"] }
 enquote = "1.1.0"
 
 [features]
-filter-docs = []
+filter-docs = ["matugen-parser/filter-docs"]
 default = ["dump-json", "jxl-image"]
 update-informer = ["dep:update-informer"]
 web-image = ["dep:reqwest"]

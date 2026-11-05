@@ -3,11 +3,13 @@ use colorsys::{Hsl, Rgb};
 use crate::Value;
 
 #[cfg(feature = "filter-docs")]
-#[derive(Debug, Clone)]
+#[derive(serde::Serialize, Debug, Clone)]
 pub struct FilterDoc {
     pub name: &'static str,
     pub category: &'static str,
-    pub description: &'static str,
+    pub description: String,
+    pub example: Option<String>,
+    pub arguments: Vec<String>,
 }
 
 #[cfg(feature = "filter-docs")]
@@ -29,14 +31,18 @@ pub fn filter_docs() -> Vec<FilterDoc> {
 #[macro_export]
 macro_rules! __register_filter_doc {
     ($name:expr, $category:expr, $doc:expr) => {{
-        $crate::parser::helpers::FILTER_DOCS
+        let (description, example, arguments) = $crate::helpers::parse_doc_string($doc);
+
+        $crate::helpers::FILTER_DOCS
             .get_or_init(|| std::sync::Mutex::new(Vec::new()))
             .lock()
             .unwrap()
-            .push($crate::parser::helpers::FilterDoc {
+            .push($crate::helpers::FilterDoc {
                 name: $name,
                 category: $category,
-                description: $doc,
+                description,
+                example,
+                arguments,
             });
     }};
 }
@@ -91,33 +97,32 @@ macro_rules! register_filters {
 // }
 
 #[cfg(feature = "filter-docs")]
-pub fn filters_to_html() -> String {
-    use std::collections::BTreeMap;
+pub fn parse_doc_string(raw: &str) -> (String, Option<String>, Vec<String>) {
+    let blocks: Vec<&str> = raw
+        .split("\n\n")
+        .map(|b| b.trim())
+        .filter(|b| !b.is_empty())
+        .collect();
 
-    let mut grouped: BTreeMap<&str, Vec<&FilterDoc>> = BTreeMap::new();
-    let docs = filter_docs();
+    let description = blocks.first().unwrap_or(&"").to_string();
+    let example = blocks.get(1).map(|&s| s.to_string());
 
-    for doc in docs.iter() {
-        grouped.entry(doc.category).or_default().push(doc);
-    }
-
-    let mut out = String::new();
-
-    for (category, docs) in grouped {
-        out.push_str(&format!("<h2>{}</h2><md-divider></md-divider>\n", category));
-
-        for doc in docs {
-            out.push_str(&format!(
-                "<div class='filter-doc'>
-    <h3>{}</h3>
-    {}
-</div>\n",
-                doc.name, doc.description
-            ));
+    let mut arguments = Vec::new();
+    if let Some(arg_block) = blocks.get(2) {
+        for line in arg_block.lines() {
+            let trimmed = line.trim();
+            if !trimmed.is_empty() {
+                arguments.push(trimmed.to_string());
+            }
         }
     }
 
-    out
+    (description, example, arguments)
+}
+
+#[cfg(feature = "filter-docs")]
+pub fn filters_to_json() -> Result<String, serde_json::Error> {
+    serde_json::to_string_pretty(&filter_docs())
 }
 
 #[macro_export]

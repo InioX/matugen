@@ -348,324 +348,157 @@ impl State {
     fn add_engine_filters(&self, engine: &mut Engine) {
         matugen_parser::register_filters!((engine) {
             "Colors" => {
-                /// <p>Sets the red channel of a color</p>
+                /// Sets the red channel of a color
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#000000" | to_color | set_red: 255 }}
                 ///
-                /// <ul>
-                ///     <li><code>Int</code> - the red channel value (0-255)</li>
-                /// </ul>
-
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#000000" | to_color | set_red: 255 }}</code></pre>
-                /// </md-card>
+                /// Int - the red channel value (0-255)
                 "set_red" => crate::filters::set_red,
 
-                /// <p>Sets the blue channel of a color</p>
+                /// Sets the blue channel of a color
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#000000" | to_color | set_blue: 255 }}
                 ///
-                /// <ul>
-                ///     <li><code>Int</code> - the blue channel value</li>
-                /// </ul>
-
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#000000" | to_color | set_blue: 255 }}</code></pre>
-                /// </md-card>
+                /// Int - the blue channel value
                 "set_blue" => crate::filters::set_blue,
 
-                /// <p>Sets the green channel of a color</p>
+                /// Sets the green channel of a color
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#000000" | to_color | set_green: 255 }}
                 ///
-                /// <ul>
-                ///     <li><code>Int</code> - the green channel value (0-255)</li>
-                /// </ul>
-
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#000000" | to_color | set_green: 255 }}</code></pre>
-                /// </md-card>
+                /// Int - the green channel value (0-255)
                 "set_green" => crate::filters::set_green,
 
-                /// <p>Sets the alpha channel of a color</p>
+                /// Sets the alpha channel of a color
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#000000" | to_color | set_alpha: 0.1 }}
                 ///
-                /// <ul>
-                ///     <li><code>Float</code> - the alpha channel value (0.0-1.0)</li>
-                /// </ul>
-
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#000000" | to_color | set_alpha: 0.1 }}</code></pre>
-                /// </md-card>
+                /// Float - the alpha channel value (0.0-1.0)
                 "set_alpha" => crate::filters::set_alpha,
 
-                /// <p>Sets the hue channel of a color</p>
+                /// Sets the hue channel of a color
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#000000" | to_color | set_hue: 360 }}
                 ///
-                /// <ul>
-                ///     <li><code>Int</code> - the hue value (0-360)</li>
-                /// </ul>
-
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#000000" | to_color | set_hue: 360 }}</code></pre>
-                /// </md-card>
+                /// Int - the hue value (0-360)
                 "set_hue" => crate::filters::set_hue,
 
-                /// <p>Sets the saturation of a color</p>
+                /// Sets the saturation of a color
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#000000" | to_color | set_saturation: 100.0 }}
                 ///
-                /// <ul>
-                ///     <li><code>Float</code> - the saturation value (0-100)</li>
-                /// </ul>
-
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#000000" | to_color | set_saturation: 100.0 }}</code></pre>
-                /// </md-card>
+                /// Float - the saturation value (0-100)
                 "set_saturation" => crate::filters::set_saturation,
 
-                /// <p>Sets the lightness of a color</p>
+                /// Sets the lightness of a color
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#000000" | to_color | set_lightness: 100 }}
                 ///
-                /// <ul>
-                ///     <li><code>Int</code> - the lightness value (0-100)</li>
-                /// </ul>
-
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#000000" | to_color | set_lightness: 100 }}</code></pre>
-                /// </md-card>
+                /// Int - the lightness value (0-100)
                 "set_lightness" => crate::filters::set_lightness,
 
-                /// <p>Lightens a color</p>
+                /// Lightens a color
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#ffffff" | to_color | lighten: 20.0 }}
                 ///
-                /// <ul>
-                ///     <li><code>Float</code> - amount to adjust lightness by</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#ffffff" | to_color | lighten: 20.0 }}</code></pre>
-                /// </md-card>
+                /// Float - amount to adjust lightness by
                 "lighten" => crate::filters::lighten,
 
-                /// <p>Parses a CSS color string into a color</p>
+                /// Parses a CSS color string into a color
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#ff00ff" | to_color }}
                 ///
-                /// <ul>
-                ///     <li>None</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#ff00ff" | to_color }}</code></pre>
-                /// </md-card>
                 "to_color" => crate::filters::to_color,
 
-                /// <p>Inverts a color</p>
+                /// Inverts a color
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#ffffff" | to_color | invert }}
                 ///
-                /// <ul>
-                ///     <li>None</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#ffffff" | to_color | invert }}</code></pre>
-                /// </md-card>
                 "invert" => crate::filters::invert,
 
-                /// <p>Converts a color to grayscale</p>
+                /// Converts a color to grayscale
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#ff0000" | to_color | grayscale }}
                 ///
-                /// <ul>
-                ///     <li>None</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#ff0000" | to_color | grayscale }}</code></pre>
-                /// </md-card>
                 "grayscale" => crate::filters::grayscale,
 
-                /// <p>Automatically lightens or darkens a color based on its current lightness</p>
+                /// Automatically lightens or darkens a color based on its current lightness
+                /// If the color is dark, it will be lightened. If it is light, it will be darkened.
                 ///
-                /// <p>If the color is dark, it will be lightened. If it is light, it will be darkened.</p>
+                /// {{ "#222222" | to_color | auto_lightness: 10.0 }}
                 ///
-                /// <p><strong>Arguments:</strong></p>
-                ///
-                /// <ul>
-                ///     <li><code>Float</code> - amount to adjust lightness by</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#222222" | to_color | auto_lightness: 10.0 }}</code></pre>
-                /// </md-card>
+                /// Float - amount to adjust lightness by
                 "auto_lightness" => crate::filters::auto_lighten,
 
-                /// <p>Adjusts the saturation of a color</p>
+                /// Adjusts the saturation of a color
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#336699" | to_color | saturate: 20.0, "hsl" }}
                 ///
-                /// <ul>
-                ///     <li><code>Float</code> - saturation amount</li>
-                ///     <li><code>String</code> - color space (<code>hsl</code> or <code>hsv</code>)</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#336699" | to_color | saturate: 20.0, "hsl" }}</code></pre>
-                /// </md-card>
+                /// Float - saturation amount
+                /// String - color space (hsl or hsv)
                 "saturate" => crate::filters::saturate,
 
-                /// <p>Blends two colors together using hue blending</p>
+                /// Blends two colors together using hue blending
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#ff0000" | to_color | blend: {{ "#0000ff" | to_color }}, 0.5 }}
                 ///
-                /// <ul>
-                ///     <li><code>Color</code> - color to blend with</li>
-                ///     <li><code>Float</code> - blend amount (0.0 - 1.0)</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#ff0000" | to_color | blend: {{ "#0000ff" | to_color }}, 0.5 }}</code></pre>
-                /// </md-card>
+                /// Color - color to blend with
+                /// Float - blend amount (0.0 - 1.0)
                 "blend" => crate::filters::blend,
 
-                /// <p>Harmonizes a color with another using harmonization</p>
+                /// Harmonizes a color with another using harmonization
+                /// This shifts the hue of the original color toward the target color.
                 ///
-                /// <p>This shifts the hue of the original color toward the target color.</p>
+                /// {{ "#ff0000" | to_color | harmonize: {{ "#00ff00" | to_color }}
                 ///
-                /// <p><strong>Arguments:</strong></p>
-                ///
-                /// <ul>
-                ///     <li><code>Color</code> - color to harmonize with</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#ff0000" | to_color | harmonize: {{ "#00ff00" | to_color }}</code></pre>
-                /// </md-card>
+                /// Color - color to harmonize with
                 "harmonize" => crate::filters::harmonize,
 
-                /// <p>Formats a color into a certain format just like what using the .<format> on a color keyword would. This is useful for colors that are defined in the templates as there is no way to format them otherwise.</p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#ff00ff" | format: "hex" }}</code></pre>
-                /// </md-card>
+                /// Formats a color into a certain format just like what using the .format on a color keyword would. This is useful for colors that are defined in the templates as there is no way to format them otherwise.
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "#ff00ff" | format: "hex" }}
                 ///
-                /// <ul>
-                ///     <li><code>String</code> - what to format the color into</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "#ff00ff" | to_color }}</code></pre>
-                /// </md-card>
+                /// String - what to format the color into
                 "format" => crate::filters::format,
             },
 
             "String" => {
-                /// <p>Converts a value to snake_case</p>
+                /// Converts a value to snake_case
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "Hello World" | snake_case }}
                 ///
-                /// <ul>
-                ///     <li>None</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "Hello World" | snake_case }}</code></pre>
-                /// </md-card>
                 "snake_case" => crate::filters::snake_case,
 
-                /// <p>Converts a value to lowercase</p>
+                /// Converts a value to lowercase
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "Hello World" | lower_case }}
                 ///
-                /// <ul>
-                ///     <li>None</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "Hello World" | lower_case }}</code></pre>
-                /// </md-card>
                 "lower_case" => crate::filters::lower_case,
 
-                /// <p>Converts a value to camelCase</p>
+                /// Converts a value to camelCase
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "hello world" | camel_case }}
                 ///
-                /// <ul>
-                ///     <li>None</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "hello world" | camel_case }}</code></pre>
-                /// </md-card>
                 "camel_case" => crate::filters::camel_case,
 
-                /// <p>Converts a value to PascalCase</p>
+                /// Converts a value to PascalCase
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "hello world" | pascal_case }}
                 ///
-                /// <ul>
-                ///     <li>None</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "hello world" | pascal_case }}</code></pre>
-                /// </md-card>
                 "pascal_case" => crate::filters::pascal_case,
 
-                /// <p>Converts a value to kebab-case</p>
+                /// Converts a value to kebab-case
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "hello world" | kebab_case }}
                 ///
-                /// <ul>
-                ///     <li>None</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "hello world" | kebab_case }}</code></pre>
-                /// </md-card>
                 "kebab_case" => crate::filters::kebab_case,
 
-                /// <p>Replaces all occurrences of a substring</p>
+                /// Replaces all occurrences of a substring
                 ///
-                /// <p><strong>Arguments:</strong></p>
+                /// {{ "hello world" | replace: "world", "there" }}
                 ///
-                /// <ul>
-                ///     <li><code>String</code> - text to find</li>
-                ///     <li><code>String</code> - replacement text</li>
-                /// </ul>
-                ///
-                /// <p><strong>Example:</strong></p>
-                /// <md-card class="code-card">
-                ///     <pre class="code-block"><code class="language-bash">{{ "hello world" | replace: "world", "there" }}</code></pre>
-                /// </md-card>
+                /// String - text to find
+                /// String - replacement text
                 "replace" => crate::filters::replace,
             },
         });
@@ -701,8 +534,11 @@ impl State {
         {
             if self.args.filter_docs_html == Some(true) {
                 {
-                    use crate::parser::helpers::filters_to_html;
-                    println!("{}", filters_to_html());
+                    use matugen_parser::helpers::filters_to_json;
+                    match filters_to_json() {
+                        Ok(json) => println!("{}", json),
+                        Err(e) => eprintln!("Failed to serialize filter docs to JSON: {}", e),
+                    }
                     return Ok(());
                 }
             }
