@@ -123,7 +123,7 @@ expr_postfix = "}}"
 # Example: To use the original red color you would use `{{ red_source }}` instead of `{{ red }}`
 
 # If you don't want to use the other colors that are automatically generated (on_color, on_color_container) you can just import a custom json with the colors instead.
-# For an example of importing json see: https://iniox.github.io/#matugen/usage/importing-json
+# For an example of importing json see: https://iniox.github.io/docs/matugen/usage/#importing-json
 [config.custom_colors]
 red = "#ff0000"
 blue = "#0000ff"
