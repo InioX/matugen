@@ -62,9 +62,9 @@
 ### Features
 
 > [!TIP]
-> If you would like to learn more about the features and configuration, read the wiki <a href="https://iniox.github.io/#matugen">here.</a>
+> If you would like to learn more about the features and configuration, read the wiki <a href="https://iniox.github.io/docs/matugen">here.</a>
 
-- **Templating engine built with Chumsky (designed for colors)** - [Read More](https://iniox.github.io/#matugen/templates)
+- **Templating engine built with Chumsky (designed for colors)** - [Read More](https://iniox.github.io/docs/matugen/templates)
   - Custom engine focused on making color manipulation simple and efficient
   - Import a color once in any format and automatically access all other formats (`hex`, `rgb`, `rgba`, `hsl`, etc.)
   - Colors are parsed as real color objects, not strings, making filters faster and more reliable
@@ -76,7 +76,7 @@
   - Export the generated palette as JSON or reference palette keywords directly within templates
   - Easily integrate palette values into config files, themes, or style templates
 
-- **Keyword Filters** - [Read More](https://iniox.github.io/#matugen/filters)
+- **Keyword Filters** - [Read More](https://iniox.github.io/dosc/matugen/filters)
   - Modify any keyword using filters such as `replace`, `to_upper`, `to_lower`, and `set_lightness`
   - Includes built-in color filters for adjusting hue, saturation, lightness, opacity, and more
   - Filters can be chained together for powerful inline transformations
