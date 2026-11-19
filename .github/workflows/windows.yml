@@ -1,0 +1,19 @@
+name: Windows release
+
+permissions:
+  contents: write
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          bin: matugen
+          target: x86_64-pc-windows-msvc
+          token: ${{ secrets.GITHUB_TOKEN }}
