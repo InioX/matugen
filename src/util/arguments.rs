@@ -1,6 +1,6 @@
 use clap::{ArgAction, Parser};
 use serde::{Deserialize, Serialize};
-use std::{fmt::Debug, ops::RangeBounds, path::PathBuf};
+use std::{fmt::Debug, ops::RangeBounds, path::PathBuf, str::FromStr};
 
 use crate::{color::base16::Backend, SchemesEnum};
 
@@ -126,13 +126,16 @@ pub struct Cli {
     #[arg(long, global = true, allow_negative_numbers = true)]
     pub lightness_light: Option<f64>,
 
-    /// Will automatically pick a source color based on the index provided (0 - 4)
+    /// Will automatically pick a source color based on the index provided (0 - 3)
     /// 0 = most dominant, 1 = 2nd most dominant, etc.
+    /// Use `random` to pick one of the source colors found in the image at random.
+    ///
+    /// An image has at most 4 source colors, and often fewer.
     ///
     /// Setting this to any value will not show the selection prompt.
     /// In earlier versions the default was 0.
-    #[arg(long, global = true, value_parser = clap::builder::RangedI64ValueParser::<i64>::new().range(0..4))]
-    pub source_color_index: Option<i64>,
+    #[arg(long, global = true)]
+    pub source_color_index: Option<SourceColorIndex>,
 
     /// Will print the possible source colors for an image instead of setting a theme
     #[arg(long, global = true, action=ArgAction::SetTrue)]
@@ -211,6 +214,72 @@ impl ToString for Format {
     }
 }
 
+/// The most source colors an image can have, since the scoring of the quantized colors
+/// returns at most 4 of them.
+const MAX_SOURCE_COLORS: usize = 4;
+
+/// Which of the source colors found in an image to use.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SourceColorIndex {
+    /// The n-th most dominant color, starting at 0.
+    Index(usize),
+    /// Any of the colors found in the image.
+    Random,
+}
+
+impl FromStr for SourceColorIndex {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.eq_ignore_ascii_case("random") {
+            return Ok(Self::Random);
+        }
+
+        let index: usize = s.parse().map_err(|_| {
+            format!(
+                "`{s}` is not a number from 0 to {} or `random`",
+                MAX_SOURCE_COLORS - 1
+            )
+        })?;
+
+        if index >= MAX_SOURCE_COLORS {
+            return Err(format!(
+                "{index} is not in 0..{MAX_SOURCE_COLORS}, an image has at most {MAX_SOURCE_COLORS} source colors"
+            ));
+        }
+
+        Ok(Self::Index(index))
+    }
+}
+
+impl Serialize for SourceColorIndex {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            Self::Index(index) => serializer.serialize_u64(*index as u64),
+            Self::Random => serializer.serialize_str("random"),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for SourceColorIndex {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        // The config file takes `source_color_index = 1` as well as `source_color_index = "random"`
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Raw {
+            Number(i64),
+            Text(String),
+        }
+
+        match Raw::deserialize(deserializer)? {
+            Raw::Number(number) => number.to_string(),
+            Raw::Text(text) => text,
+        }
+        .parse()
+        .map_err(serde::de::Error::custom)
+    }
+}
+
 #[derive(Debug, Clone, clap::ValueEnum, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum SelectionPreference {
@@ -233,5 +302,73 @@ impl ToString for SelectionPreference {
             SelectionPreference::ClosestToFallback => "closest_to_fallback",
         }
         .to_owned()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn source_color_index_accepts_every_index() {
+        for index in 0..MAX_SOURCE_COLORS {
+            assert_eq!(
+                index.to_string().parse::<SourceColorIndex>(),
+                Ok(SourceColorIndex::Index(index))
+            );
+        }
+    }
+
+    #[test]
+    fn source_color_index_accepts_random_in_any_case() {
+        for text in ["random", "Random", "RANDOM"] {
+            assert_eq!(
+                text.parse::<SourceColorIndex>(),
+                Ok(SourceColorIndex::Random)
+            );
+        }
+    }
+
+    #[test]
+    fn source_color_index_rejects_out_of_range_and_garbage() {
+        for text in ["4", "9", "-1", "", "abc", "1.5", "random2"] {
+            assert!(
+                text.parse::<SourceColorIndex>().is_err(),
+                "`{text}` should not parse"
+            );
+        }
+    }
+
+    #[test]
+    fn source_color_index_is_read_from_the_config_file() {
+        #[derive(Deserialize)]
+        struct Config {
+            source_color_index: SourceColorIndex,
+        }
+
+        let parse = |value: &str| {
+            toml::from_str::<Config>(&format!("source_color_index = {value}"))
+                .map(|config| config.source_color_index)
+        };
+
+        assert_eq!(parse("2").unwrap(), SourceColorIndex::Index(2));
+        assert_eq!(parse("\"random\"").unwrap(), SourceColorIndex::Random);
+        assert!(parse("4").is_err());
+        assert!(parse("-1").is_err());
+        assert!(parse("\"bogus\"").is_err());
+    }
+
+    #[test]
+    fn source_color_index_round_trips_through_the_config_file() {
+        #[derive(Serialize, Deserialize, PartialEq, Debug)]
+        struct Config {
+            source_color_index: SourceColorIndex,
+        }
+
+        for source_color_index in [SourceColorIndex::Index(3), SourceColorIndex::Random] {
+            let config = Config { source_color_index };
+            let text = toml::to_string(&config).unwrap();
+            assert_eq!(toml::from_str::<Config>(&text).unwrap(), config);
+        }
     }
 }

@@ -271,10 +271,10 @@ in
     };
 
     source_color_index = lib.mkOption {
-      description = "Will automatically pick a source color based on the index provided (0 - 4), 0 = most dominant, 1 = 2nd most dominant, etc.";
-      type = lib.types.ints.between 0 4;
+      description = "Will automatically pick a source color based on the index provided (0 - 3), 0 = most dominant, 1 = 2nd most dominant, etc. Use \"random\" to pick one of the source colors found in the image at random.";
+      type = lib.types.either (lib.types.ints.between 0 3) (lib.types.enum [ "random" ]);
       default = 0;
-      example = "1";
+      example = "random";
     };
 
     config = lib.mkOption {

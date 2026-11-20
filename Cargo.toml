@@ -37,6 +37,7 @@ criterion = { version = "0.5", features = ["html_reports"] }
 matugen-parser = { path = "./matugen-parser" }
 indexmap = { version = "2.7.0", features = ["serde"] }
 rayon = "1"
+rand = "0.8"
 
 # logging
 log = "0.4.17"

@@ -1716,6 +1716,7 @@ dependencies = [
  "owo-colors",
  "palette",
  "plume-log",
+ "rand 0.8.5",
  "rayon",
  "reqwest 0.12.5",
  "resolve-path",
