@@ -19,10 +19,14 @@ use crate::{
     color::{format::rgb_from_argb, math::saturation},
     util::color::generate_style,
 };
-use crate::{util::arguments::SelectionPreference, FilterType as OwnFilterType};
+use crate::{
+    util::arguments::{SelectionPreference, SourceColorIndex},
+    FilterType as OwnFilterType,
+};
 use color_eyre::{eyre::WrapErr, Report};
 use colorsys::{Hsl, Rgb};
 use owo_colors::{OwoColorize, Stream::Stdout};
+use rand::Rng;
 use std::{io::IsTerminal as _, str::FromStr};
 
 use material_colors::image::AsPixels;
@@ -166,7 +170,7 @@ pub fn get_source_color(
     resize_filter: &Option<OwnFilterType>,
     fallback_color: Option<Argb>,
     prefer: &Option<SelectionPreference>,
-    source_color_index: &Option<i64>,
+    source_color_index: &Option<SourceColorIndex>,
 ) -> Result<Argb, Report> {
     use crate::color::color;
 
@@ -210,7 +214,7 @@ pub fn get_source_color_from_image(
     filter_type: FilterType,
     fallback_color: Option<Argb>,
     prefer: &Option<SelectionPreference>,
-    source_color_index: &Option<i64>,
+    source_color_index: &Option<SourceColorIndex>,
 ) -> Result<Argb, Report> {
     let ranked = get_scored_colors_from_image(path, filter_type, fallback_color)?;
     let ranked_formatted = format_ranked(&ranked);
@@ -221,15 +225,25 @@ pub fn get_source_color_from_image(
     }
 
     if let Some(index) = source_color_index {
+        let index = match index {
+            SourceColorIndex::Index(index) => *index,
+            SourceColorIndex::Random => {
+                // `Score::score` returns the fallback color when nothing else is left, so `ranked` is never empty
+                let index = rand::thread_rng().gen_range(0..ranked.len());
+                info!("Picked source color index {} at random", index);
+                index
+            }
+        };
+
         // Should be safe because of the range in the argument definition but just in case...
-        if *index < 0 || (*index as usize) >= ranked.len() {
+        if index >= ranked.len() {
             return Err(Report::msg(format!(
                 "Source color index {} is out of bounds (0-{})",
                 index,
                 ranked.len() - 1
             )));
         }
-        return Ok(ranked[*index as usize]);
+        return Ok(ranked[index]);
     }
 
     let selection = match (prefer, std::io::stdin().is_terminal()) {

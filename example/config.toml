@@ -42,8 +42,9 @@ import_json_files = ["./custom3.json"]
 # and 1 represents maximum contrast.
 contrast = 1.0
 
-# Will set the source color index just like the `--source-color-index` CLI flag (0 - 4).
+# Will set the source color index just like the `--source-color-index` CLI flag (0 - 3).
 # 0 = most dominant, 1 = 2nd most dominant, etc.
+# Use "random" to pick one of the source colors found in the image at random.
 # IF the CLI flag is specified, it will override this value.
 source_color_index = 1
 
