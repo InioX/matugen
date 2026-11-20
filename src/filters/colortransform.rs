@@ -1,4 +1,3 @@
-use color_eyre::eyre::Context;
 use colorsys::{ColorTransform, Hsl, Rgb, SaturationInSpace};
 use material_colors::blend::{harmonize as md3_harmonize, hct_hue};
 
@@ -157,14 +156,14 @@ pub(crate) fn to_color(
     _engine: &Engine,
 ) -> Result<FilterReturnType, FilterError> {
     match original {
-        FilterReturnType::String(s) => Ok(FilterReturnType::Rgb(
-            parse_css_color(&s)
-                .wrap_err(format!(
-                    "Failed to use to_color filter on color string: {}",
-                    s
-                ))
-                .unwrap(),
-        )),
+        FilterReturnType::String(s) => {
+            parse_css_color(&s).map(FilterReturnType::Rgb).map_err(|e| {
+                FilterError::InvalidColorString {
+                    reason: e.to_string(),
+                    value: s,
+                }
+            })
+        }
         FilterReturnType::Rgb(color) => Ok(FilterReturnType::Rgb(color)),
         FilterReturnType::Hsl(color) => Ok(FilterReturnType::Hsl(color)),
         // TODO: Add proper error here
@@ -244,5 +243,35 @@ pub(crate) fn harmonize(
             Ok(FilterReturnType::Hsl(hsl_from_argb(res)))
         }
         FilterReturnType::Bool(_) => Err(FilterError::ColorFilterOnBool),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn apply_to_color(input: &str) -> Result<FilterReturnType, FilterError> {
+        to_color(
+            &[],
+            &[],
+            FilterReturnType::String(input.to_owned()),
+            &Engine::new(),
+        )
+    }
+
+    #[test]
+    fn to_color_parses_valid_color_string() {
+        let Ok(FilterReturnType::Rgb(color)) = apply_to_color("#ff00ff") else {
+            panic!("expected an rgb color");
+        };
+        assert_eq!(color.to_hex_string(), "#ff00ff");
+    }
+
+    #[test]
+    fn to_color_returns_error_for_invalid_color_string() {
+        assert!(matches!(
+            apply_to_color("notacolor"),
+            Err(FilterError::InvalidColorString { value, .. }) if value == "notacolor"
+        ));
     }
 }
