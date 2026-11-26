@@ -50,7 +50,7 @@ let
     config = {
       custom_colors = cfg.custom_colors;
     }
-    // cfg.config;
+    // cfg.extraConfig;
     templates = builtins.mapAttrs (
       _: template:
       {
@@ -225,7 +225,7 @@ in
         "scheme-vibrant"
         "scheme-smart"
       ];
-      default = osCfg.palette or "scheme-tonal-spot";
+      default = osCfg.type or "scheme-tonal-spot";
       example = "scheme-content";
     };
 
@@ -283,10 +283,10 @@ in
       example = "1";
     };
 
-    config = lib.mkOption {
+    extraConfig = lib.mkOption {
       description = "Add things to the config not covered by other options.";
       type = lib.types.attrs;
-      default = osCfg.config or { };
+      default = osCfg.extraConfig or { };
       example = ''
         {
           custom_keywords.font1 = "Google Sans";
