@@ -1,6 +1,6 @@
 #[cfg(feature = "dump-json")]
 use indexmap::IndexMap;
-use material_colors::color::Argb;
+use material_colors::color::Rgb as Argb;
 use owo_colors::Style;
 
 use colorsys::Rgb;

@@ -1,7 +1,9 @@
+use std::str::FromStr;
+
 use color_eyre::Report;
 use colorsys::Rgb;
-use material_colors::color::{Argb, Lab};
-use std::str::FromStr;
+use material_colors::color::Lab;
+use material_colors::color::Rgb as Argb;
 
 pub fn get_color_distance_lab(c1: &Lab, c2: &Lab) -> f64 {
     let l: f64 = c1.l - c2.l;

@@ -14,7 +14,7 @@ use crate::{ERROR_HL_STYLE, SUCCESS_HL_STYLE, UNDERLINE_STYLE};
 use color_eyre::Report;
 use image::ImageReader;
 use indexmap::IndexMap;
-use material_colors::color::Argb;
+use material_colors::color::Rgb as Argb;
 use owo_colors::{OwoColorize, Stream::Stdout};
 use serde::{
     de::{self, Visitor},
@@ -37,7 +37,6 @@ struct ArgbSchemes {
 
 #[derive(Debug, Copy, Clone)]
 pub struct ArgbHelper {
-    alpha: u8,
     red: u8,
     green: u8,
     blue: u8,
@@ -48,10 +47,7 @@ impl Serialize for ArgbHelper {
     where
         S: Serializer,
     {
-        let hex_string = format!(
-            "#{:02X}{:02X}{:02X}{:02X}",
-            self.red, self.green, self.blue, self.alpha
-        );
+        let hex_string = format!("#{:02X}{:02X}{:02X}", self.red, self.green, self.blue);
         serializer.serialize_str(&hex_string)
     }
 }
@@ -85,12 +81,7 @@ impl<'de> Deserialize<'de> for ArgbHelper {
                 let blue = u8::from_str_radix(&v[4..6], 16).map_err(E::custom)?;
                 let alpha = u8::from_str_radix(&v[6..8], 16).map_err(E::custom)?;
 
-                Ok(ArgbHelper {
-                    alpha,
-                    red,
-                    green,
-                    blue,
-                })
+                Ok(ArgbHelper { red, green, blue })
             }
         }
 
@@ -101,7 +92,6 @@ impl<'de> Deserialize<'de> for ArgbHelper {
 impl From<ArgbHelper> for Argb {
     fn from(value: ArgbHelper) -> Self {
         Argb {
-            alpha: value.alpha,
             red: value.red,
             green: value.green,
             blue: value.blue,
@@ -112,7 +102,6 @@ impl From<ArgbHelper> for Argb {
 impl From<Argb> for ArgbHelper {
     fn from(value: Argb) -> Self {
         ArgbHelper {
-            alpha: value.alpha,
             red: value.red,
             green: value.green,
             blue: value.blue,

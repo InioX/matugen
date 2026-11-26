@@ -1,14 +1,16 @@
 use dialoguer::Select;
+use material_colors::color::Rgb as Argb;
 use material_colors::{
     blend::harmonize,
-    color::{Argb, Lab},
+    color::Lab,
     dynamic_color::{DynamicScheme, MaterialDynamicColors, Variant as MaterialColorsVariant},
     hct::Cam16,
-    image::{FilterType, ImageReader},
     quantize::{Quantizer, QuantizerCelebi},
     score::Score,
     theme::{ColorGroup, CustomColor, CustomColorGroup},
 };
+
+use image::{imageops::FilterType, ImageReader};
 
 use crate::UNDERLINE_STYLE;
 use crate::{
@@ -24,8 +26,6 @@ use color_eyre::{eyre::WrapErr, Report};
 use colorsys::{Hsl, Rgb};
 use owo_colors::{OwoColorize, Stream::Stdout};
 use std::{io::IsTerminal as _, str::FromStr};
-
-use material_colors::image::AsPixels;
 
 #[derive(clap::Parser, Debug, Clone)]
 pub enum ColorFormat {
@@ -99,12 +99,10 @@ impl OwnCustomColor {
             OwnCustomColor::Color(color) => material_colors::theme::CustomColor {
                 value: Argb::from_str(color)?,
                 blend: true,
-                name,
             },
             OwnCustomColor::Options { color, blend } => material_colors::theme::CustomColor {
                 value: Argb::from_str(color)?,
                 blend: *blend,
-                name,
             },
         })
     }
@@ -119,7 +117,6 @@ pub fn adjust_color_lightness_dark(color: Argb, lightness_level_dark: &Option<f6
         / pre_lightness_level
         * 255.0;
     Argb::new(
-        color.alpha,
         (color.red as f64 * adj).clamp(0.0, 255.0) as u8,
         (color.green as f64 * adj).clamp(0.0, 255.0) as u8,
         (color.blue as f64 * adj).clamp(0.0, 255.0) as u8,
@@ -134,7 +131,6 @@ pub fn adjust_color_lightness_light(color: Argb, lightness_level_light: &Option<
         / pre_lightness_level
         * 255.0;
     Argb::new(
-        color.alpha,
         (color.red as f64 * adj).clamp(0.0, 255.0) as u8,
         (color.green as f64 * adj).clamp(0.0, 255.0) as u8,
         (color.blue as f64 * adj).clamp(0.0, 255.0) as u8,
@@ -147,7 +143,7 @@ pub fn format_ranked(ranked: &[Argb]) -> Vec<String> {
         .map(|c| {
             format!(
                 "{} {}",
-                c.to_hex_with_pound(),
+                c.as_hex(),
                 "  ".style(generate_style(&rgb_from_argb(*c)))
             )
         })
@@ -257,13 +253,15 @@ pub fn get_scored_colors_from_image(
     filter_type: FilterType,
     fallback_color: Option<Argb>,
 ) -> Result<Vec<Argb>, Report> {
-    let mut original = ImageReader::open(path)?;
-    let image = original.resize(112, 112, filter_type);
-    let pixels: Vec<Argb> = image
-        .as_pixels()
+    let pixels: Vec<Argb> = ImageReader::open(path)?
+        .decode()?
+        .resize(112, 112, filter_type)
+        .into_rgb8()
+        .into_raw()
+        .as_chunks::<3>()
+        .0
         .iter()
-        .copied()
-        .filter(|argb| argb.alpha == 255)
+        .map(|&[red, green, blue]| Argb::new(red, green, blue))
         .collect();
     let mut result = QuantizerCelebi::quantize(&pixels, 128);
 
@@ -352,7 +350,6 @@ pub fn get_source_color_from_color(color: &ColorFormat) -> Result<Argb, Report> 
                 red: rgb.red() as u8,
                 green: rgb.green() as u8,
                 blue: rgb.blue() as u8,
-                alpha: 255,
             })
         }
         ColorFormat::Hsl { string } => {
@@ -363,7 +360,6 @@ pub fn get_source_color_from_color(color: &ColorFormat) -> Result<Argb, Report> 
                 red: rgb.red() as u8,
                 green: rgb.green() as u8,
                 blue: rgb.blue() as u8,
-                alpha: 255,
             })
         }
     }
@@ -401,16 +397,16 @@ pub fn make_custom_color(
         color,
         value,
         light: ColorGroup {
-            color: MaterialDynamicColors::primary().get_argb(&light),
-            on_color: MaterialDynamicColors::on_primary().get_argb(&light),
-            color_container: MaterialDynamicColors::primary_container().get_argb(&light),
-            on_color_container: MaterialDynamicColors::on_primary_container().get_argb(&light),
+            color: MaterialDynamicColors::primary().get_rgb(&light),
+            on_color: MaterialDynamicColors::on_primary().get_rgb(&light),
+            color_container: MaterialDynamicColors::primary_container().get_rgb(&light),
+            on_color_container: MaterialDynamicColors::on_primary_container().get_rgb(&light),
         },
         dark: ColorGroup {
-            color: MaterialDynamicColors::primary().get_argb(&dark),
-            on_color: MaterialDynamicColors::on_primary().get_argb(&dark),
-            color_container: MaterialDynamicColors::primary_container().get_argb(&dark),
-            on_color_container: MaterialDynamicColors::on_primary_container().get_argb(&dark),
+            color: MaterialDynamicColors::primary().get_rgb(&dark),
+            on_color: MaterialDynamicColors::on_primary().get_rgb(&dark),
+            color_container: MaterialDynamicColors::primary_container().get_rgb(&dark),
+            on_color_container: MaterialDynamicColors::on_primary_container().get_rgb(&dark),
         },
     }
 }

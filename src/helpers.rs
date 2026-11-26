@@ -24,27 +24,11 @@ use color_eyre::{
     Report,
 };
 use log::LevelFilter;
-use material_colors::{
-    color::Argb,
-    theme::{Theme, ThemeBuilder},
-};
+use material_colors::color::Rgb as Argb;
+use material_colors::theme::{Theme, ThemeBuilder};
 use owo_colors::{OwoColorize, Stream::Stdout};
 use serde_json::Value;
 use std::{fs::read_to_string, path::PathBuf};
-
-pub fn apply_opacity_to_schemes(schemes: &mut Option<Schemes>, opacity: Option<f64>) {
-    if let Some(schemes) = schemes {
-        let alpha_val = (opacity.unwrap_or(1.0) * 255.0).round() as u8;
-
-        for color in schemes.dark.values_mut() {
-            color.alpha = alpha_val;
-        }
-
-        for color in schemes.light.values_mut() {
-            color.alpha = alpha_val;
-        }
-    }
-}
 
 pub fn merge_json_source(
     mut json: Value,

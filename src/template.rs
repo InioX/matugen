@@ -9,21 +9,14 @@ use serde_json::json;
 
 use crate::{
     color::color::get_closest_color,
-    helpers::{
-        apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, merge_json_source,
-    },
+    helpers::{generate_schemes_and_theme, get_syntax, merge_json_source},
     scheme::{SchemeTypes, Schemes},
     ERROR_HL_STYLE, INFO_HL_STYLE, SUCCESS_HL_STYLE, UNDERLINE_STYLE, WARN_HL_STYLE,
 };
 use matugen_parser::Engine;
 use serde::{Deserialize, Serialize};
 
-use std::{
-    collections::HashMap,
-    path::Path,
-    str,
-    sync::Mutex,
-};
+use std::{collections::HashMap, path::Path, str, sync::Mutex};
 
 use std::{
     fs::{create_dir_all, read_to_string, OpenOptions},
@@ -191,9 +184,6 @@ impl TemplateFile<'_> {
                         &self.state.config_file,
                         scheme_type,
                     )?;
-
-                    apply_opacity_to_schemes(&mut base16, self.state.args.opacity);
-                    apply_opacity_to_schemes(&mut schemes, self.state.args.opacity);
 
                     self.scheme_cache.insert(
                         scheme_type,
