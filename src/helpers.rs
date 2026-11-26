@@ -25,7 +25,7 @@ use color_eyre::{
     Report,
 };
 use log::LevelFilter;
-use material_colors::color::Rgb as Argb;
+use material_colors::color::Rgb;
 use material_colors::theme::{Theme, ThemeBuilder};
 use owo_colors::{OwoColorize, Stream::Stdout};
 use serde_json::Value;
@@ -69,15 +69,7 @@ pub fn generate_schemes_and_theme(
     args: &Cli,
     config_file: &ConfigFile,
     scheme_type: SchemeTypes,
-) -> Result<
-    (
-        Option<Schemes>,
-        Option<Argb>,
-        Option<Theme>,
-        Option<Schemes>,
-    ),
-    Report,
-> {
+) -> Result<(Option<Schemes>, Option<Rgb>, Option<Theme>, Option<Schemes>), Report> {
     let parsed_fallback_color = parse_fallback_color(config_file)?;
     let source_color_index = args
         .source_color_index
@@ -270,7 +262,7 @@ pub fn merge_json(a: &mut Value, b: Value) {
     }
 }
 
-pub fn parse_fallback_color(config_file: &ConfigFile) -> Result<Option<Argb>, Report> {
+pub fn parse_fallback_color(config_file: &ConfigFile) -> Result<Option<Rgb>, Report> {
     match &config_file.config.fallback_color {
         Some(s) => {
             let c = parse_css_color(&s)

@@ -3,7 +3,7 @@ use std::str::FromStr;
 use color_eyre::Report;
 use colorsys::Rgb;
 use material_colors::color::Lab;
-use material_colors::color::Rgb as Argb;
+use material_colors::color::Rgb as MCRgb;
 
 pub fn get_color_distance_lab(c1: &Lab, c2: &Lab) -> f64 {
     let l: f64 = c1.l - c2.l;
@@ -14,8 +14,8 @@ pub fn get_color_distance_lab(c1: &Lab, c2: &Lab) -> f64 {
 }
 
 pub fn get_color_distance_lab_from_str(c1: &str, c2: &str) -> Result<f64, Report> {
-    let c1 = Lab::from(Argb::from_str(c1)?);
-    let c2 = Lab::from(Argb::from_str(c2)?);
+    let c1 = Lab::from(MCRgb::from_str(c1)?);
+    let c2 = Lab::from(MCRgb::from_str(c2)?);
 
     Ok(get_color_distance_lab(&c1, &c2))
 }

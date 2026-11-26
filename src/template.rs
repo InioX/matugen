@@ -179,7 +179,7 @@ impl TemplateFile<'_> {
             });
             if let Some(scheme_type) = scheme_type {
                 if !self.scheme_cache.contains_key(&scheme_type) {
-                    let (mut schemes, _, theme, mut base16) = generate_schemes_and_theme(
+                    let (schemes, _, theme, base16) = generate_schemes_and_theme(
                         &self.state.args,
                         &self.state.config_file,
                         scheme_type,

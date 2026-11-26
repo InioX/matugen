@@ -139,24 +139,22 @@ pub fn get_custom_color_schemes(
         .as_ref()
         .unwrap_or(&empty)
         .iter()
-        .filter_map(
-            |(name, color)| match color.to_custom_color(name.to_string()) {
-                Ok(custom_color) => Some((
-                    name,
-                    make_custom_color(
-                        custom_color,
-                        scheme_type,
-                        source_color,
-                        *contrast,
-                        spec_version,
-                    ),
-                )),
-                Err(e) => {
-                    error!("Failed to parse custom color: {}, {:?}: {}", name, color, e);
-                    None
-                }
-            },
-        )
+        .filter_map(|(name, color)| match color.to_custom_color() {
+            Ok(custom_color) => Some((
+                name,
+                make_custom_color(
+                    custom_color,
+                    scheme_type,
+                    source_color,
+                    *contrast,
+                    spec_version,
+                ),
+            )),
+            Err(e) => {
+                error!("Failed to parse custom color: {}, {:?}: {}", name, color, e);
+                None
+            }
+        })
         .collect();
 
     let custom_colors_dark = custom_colors
@@ -213,11 +211,11 @@ pub fn get_schemes(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use material_colors::color::Rgb as Argb;
+    use material_colors::color::Rgb;
 
     #[test]
     fn schemes_eq() {
-        let source_color = material_colors::color::Rgb::new(255, 0, 0);
+        let source_color = Rgb::new(255, 0, 0);
         assert_eq!(
             Scheme::from(DynamicScheme::from_spec(
                 Hct::new(source_color),
@@ -228,7 +226,7 @@ mod tests {
                 SpecVersion::Spec2021,
             ))
             .primary,
-            Argb {
+            Rgb {
                 red: 255,
                 green: 180,
                 blue: 168,

@@ -14,7 +14,7 @@ use crate::{ERROR_HL_STYLE, SUCCESS_HL_STYLE, UNDERLINE_STYLE};
 use color_eyre::Report;
 use image::ImageReader;
 use indexmap::IndexMap;
-use material_colors::color::Rgb as Argb;
+use material_colors::color::Rgb;
 use owo_colors::{OwoColorize, Stream::Stdout};
 use serde::{
     de::{self, Visitor},
@@ -25,24 +25,24 @@ use sha2::{Digest, Sha256};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CacheFile {
-    colors: ArgbSchemes,
-    base16: ArgbSchemes,
+    colors: RgbSchemes,
+    base16: RgbSchemes,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ArgbSchemes {
-    light: IndexMap<String, ArgbHelper>,
-    dark: IndexMap<String, ArgbHelper>,
+struct RgbSchemes {
+    light: IndexMap<String, RgbHelper>,
+    dark: IndexMap<String, RgbHelper>,
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct ArgbHelper {
+pub struct RgbHelper {
     red: u8,
     green: u8,
     blue: u8,
 }
 
-impl Serialize for ArgbHelper {
+impl Serialize for RgbHelper {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -52,15 +52,15 @@ impl Serialize for ArgbHelper {
     }
 }
 
-impl<'de> Deserialize<'de> for ArgbHelper {
+impl<'de> Deserialize<'de> for RgbHelper {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        struct ArgbVisitor;
+        struct RgbVisitor;
 
-        impl<'de> Visitor<'de> for ArgbVisitor {
-            type Value = ArgbHelper;
+        impl<'de> Visitor<'de> for RgbVisitor {
+            type Value = RgbHelper;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 formatter.write_str("a hex string in the format #RRGGBBAA")
@@ -79,19 +79,18 @@ impl<'de> Deserialize<'de> for ArgbHelper {
                 let red = u8::from_str_radix(&v[0..2], 16).map_err(E::custom)?;
                 let green = u8::from_str_radix(&v[2..4], 16).map_err(E::custom)?;
                 let blue = u8::from_str_radix(&v[4..6], 16).map_err(E::custom)?;
-                let alpha = u8::from_str_radix(&v[6..8], 16).map_err(E::custom)?;
 
-                Ok(ArgbHelper { red, green, blue })
+                Ok(RgbHelper { red, green, blue })
             }
         }
 
-        deserializer.deserialize_str(ArgbVisitor)
+        deserializer.deserialize_str(RgbVisitor)
     }
 }
 
-impl From<ArgbHelper> for Argb {
-    fn from(value: ArgbHelper) -> Self {
-        Argb {
+impl From<RgbHelper> for Rgb {
+    fn from(value: RgbHelper) -> Self {
+        Rgb {
             red: value.red,
             green: value.green,
             blue: value.blue,
@@ -99,9 +98,9 @@ impl From<ArgbHelper> for Argb {
     }
 }
 
-impl From<Argb> for ArgbHelper {
-    fn from(value: Argb) -> Self {
-        ArgbHelper {
+impl From<Rgb> for RgbHelper {
+    fn from(value: Rgb) -> Self {
+        RgbHelper {
             red: value.red,
             green: value.green,
             blue: value.blue,
@@ -109,14 +108,14 @@ impl From<Argb> for ArgbHelper {
     }
 }
 
-fn convert_helper_scheme(scheme: &IndexMap<String, ArgbHelper>) -> IndexMap<String, Argb> {
+fn convert_helper_scheme(scheme: &IndexMap<String, RgbHelper>) -> IndexMap<String, Rgb> {
     scheme
         .iter()
         .map(|(k, v)| (k.clone(), (*v).into()))
         .collect()
 }
 
-pub fn convert_argb_scheme(scheme: &IndexMap<String, Argb>) -> IndexMap<String, ArgbHelper> {
+pub fn convert_argb_scheme(scheme: &IndexMap<String, Rgb>) -> IndexMap<String, RgbHelper> {
     scheme
         .iter()
         .map(|(k, v)| (k.clone(), (*v).into()))

@@ -186,7 +186,7 @@ impl State {
             }
         }
 
-        let (mut schemes, source_color, theme, mut base16) = if caching_enabled {
+        let (schemes, source_color, theme, base16) = if caching_enabled {
             match image_cache.load() {
                 Ok((schemes, base16)) => {
                     // Source color will be the same in both light and dark mode

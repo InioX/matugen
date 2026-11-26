@@ -11,7 +11,7 @@ use color_eyre::{eyre::WrapErr, Report};
 use colorsys::{Hsl, Rgb};
 use image::{ImageReader, RgbImage};
 use indexmap::IndexMap;
-use material_colors::color::Rgb as Argb;
+use material_colors::color::Rgb as MCRgb;
 use material_colors::{
     hct::Hct,
     utils::math::{difference_degrees, rotate_direction, sanitize_degrees_double},
@@ -51,7 +51,7 @@ fn drag_hue(source_hue: f64, target_hue: f64, amount: f64) -> f64 {
 pub fn generate_base16_scheme_from_palette(
     palette: &[Rgb],
     dark: bool,
-) -> Result<IndexMap<String, Argb>, Report> {
+) -> Result<IndexMap<String, MCRgb>, Report> {
     let mut scheme = IndexMap::new();
 
     let mut sorted = palette.to_vec();
@@ -81,7 +81,7 @@ pub fn generate_base16_scheme_from_palette(
 pub fn generate_base16_scheme_from_color(
     color: &Rgb,
     dark: bool,
-) -> Result<IndexMap<String, Argb>, Report> {
+) -> Result<IndexMap<String, MCRgb>, Report> {
     let mut scheme = IndexMap::new();
 
     let hsl: Hsl = color.into();
@@ -126,7 +126,7 @@ pub fn generate_base16_scheme_from_color(
     Ok(scheme)
 }
 
-fn interpolate_grays(base00: &Rgb, base05: &Rgb, dark: bool) -> Vec<Argb> {
+fn interpolate_grays(base00: &Rgb, base05: &Rgb, dark: bool) -> Vec<MCRgb> {
     let mut grays = Vec::new();
     let n = GRAY_NAMES.len();
 
@@ -135,7 +135,11 @@ fn interpolate_grays(base00: &Rgb, base05: &Rgb, dark: bool) -> Vec<Argb> {
         let r = base00.red() as f32 + t * (base05.red() as f32 - base00.red() as f32);
         let g = base00.green() as f32 + t * (base05.green() as f32 - base00.green() as f32);
         let b = base00.blue() as f32 + t * (base05.blue() as f32 - base00.blue() as f32);
-        grays.push(Argb::new(r.round() as u8, g.round() as u8, b.round() as u8));
+        grays.push(MCRgb::new(
+            r.round() as u8,
+            g.round() as u8,
+            b.round() as u8,
+        ));
     }
 
     if dark {
