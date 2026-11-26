@@ -9,9 +9,7 @@ use serde_json::json;
 
 use crate::{
     color::color::get_closest_color,
-    helpers::{
-        apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, merge_json_source,
-    },
+    helpers::{generate_schemes_and_theme, get_syntax, merge_json_source},
     scheme::{SchemeTypes, Schemes},
     ERROR_HL_STYLE, INFO_HL_STYLE, SUCCESS_HL_STYLE, UNDERLINE_STYLE, WARN_HL_STYLE,
 };
@@ -181,14 +179,11 @@ impl TemplateFile<'_> {
             });
             if let Some(scheme_type) = scheme_type {
                 if !self.scheme_cache.contains_key(&scheme_type) {
-                    let (mut schemes, _, theme, mut base16) = generate_schemes_and_theme(
+                    let (schemes, _, theme, base16) = generate_schemes_and_theme(
                         &self.state.args,
                         &self.state.config_file,
                         scheme_type,
                     )?;
-
-                    apply_opacity_to_schemes(&mut base16, self.state.args.opacity);
-                    apply_opacity_to_schemes(&mut schemes, self.state.args.opacity);
 
                     self.scheme_cache.insert(
                         scheme_type,

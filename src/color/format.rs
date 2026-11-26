@@ -1,30 +1,24 @@
 use colorsys::{ColorAlpha, Hsl, Rgb};
-use material_colors::color::Argb;
+use material_colors::color::Rgb as MCRgb;
 
-pub fn argb_from_rgb(color: &Rgb) -> Argb {
-    Argb {
+pub fn argb_from_rgb(color: &Rgb) -> MCRgb {
+    MCRgb {
         red: color.red() as u8,
         green: color.green() as u8,
         blue: color.blue() as u8,
-        alpha: (color.alpha() * 255.0) as u8,
     }
 }
 
-pub fn argb_from_hsl(color: &Hsl) -> Argb {
+pub fn argb_from_hsl(color: &Hsl) -> MCRgb {
     let color: Rgb = color.into();
     argb_from_rgb(&color)
 }
 
-pub fn rgb_from_argb(color: Argb) -> Rgb {
-    Rgb::from([
-        color.red as f64,
-        color.green as f64,
-        color.blue as f64,
-        color.alpha as f64,
-    ])
+pub fn rgb_from_argb(color: MCRgb) -> Rgb {
+    Rgb::from([color.red as f64, color.green as f64, color.blue as f64])
 }
 
-pub fn hsl_from_argb(color: Argb) -> Hsl {
+pub fn hsl_from_argb(color: MCRgb) -> Hsl {
     rgb_from_argb(color).as_ref().into()
 }
 

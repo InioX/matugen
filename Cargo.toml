@@ -62,8 +62,8 @@ clap = { version = "4.2.4", features = [
   "derive",
   "std",
 ], default-features = true }
-material-colors = { version = "0.4.0", features = ["image", "serde"] }
-image = { default-features = false, version = "0.25.2" }
+material-colors = { version = "0.5.0", features = ["quantize", "serde"] }
+image = { default-features = true, version = "0.25.2" }
 directories = "5.0"
 
 # should probably be removed

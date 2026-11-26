@@ -7,7 +7,7 @@ extern crate plume_log;
 
 use std::path::PathBuf;
 
-use material_colors::theme::ThemeBuilder;
+use material_colors::{color::Rgb, dynamic_color::SpecVersion, theme::ThemeBuilder};
 use owo_colors::{OwoColorize, Stream::Stdout, Style};
 use serde_json::Value;
 
@@ -21,8 +21,8 @@ use crate::{
     cache::ImageCache,
     color::color::{get_filter, get_scored_colors_from_image, Source},
     helpers::{
-        apply_opacity_to_schemes, generate_schemes_and_theme, get_syntax, json_from_file,
-        merge_json, merge_json_source, parse_fallback_color,
+        generate_schemes_and_theme, get_syntax, json_from_file, merge_json, merge_json_source,
+        parse_fallback_color,
     },
     scheme::{SchemeTypes, SchemesEnum},
     template::get_absolute_path,
@@ -47,7 +47,7 @@ pub mod scheme;
 use crate::scheme::Schemes;
 use matugen_parser::Engine;
 
-use material_colors::{color::Argb, theme::Theme};
+use material_colors::theme::Theme;
 
 const WARN_HL_STYLE: Style = Style::new().yellow().bold();
 const INFO_HL_STYLE: Style = Style::new().cyan().bold();
@@ -59,7 +59,7 @@ pub struct State {
     pub args: Cli,
     pub config_file: ConfigFile,
     pub config_path: Option<PathBuf>,
-    pub source_color: Option<Argb>,
+    pub source_color: Option<Rgb>,
     pub theme: Option<Theme>,
     pub schemes: Option<Schemes>,
     pub default_scheme: SchemesEnum,
@@ -166,7 +166,7 @@ impl State {
                 let ranked = get_scored_colors_from_image(&path, filter, fallback_color)?;
 
                 for color in ranked {
-                    println!("{}", color.to_hex_with_pound());
+                    println!("{}", color.as_hex());
                 }
 
                 return Ok(Self {
@@ -186,7 +186,7 @@ impl State {
             }
         }
 
-        let (mut schemes, source_color, theme, mut base16) = if caching_enabled {
+        let (schemes, source_color, theme, base16) = if caching_enabled {
             match image_cache.load() {
                 Ok((schemes, base16)) => {
                     // Source color will be the same in both light and dark mode
@@ -194,7 +194,11 @@ impl State {
                         Report::msg("Missing 'source_color' key in cached scheme")
                     })?;
 
-                    let theme = ThemeBuilder::with_source(source_color).build();
+                    let spec_version = args.spec_version.unwrap_or(SpecVersion::Spec2021);
+
+                    let theme = ThemeBuilder::with_source(source_color)
+                        .spec_version(spec_version)
+                        .build();
 
                     loaded_cache = true;
 
@@ -218,9 +222,6 @@ impl State {
         } else {
             generate_schemes_and_theme(&args, &config_file, resolved_type)?
         };
-
-        apply_opacity_to_schemes(&mut base16, args.opacity);
-        apply_opacity_to_schemes(&mut schemes, args.opacity);
 
         Ok(Self {
             args,

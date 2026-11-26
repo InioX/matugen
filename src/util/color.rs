@@ -1,6 +1,6 @@
 #[cfg(feature = "dump-json")]
 use indexmap::IndexMap;
-use material_colors::color::Argb;
+use material_colors::color::Rgb as MCRgb;
 use owo_colors::Style;
 
 use colorsys::Rgb;
@@ -29,7 +29,7 @@ const DEFAULT_TONES: [i32; 18] = [
 
 pub fn show_color(
     schemes: Option<&Schemes>,
-    source_color: Option<&Argb>,
+    source_color: Option<&MCRgb>,
     base16: Option<&Schemes>,
 ) {
     let mut table: Table = generate_table_format();

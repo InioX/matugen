@@ -15,6 +15,7 @@ use crate::{
     wallpaper::{self, Wallpaper},
 };
 
+use material_colors::dynamic_color::SpecVersion;
 use matugen_parser::{engine::EngineSyntax, Engine};
 
 #[allow(unused_imports)]
@@ -24,27 +25,11 @@ use color_eyre::{
     Report,
 };
 use log::LevelFilter;
-use material_colors::{
-    color::Argb,
-    theme::{Theme, ThemeBuilder},
-};
+use material_colors::color::Rgb;
+use material_colors::theme::{Theme, ThemeBuilder};
 use owo_colors::{OwoColorize, Stream::Stdout};
 use serde_json::Value;
 use std::{fs::read_to_string, path::PathBuf};
-
-pub fn apply_opacity_to_schemes(schemes: &mut Option<Schemes>, opacity: Option<f64>) {
-    if let Some(schemes) = schemes {
-        let alpha_val = (opacity.unwrap_or(1.0) * 255.0).round() as u8;
-
-        for color in schemes.dark.values_mut() {
-            color.alpha = alpha_val;
-        }
-
-        for color in schemes.light.values_mut() {
-            color.alpha = alpha_val;
-        }
-    }
-}
 
 pub fn merge_json_source(
     mut json: Value,
@@ -84,15 +69,7 @@ pub fn generate_schemes_and_theme(
     args: &Cli,
     config_file: &ConfigFile,
     scheme_type: SchemeTypes,
-) -> Result<
-    (
-        Option<Schemes>,
-        Option<Argb>,
-        Option<Theme>,
-        Option<Schemes>,
-    ),
-    Report,
-> {
+) -> Result<(Option<Schemes>, Option<Rgb>, Option<Theme>, Option<Schemes>), Report> {
     let parsed_fallback_color = parse_fallback_color(config_file)?;
     let source_color_index = args
         .source_color_index
@@ -115,8 +92,12 @@ pub fn generate_schemes_and_theme(
 
     let (schemes, theme) = match source_color {
         Some(color) => {
-            let theme = ThemeBuilder::with_source(color).build();
-            let (scheme_dark, scheme_light) = get_schemes(color, scheme_type, &contrast);
+            let spec_version = args.spec_version.unwrap_or(SpecVersion::Spec2021);
+            let theme = ThemeBuilder::with_source(color)
+                .spec_version(spec_version)
+                .build();
+            let (scheme_dark, scheme_light) =
+                get_schemes(color, scheme_type, &contrast, spec_version);
 
             let mut schemes = get_custom_color_schemes(
                 color,
@@ -127,6 +108,7 @@ pub fn generate_schemes_and_theme(
                 &contrast,
                 &args.lightness_dark,
                 &args.lightness_light,
+                spec_version,
             )?;
 
             schemes.dark.insert("source_color".to_owned(), color);
@@ -280,7 +262,7 @@ pub fn merge_json(a: &mut Value, b: Value) {
     }
 }
 
-pub fn parse_fallback_color(config_file: &ConfigFile) -> Result<Option<Argb>, Report> {
+pub fn parse_fallback_color(config_file: &ConfigFile) -> Result<Option<Rgb>, Report> {
     match &config_file.config.fallback_color {
         Some(s) => {
             let c = parse_css_color(&s)
