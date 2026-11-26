@@ -3,12 +3,15 @@ use std::collections::HashMap;
 
 use color_eyre::Report;
 use indexmap::IndexMap;
-use material_colors::{dynamic_color::Variant as MaterialColorsVariant, scheme::Scheme};
+use material_colors::{
+    dynamic_color::{DynamicScheme, Platform, SpecVersion, Variant as MaterialColorsVariant},
+    hct::Hct,
+    scheme::Scheme,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::color::color::{
-    adjust_color_lightness_dark, adjust_color_lightness_light, generate_dynamic_scheme,
-    make_custom_color, OwnCustomColor,
+    adjust_color_lightness_dark, adjust_color_lightness_light, make_custom_color, OwnCustomColor,
 };
 
 #[allow(clippy::enum_variant_names)]
@@ -110,6 +113,7 @@ pub fn get_custom_color_schemes(
     contrast: &Option<f64>,
     lightness_dark: &Option<f64>,
     lightness_light: &Option<f64>,
+    spec_version: SpecVersion,
 ) -> Result<Schemes, Report> {
     macro_rules! from_color {
         ($name: ident, $color: expr, $variant: ident) => {
@@ -139,7 +143,13 @@ pub fn get_custom_color_schemes(
             |(name, color)| match color.to_custom_color(name.to_string()) {
                 Ok(custom_color) => Some((
                     name,
-                    make_custom_color(custom_color, scheme_type, source_color, *contrast),
+                    make_custom_color(
+                        custom_color,
+                        scheme_type,
+                        source_color,
+                        *contrast,
+                        spec_version,
+                    ),
                 )),
                 Err(e) => {
                     error!("Failed to parse custom color: {}, {:?}: {}", name, color, e);
@@ -179,18 +189,23 @@ pub fn get_schemes(
     source_color: material_colors::color::Rgb,
     scheme_type: SchemeTypes,
     contrast: &Option<f64>,
+    spec_version: SpecVersion,
 ) -> (Scheme, Scheme) {
-    let scheme_dark = Scheme::from(generate_dynamic_scheme(
-        scheme_type,
-        source_color,
+    let scheme_dark = Scheme::from(DynamicScheme::from_spec(
+        Hct::new(source_color),
+        scheme_type.as_material_colors_variant().unwrap(),
         true,
         *contrast,
+        Platform::Phone,
+        spec_version,
     ));
-    let scheme_light = Scheme::from(generate_dynamic_scheme(
-        scheme_type,
-        source_color,
+    let scheme_light = Scheme::from(DynamicScheme::from_spec(
+        Hct::new(source_color),
+        scheme_type.as_material_colors_variant().unwrap(),
         false,
         *contrast,
+        Platform::Phone,
+        spec_version,
     ));
     (scheme_dark, scheme_light)
 }
@@ -204,11 +219,13 @@ mod tests {
     fn schemes_eq() {
         let source_color = material_colors::color::Rgb::new(255, 0, 0);
         assert_eq!(
-            Scheme::from(generate_dynamic_scheme(
-                SchemeTypes::default(),
-                source_color,
+            Scheme::from(DynamicScheme::from_spec(
+                Hct::new(source_color),
+                SchemeTypes::default().as_material_colors_variant().unwrap(),
                 true,
                 None,
+                Platform::Phone,
+                SpecVersion::Spec2021,
             ))
             .primary,
             Argb {

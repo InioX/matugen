@@ -7,7 +7,7 @@ extern crate plume_log;
 
 use std::path::PathBuf;
 
-use material_colors::{color::Rgb, theme::ThemeBuilder};
+use material_colors::{color::Rgb, dynamic_color::SpecVersion, theme::ThemeBuilder};
 use owo_colors::{OwoColorize, Stream::Stdout, Style};
 use serde_json::Value;
 
@@ -194,7 +194,11 @@ impl State {
                         Report::msg("Missing 'source_color' key in cached scheme")
                     })?;
 
-                    let theme = ThemeBuilder::with_source(source_color).build();
+                    let spec_version = args.spec_version.unwrap_or(SpecVersion::Spec2021);
+
+                    let theme = ThemeBuilder::with_source(source_color)
+                        .spec_version(spec_version)
+                        .build();
 
                     loaded_cache = true;
 

@@ -1,4 +1,5 @@
 use clap::{ArgAction, Parser};
+use material_colors::dynamic_color::SpecVersion;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, ops::RangeBounds, path::PathBuf};
 
@@ -142,6 +143,18 @@ pub struct Cli {
     // This will set the opacity for all colors inside templates.
     #[arg(long, global = true , value_parser = |s: &str| validate_float_range(s, 0.0..=1.0))]
     pub opacity: Option<f64>,
+
+    #[arg(long, global = true, value_parser = parse_spec)]
+    pub spec_version: Option<SpecVersion>,
+}
+
+fn parse_spec(s: &str) -> Result<SpecVersion, String> {
+    match s {
+        "2021" => Ok(SpecVersion::Spec2021),
+        "2025" => Ok(SpecVersion::Spec2025),
+        "2026" => Ok(SpecVersion::Spec2026),
+        _ => Err(String::from("Valid values are: 2021, 2025, 2026")),
+    }
 }
 
 fn validate_float_range<R>(s: &str, range: R) -> Result<f64, String>

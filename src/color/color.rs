@@ -1,5 +1,7 @@
 use dialoguer::Select;
 use material_colors::color::Rgb as Argb;
+use material_colors::dynamic_color::{Platform, SpecVersion};
+use material_colors::hct::Hct;
 use material_colors::{
     blend::harmonize,
     color::Lab,
@@ -365,23 +367,12 @@ pub fn get_source_color_from_color(color: &ColorFormat) -> Result<Argb, Report> 
     }
 }
 
-pub fn generate_dynamic_scheme(
-    scheme_type: SchemeTypes,
-    source_color: Argb,
-    is_dark: bool,
-    contrast_level: Option<f64>,
-) -> DynamicScheme {
-    let var = scheme_type
-        .as_material_colors_variant()
-        .unwrap_or(MaterialColorsVariant::TonalSpot);
-    DynamicScheme::by_variant(source_color, &var, is_dark, contrast_level)
-}
-
 pub fn make_custom_color(
     color: CustomColor,
     scheme_type: SchemeTypes,
     source_color: Argb,
     contrast_level: Option<f64>,
+    spec_version: SpecVersion,
 ) -> CustomColorGroup {
     let value = if color.blend {
         harmonize(color.value, source_color)
@@ -389,8 +380,22 @@ pub fn make_custom_color(
         color.value
     };
 
-    let light = generate_dynamic_scheme(scheme_type, value, false, contrast_level);
-    let dark = generate_dynamic_scheme(scheme_type, value, true, contrast_level);
+    let light = DynamicScheme::from_spec(
+        Hct::new(value),
+        scheme_type.as_material_colors_variant().unwrap(),
+        false,
+        contrast_level,
+        Platform::Phone,
+        spec_version,
+    );
+    let dark = DynamicScheme::from_spec(
+        Hct::new(value),
+        scheme_type.as_material_colors_variant().unwrap(),
+        true,
+        contrast_level,
+        Platform::Phone,
+        spec_version,
+    );
 
     // debug!("custom_color: {:#?}", &custom_color);
     CustomColorGroup {

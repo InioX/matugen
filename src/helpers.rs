@@ -15,6 +15,7 @@ use crate::{
     wallpaper::{self, Wallpaper},
 };
 
+use material_colors::dynamic_color::SpecVersion;
 use matugen_parser::{engine::EngineSyntax, Engine};
 
 #[allow(unused_imports)]
@@ -99,8 +100,12 @@ pub fn generate_schemes_and_theme(
 
     let (schemes, theme) = match source_color {
         Some(color) => {
-            let theme = ThemeBuilder::with_source(color).build();
-            let (scheme_dark, scheme_light) = get_schemes(color, scheme_type, &contrast);
+            let spec_version = args.spec_version.unwrap_or(SpecVersion::Spec2021);
+            let theme = ThemeBuilder::with_source(color)
+                .spec_version(spec_version)
+                .build();
+            let (scheme_dark, scheme_light) =
+                get_schemes(color, scheme_type, &contrast, spec_version);
 
             let mut schemes = get_custom_color_schemes(
                 color,
@@ -111,6 +116,7 @@ pub fn generate_schemes_and_theme(
                 &contrast,
                 &args.lightness_dark,
                 &args.lightness_light,
+                spec_version,
             )?;
 
             schemes.dark.insert("source_color".to_owned(), color);
