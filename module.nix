@@ -11,24 +11,25 @@ let
   osCfg = args.osConfig.programs.matugen or { };
 
   hexColorRegex = "#([0-9a-fA-F]{3}){1,2}";
-  hexStrippedColorRegex = "([0-9a-fA-F]{3}){1,2}";
+  # hexStrippedColorRegex = "([0-9a-fA-F]{3}){1,2}";
   rgbColorRegex = ''rgb\([0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}\)'';
-  rgbaColorRegex = ''rgba\([0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}\)'';
+  # rgbaColorRegex = ''rgba\([0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}, ?[0-9]{1,3}\)'';
   hslColorRegex = ''hsl\([0-9]{1,3}(\.[0-9]*)?, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0-9]{1,3}(\.[0-9]*)?%\)'';
-  hslaColorRegex = ''hsla\([0-9]{1,3}(\.[0-9]*)?, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0,1](\.[0-9]*)?\)'';
+  # hslaColorRegex = ''hsla\([0-9]{1,3}(\.[0-9]*)?, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0-9]{1,3}(\.[0-9]*)?%, ?[0,1](\.[0-9]*)?\)'';
 
   hexColor = lib.types.strMatching hexColorRegex;
-  hexStrippedColor = lib.types.strMatching hexStrippedColorRegex;
+  # hexStrippedColor = lib.types.strMatching hexStrippedColorRegex;
   rgbColor = lib.types.strMatching rgbColorRegex;
-  rgbaColor = lib.types.strMatching rgbaColorRegex;
+  # rgbaColor = lib.types.strMatching rgbaColorRegex;
   hslColor = lib.types.strMatching hslColorRegex;
-  hslaColor = lib.types.strMatching hslaColorRegex;
+  # hslaColor = lib.types.strMatching hslaColorRegex;
 
   sourceColorType = lib.types.oneOf [
     hexColor
     rgbColor
     hslColor
   ];
+
   customColorType = hexColor; # Only hexColor is currently supported for custom_colors.
 
   configFormat = pkgs.formats.toml { };
@@ -45,19 +46,22 @@ let
       restOfString
     ];
 
-  # don't use ~, use $HOME
-  sanitizedTemplates = builtins.mapAttrs (_: v: {
-    mode = capitalize cfg.variant;
-    input_path = v.input_path;
-    output_path = map (p: builtins.replaceStrings [ "$HOME" ] [ "~" ] p) v.output_path;
-  }) cfg.templates;
-
   matugenConfig = configFormat.generate "matugen-config.toml" {
     config = {
       custom_colors = cfg.custom_colors;
     }
-    // cfg.config;
-    templates = sanitizedTemplates;
+    // cfg.extraConfig;
+    templates = builtins.mapAttrs (
+      _: template:
+      {
+        mode = capitalize cfg.variant;
+        input_path = template.input_path;
+        # don't use ~, use $HOME
+        output_path = map (p: builtins.replaceStrings [ "$HOME" ] [ "~" ] p) template.output_path;
+      }
+      // (lib.optionalAttrs (template.pre_hook != null) { inherit (template) pre_hook; })
+      // (lib.optionalAttrs (template.post_hook != null) { inherit (template) post_hook; })
+    ) cfg.templates;
   };
 
   # get matugen package
@@ -83,12 +87,12 @@ let
     ]).code;
 
   command =
-    if (builtins.isNull cfg.source_color) then
+    if (isNull cfg.source_color) then
       "image ${cfg.wallpaper}"
     else
       "color ${sourceColorTypeMatcher cfg.source_color} \"${cfg.source_color}\"";
 
-  themePackage = builtins.trace command (
+  themePackage = (
     pkgs.runCommandLocal "matugen-themes-${cfg.variant}" { } ''
       mkdir -p $out
       cd $out
@@ -148,18 +152,20 @@ in
               example = "./style.css";
             };
             output_path = lib.mkOption {
-              type = either str (listOf str);
+              type = coercedTo str (s: [ s ]) (listOf str);
               description = "Path where the generated file will be written to";
               example = "~/.config/style.css";
               apply = lib.id;
             };
             pre_hook = lib.mkOption {
-              type = str;
+              type = nullOr str;
+              default = null;
               description = "Runs before the template is exported. You can use keywords here.";
               example = "echo source color {{colors.source_color.default.hex}}, source image {{image}}";
             };
             post_hook = lib.mkOption {
-              type = str;
+              type = nullOr str;
+              default = null;
               description = "Runs after the template is exported. You can use keywords here.";
               example = "echo after gen {{colors.primary.default.rgb}}";
             };
@@ -219,7 +225,7 @@ in
         "scheme-vibrant"
         "scheme-smart"
       ];
-      default = osCfg.palette or "scheme-tonal-spot";
+      default = osCfg.type or "scheme-tonal-spot";
       example = "scheme-content";
     };
 
@@ -277,10 +283,10 @@ in
       example = "1";
     };
 
-    config = lib.mkOption {
+    extraConfig = lib.mkOption {
       description = "Add things to the config not covered by other options.";
       type = lib.types.attrs;
-      default = osCfg.config or { };
+      default = osCfg.extraConfig or { };
       example = ''
         {
           custom_keywords.font1 = "Google Sans";
